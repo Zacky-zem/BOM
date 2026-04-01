@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import BomDetailModal from '@/components/BomDetailModal';
+import PartPriceModal from '@/components/PartPriceModal';
 import BomGabunganModal from '@/components/BomGabunganModal';
 import * as XLSX from 'xlsx';
 import { BtnPrimary, BtnGhost, ConfirmDialog, LoadingSpinner, Table, Modal } from '@/components/ui';
@@ -289,6 +290,7 @@ export default function MasterBomPage({ showToast, role }: {
   const [showUpload, setShowUpload] = useState(false);
   const [confirm, setConfirm]       = useState<string | null>(null);
   const [detailPeriode, setDetailPeriode] = useState<string | null>(null);
+  const [pricePeriode,  setPricePeriode]  = useState<string | null>(null);
   const [showGabungan, setShowGabungan]     = useState(false);
 
   const fetchData = () => {
@@ -322,6 +324,7 @@ export default function MasterBomPage({ showToast, role }: {
     <span style={{ fontSize: 12, color: '#6b7280' }}>{new Date(p.uploaded_at).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })}</span>,
     <div style={{ display: 'flex', gap: 6 }}>
       <BtnGhost onClick={() => setDetailPeriode(p.periode)} color="blue">👁 Detail</BtnGhost>
+      <BtnGhost onClick={() => setPricePeriode(p.periode)} color="teal">💰 Price</BtnGhost>
       {canDelete && <BtnGhost onClick={() => setConfirm(p.periode)} color="red">🗑 Hapus</BtnGhost>}
     </div>,
   ]);
@@ -404,6 +407,7 @@ export default function MasterBomPage({ showToast, role }: {
 
       {showUpload && <UploadModal onClose={() => setShowUpload(false)} onSuccess={fetchData} showToast={showToast} />}
       {detailPeriode && <BomDetailModal periode={detailPeriode} onClose={() => setDetailPeriode(null)} />}
+      {pricePeriode && <PartPriceModal periode={pricePeriode} role={role} onClose={() => setPricePeriode(null)} />}
       {showGabungan && <BomGabunganModal onClose={() => setShowGabungan(false)} availablePeriodes={periodes.map(p => p.periode).reverse()} />}
       {confirm && (
         <ConfirmDialog
