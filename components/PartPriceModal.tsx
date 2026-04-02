@@ -295,8 +295,8 @@ export default function PartPriceModal({ periode, role, onClose }: {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: font }}>
               <thead style={{ position: 'sticky', top: 0, zIndex: 5 }}>
                 <tr style={{ background: '#f8fafc', borderBottom: '1.5px solid #e8eaed' }}>
-                  {['No','Part No','Part Name','Unit','Supplier','Price (Rp)','Terakhir Update'].map(h => (
-                    <th key={h} style={{ padding: '10px 14px', textAlign: h === 'Price (Rp)' ? 'right' : 'left', fontSize: 10.5, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.7, whiteSpace: 'nowrap' }}>{h}</th>
+                  {['No','Part No','Part Name','Unit','Supplier','Price (USD)','Terakhir Update'].map(h => (
+                    <th key={h} style={{ padding: '10px 14px', textAlign: h === 'Price (USD)' ? 'right' : 'left', fontSize: 10.5, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.7, whiteSpace: 'nowrap' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -318,7 +318,7 @@ export default function PartPriceModal({ periode, role, onClose }: {
                       <td style={{ padding: '9px 14px', color: '#64748b', fontSize: 12 }}>{r.supplier_name || '—'}</td>
                       <td style={{ padding: '8px 14px', textAlign: 'right' }}>
                         {canEdit ? (
-                          <input type="number" min="0" step="0.01" value={priceVal} placeholder="0"
+                          <input type="number" min="0" step="0.01" value={priceVal} placeholder="0.00"
                             onChange={e => handlePriceChange(r.part_no, e.target.value)}
                             style={{
                               width: 130, padding: '6px 10px', borderRadius: 7, textAlign: 'right',
@@ -332,7 +332,7 @@ export default function PartPriceModal({ periode, role, onClose }: {
                           />
                         ) : (
                           <span style={{ fontWeight: 700, color: hasFilled ? '#15803d' : '#94a3b8' }}>
-                            {hasFilled ? `Rp ${Number(priceVal).toLocaleString('id-ID')}` : '—'}
+                            {hasFilled ? `$ ${Number(priceVal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}` : '—'}
                           </span>
                         )}
                       </td>
