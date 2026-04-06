@@ -13,7 +13,7 @@ const tokens = {
   danger:      '#dc2626',
   dangerLight: '#fef2f2',
   dangerBorder:'#fecaca',
-  success:     '#16a34a',
+  success:     '#059669',
   successLight:'#f0fdf4',
   teal:        '#0d9488',
   tealLight:   '#f0fdfa',
@@ -26,13 +26,13 @@ const tokens = {
   gray600:     '#4b5563',
   gray700:     '#374151',
   gray900:     '#111827',
-  border:      '#e8eaed',
+  border:      '#e5e7eb',
   radius:      10,
-  radiusSm:    7,
-  radiusLg:    14,
-  shadow:      '0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04)',
-  shadowMd:    '0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.04)',
-  shadowLg:    '0 20px 40px rgba(0,0,0,.12), 0 8px 16px rgba(0,0,0,.06)',
+  radiusSm:    8,
+  radiusLg:    12,
+  shadow:      '0 2px 4px rgba(0,0,0,.05)',
+  shadowMd:    '0 4px 12px rgba(0,0,0,.08)',
+  shadowLg:    '0 10px 28px rgba(0,0,0,.12)',
 };
 
 // ─── Badge ────────────────────────────────────────────────────────────────────
@@ -67,8 +67,8 @@ export function Modal({ title, onClose, children, wide }: {
         maxWidth: wide ? 780 : 520,
         maxHeight: '90vh', overflowY: 'auto',
         boxShadow: tokens.shadowLg,
-        animation: 'modalIn .2s cubic-bezier(.34,1.56,.64,1)',
-        fontFamily: font, border: '1px solid rgba(0,0,0,.06)',
+        animation: 'modalIn .25s cubic-bezier(.34,1.56,.64,1)',
+        fontFamily: font, border: `1px solid ${tokens.border}`,
       }}>
         <style>{`
           @keyframes modalIn { from { opacity:0; transform:scale(.96) translateY(8px) } to { opacity:1; transform:scale(1) translateY(0) } }
@@ -127,14 +127,14 @@ export function Input({ value, onChange, placeholder, type = 'text', disabled }:
       type={type} value={value} onChange={onChange}
       placeholder={placeholder} disabled={disabled}
       style={{
-        width: '100%', padding: '9px 12px', borderRadius: tokens.radiusSm, fontSize: 13.5,
+        width: '100%', padding: '10px 13px', borderRadius: tokens.radiusSm, fontSize: 13.5,
         border: `1.5px solid ${tokens.border}`, outline: 'none',
         background: disabled ? tokens.gray50 : '#fff',
         color: disabled ? tokens.gray400 : tokens.gray900,
         fontFamily: font, boxSizing: 'border-box',
-        transition: 'border-color .15s, box-shadow .15s',
+        transition: 'all .2s ease',
       }}
-      onFocus={e => { e.target.style.borderColor = tokens.primary; e.target.style.boxShadow = `0 0 0 3px rgba(37,99,235,.1)`; }}
+      onFocus={e => { e.target.style.borderColor = tokens.primary; e.target.style.boxShadow = `0 0 0 3px rgba(37,99,235,.08)`; e.target.style.background = '#fff'; }}
       onBlur={e =>  { e.target.style.borderColor = tokens.border; e.target.style.boxShadow = 'none'; }}
     />
   );
@@ -148,18 +148,18 @@ export function Select({ value, onChange, options }: {
 }) {
   return (
     <select value={value} onChange={onChange} style={{
-      width: '100%', padding: '9px 12px', borderRadius: tokens.radiusSm, fontSize: 13.5,
+      width: '100%', padding: '10px 13px', borderRadius: tokens.radiusSm, fontSize: 13.5,
       border: `1.5px solid ${tokens.border}`, outline: 'none',
       background: '#fff', color: tokens.gray900,
       fontFamily: font, boxSizing: 'border-box', cursor: 'pointer',
-      transition: 'border-color .15s, box-shadow .15s',
+      transition: 'all .2s ease',
       appearance: 'none',
       backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
       backgroundRepeat: 'no-repeat',
-      backgroundPosition: 'right 12px center',
-      paddingRight: 36,
+      backgroundPosition: 'right 13px center',
+      paddingRight: 38,
     }}
-    onFocus={e => { e.target.style.borderColor = tokens.primary; e.target.style.boxShadow = `0 0 0 3px rgba(37,99,235,.1)`; }}
+    onFocus={e => { e.target.style.borderColor = tokens.primary; e.target.style.boxShadow = `0 0 0 3px rgba(37,99,235,.08)`; }}
     onBlur={e =>  { e.target.style.borderColor = tokens.border; e.target.style.boxShadow = 'none'; }}
     >
       {options.map(o => <option key={o} value={o}>{o}</option>)}
@@ -173,18 +173,18 @@ export function BtnPrimary({ onClick, children, disabled }: {
 }) {
   return (
     <button onClick={onClick} disabled={disabled} style={{
-      background: disabled ? tokens.gray300 : `linear-gradient(135deg, ${tokens.primary}, #3b82f6)`,
+      background: disabled ? tokens.gray300 : tokens.primary,
       color: '#fff', border: 'none', borderRadius: tokens.radiusSm,
-      padding: '9px 20px', fontSize: 13, fontWeight: 600,
+      padding: '10px 22px', fontSize: 13.5, fontWeight: 600,
       cursor: disabled ? 'not-allowed' : 'pointer',
       fontFamily: font, whiteSpace: 'nowrap',
-      boxShadow: disabled ? 'none' : `0 2px 8px rgba(37,99,235,.28)`,
-      transition: 'opacity .15s, transform .1s, box-shadow .15s',
-      letterSpacing: 0.1,
+      boxShadow: disabled ? 'none' : `0 4px 12px rgba(37,99,235,.25)`,
+      transition: 'all .2s ease',
+      letterSpacing: 0.2,
       display: 'inline-flex', alignItems: 'center', gap: 6,
     }}
-    onMouseOver={e => { if (!disabled) { e.currentTarget.style.opacity = '.92'; e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = `0 4px 14px rgba(37,99,235,.35)`; } }}
-    onMouseOut={e  => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = disabled ? 'none' : `0 2px 8px rgba(37,99,235,.28)`; }}
+    onMouseOver={e => { if (!disabled) { e.currentTarget.style.background = tokens.primaryHover; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 6px 20px rgba(37,99,235,.32)`; } }}
+    onMouseOut={e  => { e.currentTarget.style.background = tokens.primary; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = disabled ? 'none' : `0 4px 12px rgba(37,99,235,.25)`; }}
     >{children}</button>
   );
 }
@@ -275,16 +275,21 @@ export function StatCard({ label, value, color }: { label: string; value: string
   return (
     <div style={{
       background: '#fff',
-      border: `1px solid ${tokens.border}`,
+      border: `1.5px solid ${tokens.border}`,
       borderRadius: tokens.radiusLg,
-      padding: '16px 22px',
-      minWidth: 148,
+      padding: '18px 24px',
+      minWidth: 160,
       boxShadow: tokens.shadow,
       position: 'relative', overflow: 'hidden',
-    }}>
-      <div style={{ position: 'absolute', top: 0, left: 0, width: 3, height: '100%', background: color, borderRadius: '3px 0 0 3px' }} />
-      <div style={{ fontSize: 10.5, fontWeight: 700, color: tokens.gray400, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>{label}</div>
-      <div style={{ fontSize: 26, fontWeight: 800, color, lineHeight: 1.1, letterSpacing: -0.5 }}>{value}</div>
+      transition: 'all .2s ease',
+      cursor: 'default',
+    }}
+    onMouseOver={e => { e.currentTarget.style.boxShadow = tokens.shadowMd; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.borderColor = color + '30'; }}
+    onMouseOut={e  => { e.currentTarget.style.boxShadow = tokens.shadow; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = tokens.border; }}
+    >
+      <div style={{ position: 'absolute', top: 0, left: 0, width: 4, height: '100%', background: color, borderRadius: '4px 0 0 4px' }} />
+      <div style={{ fontSize: 11, fontWeight: 700, color: tokens.gray400, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>{label}</div>
+      <div style={{ fontSize: 28, fontWeight: 800, color, lineHeight: 1.1, letterSpacing: -0.6 }}>{value}</div>
     </div>
   );
 }
@@ -295,15 +300,15 @@ export function Table({ headers, rows }: {
   rows: ReactNode[][];
 }) {
   return (
-    <div style={{ overflowX: 'auto', borderRadius: tokens.radiusLg, border: `1px solid ${tokens.border}`, background: '#fff', boxShadow: tokens.shadow }}>
+    <div style={{ overflowX: 'auto', borderRadius: tokens.radiusLg, border: `1.5px solid ${tokens.border}`, background: '#fff', boxShadow: tokens.shadow }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: font }}>
         <thead>
           <tr style={{ background: tokens.gray50, borderBottom: `1.5px solid ${tokens.border}` }}>
             {headers.map((h, i) => (
               <th key={i} style={{
-                padding: '11px 16px', textAlign: h.right ? 'right' : 'left',
-                fontSize: 10.5, fontWeight: 700, color: tokens.gray400,
-                textTransform: 'uppercase', letterSpacing: 0.8, whiteSpace: 'nowrap',
+                padding: '13px 18px', textAlign: h.right ? 'right' : 'left',
+                fontSize: 11, fontWeight: 700, color: tokens.gray500,
+                textTransform: 'uppercase', letterSpacing: 0.6, whiteSpace: 'nowrap',
               }}>
                 {h.label}
               </th>
@@ -313,20 +318,20 @@ export function Table({ headers, rows }: {
         <tbody>
           {rows.length === 0 ? (
             <tr>
-              <td colSpan={headers.length} style={{ padding: '48px 16px', textAlign: 'center', color: tokens.gray400, fontSize: 13.5 }}>
-                <div style={{ fontSize: 28, marginBottom: 8 }}>📭</div>
-                Tidak ada data ditemukan
+              <td colSpan={headers.length} style={{ padding: '52px 18px', textAlign: 'center', color: tokens.gray400, fontSize: 14 }}>
+                <div style={{ fontSize: 32, marginBottom: 10 }}>📭</div>
+                <div style={{ fontWeight: 500 }}>Tidak ada data ditemukan</div>
               </td>
             </tr>
           ) : rows.map((row, ri) => (
             <tr key={ri}
-              style={{ borderBottom: `1px solid ${tokens.gray100}`, transition: 'background .1s' }}
-              onMouseOver={e => (e.currentTarget.style.background = '#f8faff')}
+              style={{ borderBottom: `1px solid ${tokens.gray100}`, transition: 'background .15s' }}
+              onMouseOver={e => (e.currentTarget.style.background = '#f0f4f9')}
               onMouseOut={e =>  (e.currentTarget.style.background = 'transparent')}
             >
               {row.map((cell, ci) => (
                 <td key={ci} style={{
-                  padding: '12px 16px', fontSize: 13.5, color: tokens.gray700,
+                  padding: '13px 18px', fontSize: 13.5, color: tokens.gray700,
                   textAlign: headers[ci]?.right ? 'right' : 'left',
                   whiteSpace: 'nowrap', verticalAlign: 'middle',
                 }}>
@@ -360,16 +365,16 @@ export function Pagination({ total, page, perPage, onPage, onPerPage }: {
 
   const pageBtn = (label: ReactNode, onClick: () => void, disabled: boolean, active = false, key?: string | number) => (
     <button key={key} onClick={onClick} disabled={disabled} style={{
-      minWidth: 34, height: 34, borderRadius: tokens.radiusSm, border: '1.5px solid',
+      minWidth: 36, height: 36, borderRadius: tokens.radiusSm, border: '1.5px solid',
       borderColor: active ? tokens.primary : disabled ? tokens.gray200 : tokens.border,
       background: active ? tokens.primary : '#fff',
       color: active ? '#fff' : disabled ? tokens.gray300 : tokens.gray600,
       fontSize: 13, fontWeight: 600, cursor: disabled ? 'not-allowed' : 'pointer',
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
       fontFamily: font, padding: '0 6px',
-      transition: 'background .15s, border-color .15s, transform .1s',
+      transition: 'all .15s ease',
     }}
-    onMouseOver={e => { if (!disabled && !active) { e.currentTarget.style.background = tokens.primaryLight; e.currentTarget.style.borderColor = tokens.primaryBorder; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
+    onMouseOver={e => { if (!disabled && !active) { e.currentTarget.style.background = tokens.primaryLight; e.currentTarget.style.borderColor = tokens.primaryBorder; e.currentTarget.style.transform = 'translateY(-2px)'; } }}
     onMouseOut={e  => { if (!disabled && !active) { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = tokens.border; e.currentTarget.style.transform = 'translateY(0)'; } }}
     >{label}</button>
   );
