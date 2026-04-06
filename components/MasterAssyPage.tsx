@@ -192,14 +192,17 @@ export default function MasterAssyPage({ showToast, role }: {
   showToast: (msg: string, type: 'success' | 'error') => void;
   role: string;
 }) {
-  const canEdit   = role === 'PPC';     // tambah & edit
-  const canDelete = role === 'FINANCE'; // hapus
+  const canEdit         = role === 'PPC';     // tambah & edit
+  const canDelete       = role === 'FINANCE'; // hapus
+  const canToggleStatus = role === 'PPC';     // toggle status bulk
 
   const [data, setData]             = useState<Assy[]>([]);
   const [loading, setLoading]       = useState(true);
   const [modal, setModal]           = useState<null | 'add' | { editing: Assy }>(null);
-  const [selected, setSelected]       = useState<Set<number>>(new Set());
-  const [confirmBulk, setConfirmBulk] = useState(false);
+  const [selected, setSelected]           = useState<Set<number>>(new Set());
+  const [confirmBulk, setConfirmBulk]     = useState(false);
+  const [confirmToggle, setConfirmToggle] = useState(false);
+  const [togglingStatus, setTogglingStatus] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [search, setSearch]         = useState('');
   const [page, setPage]             = useState(1);
@@ -242,6 +245,27 @@ export default function MasterAssyPage({ showToast, role }: {
     } catch { showToast('Gagal menghapus data', 'error'); }
   };
 
+  const handleToggleStatus = async () => {
+    setTogglingStatus(true);
+    try {
+      const res  = await fetch('/api/assy/bulk-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: [...selected] }),
+      });
+      const data = await res.json();
+      if (!res.ok) { showToast(data.error, 'error'); return; }
+      // Update local state
+      setData(d => d.map(r => {
+        if (selected.has(r.id)) return { ...r, is_active: !r.is_active };
+        return r;
+      }));
+      showToast(data.message, 'success');
+      setSelected(new Set()); setConfirmToggle(false);
+    } catch { showToast('Gagal mengubah status', 'error'); }
+    setTogglingStatus(false);
+  };
+
   const toggleSelect  = (id: number) => setSelected(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const toggleAll     = () => setSelected(s => s.size === paginated.length ? new Set() : new Set(paginated.map(r => r.id)));
   const allChecked    = paginated.length > 0 && paginated.every(r => selected.has(r.id));
@@ -258,8 +282,9 @@ export default function MasterAssyPage({ showToast, role }: {
     return <span style={{ fontSize: 11.5, color: '#9ca3af', fontStyle: 'italic' }}>View only</span>;
   };
 
+  const showCheckbox = canDelete || canToggleStatus;
   const tableRows = paginated.map(r => [
-    ...(canDelete ? [<input type="checkbox" checked={selected.has(r.id)} onChange={() => toggleSelect(r.id)} style={{ width: 15, height: 15, cursor: 'pointer', accentColor: '#dc2626' }} />] : []),
+    ...(showCheckbox ? [<input type="checkbox" checked={selected.has(r.id)} onChange={() => toggleSelect(r.id)} style={{ width: 15, height: 15, cursor: 'pointer', accentColor: canDelete ? '#dc2626' : '#16a34a' }} />] : []),
     <span style={{ fontWeight: 700, color: '#2563eb', fontFamily: 'monospace', fontSize: 12.5 }}>{r.assy_code}</span>,
     <span style={{ color: '#64748b', fontSize: 13 }}>{r.assy_number}</span>,
     r.sequence != null ? <span style={{ background: '#eff6ff', color: '#2563eb', borderRadius: 5, padding: '2px 8px', fontSize: 11.5, fontWeight: 700 }}>{r.sequence}</span> : <span style={{ color: '#d1d5db' }}>—</span>,
@@ -316,6 +341,21 @@ export default function MasterAssyPage({ showToast, role }: {
 
       {/* Table */}
       {/* Bulk action bar */}
+      {canToggleStatus && selected.size > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', background: '#f0fdf4', border: '1.5px solid #bbf7d0', borderRadius: 10, marginBottom: 12, boxShadow: '0 2px 8px rgba(22,163,74,.08)', animation: 'fadeIn .2s ease' }}>
+          <div style={{ width: 28, height: 28, borderRadius: 7, background: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>🔄</div>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#15803d', flex: 1 }}>{selected.size} ASSY dipilih</span>
+          <button onClick={() => setConfirmToggle(true)} disabled={togglingStatus} style={{ padding: '6px 16px', borderRadius: 7, border: 'none', background: '#16a34a', color: '#fff', fontWeight: 600, fontSize: 12.5, cursor: 'pointer', fontFamily: font, boxShadow: '0 2px 6px rgba(22,163,74,.25)', transition: 'opacity .15s' }}
+            onMouseOver={e => e.currentTarget.style.opacity = '.88'}
+            onMouseOut={e  => e.currentTarget.style.opacity = '1'}
+          >🔄 Toggle Status</button>
+          <button onClick={() => setSelected(new Set())} style={{ padding: '6px 14px', borderRadius: 7, border: '1.5px solid #bbf7d0', background: '#fff', color: '#16a34a', fontWeight: 600, fontSize: 12.5, cursor: 'pointer', fontFamily: font, transition: 'background .15s' }}
+            onMouseOver={e => e.currentTarget.style.background = '#f0fdf4'}
+            onMouseOut={e  => e.currentTarget.style.background = '#fff'}
+          >Batal</button>
+        </div>
+      )}
+
       {canDelete && selected.size > 0 && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', background: '#fef2f2', border: '1.5px solid #fecaca', borderRadius: 10, marginBottom: 12, boxShadow: '0 2px 8px rgba(220,38,38,.08)', animation: 'fadeIn .2s ease' }}>
           <div style={{ width: 28, height: 28, borderRadius: 7, background: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>🗑</div>
@@ -334,7 +374,7 @@ export default function MasterAssyPage({ showToast, role }: {
       {loading ? <LoadingSpinner /> : (
         <>
           <Table headers={[
-              ...(canDelete ? [{label: <input type="checkbox" checked={allChecked} onChange={toggleAll} style={{ width: 15, height: 15, cursor: 'pointer', accentColor: '#dc2626' }} /> as unknown as string}] : []),
+              ...(showCheckbox ? [{label: <input type="checkbox" checked={allChecked} onChange={toggleAll} style={{ width: 15, height: 15, cursor: 'pointer', accentColor: canDelete ? '#dc2626' : '#16a34a' }} /> as unknown as string}] : []),
               {label:'Assy Code'},{label:'No Urut'},{label:'Seq'},{label:'Carline'},{label:'Destinasi'},{label:'Komoditi'},{label:'Deskripsi'},{label:'Status'},{label:'Aksi'}
             ]} rows={tableRows} />
           <Pagination total={filtered.length} page={page} perPage={perPage} onPage={setPage} onPerPage={setPerPage} />
@@ -343,6 +383,28 @@ export default function MasterAssyPage({ showToast, role }: {
 
       {canEdit && modal === 'add' && <Modal title="Tambah ASSY Baru" onClose={() => setModal(null)}><AssyForm onSave={handleAdd} onClose={() => setModal(null)} existingCodes={data.map(r => r.assy_code)} /></Modal>}
       {canEdit && modal && typeof modal === 'object' && 'editing' in modal && <Modal title={`Edit — ${modal.editing.assy_code}`} onClose={() => setModal(null)}><AssyForm initial={modal.editing} onSave={handleEdit} onClose={() => setModal(null)} existingCodes={data.map(r => r.assy_code)} /></Modal>}
+      {canToggleStatus && confirmToggle && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(15,23,42,.5)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{ background: '#fff', borderRadius: 14, padding: '28px 28px 22px', maxWidth: 440, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,.18)', fontFamily: font }}>
+            <div style={{ display: 'flex', gap: 14, marginBottom: 20 }}>
+              <div style={{ width: 42, height: 42, borderRadius: 10, background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>🔄</div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 15, color: '#0f172a', marginBottom: 6 }}>Toggle Status ASSY</div>
+                <p style={{ color: '#64748b', fontSize: 13.5, lineHeight: 1.6 }}>
+                  Yakin ingin mengubah status <b>{selected.size} ASSY</b> sekaligus?<br />
+                  Yang aktif akan dinonaktifkan, yang nonaktif akan diaktifkan.
+                </p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button onClick={() => setConfirmToggle(false)} style={{ padding: '8px 18px', borderRadius: 8, border: '1.5px solid #e2e8f0', background: '#fff', color: '#64748b', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: font }}>Batal</button>
+              <button onClick={handleToggleStatus} disabled={togglingStatus} style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: '#16a34a', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: font, boxShadow: '0 2px 8px rgba(22,163,74,.25)' }}>
+                {togglingStatus ? '⏳ Mengubah...' : '🔄 Ya, Toggle Status'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {canDelete && confirmBulk && <ConfirmDialog msg={`Yakin ingin menghapus ${selected.size} ASSY sekaligus? Data tidak dapat dikembalikan.`} onConfirm={handleDeleteBulk} onCancel={() => setConfirmBulk(false)} />}
 
       {canEdit && showUpload && <UploadModal onClose={() => setShowUpload(false)} onSuccess={fetchData} showToast={showToast} />}
