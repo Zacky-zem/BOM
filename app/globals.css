@@ -6,6 +6,84 @@
   padding: 0;
 }
 
+html, body, #__next {
+  width: 100%;
+  height: 100%;
+}
+
 body {
-  background-color: #f1f5f9;
+  background-color: #f8f9fa;
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+/* Responsive Sidebar Styles */
+@media (max-width: 1023px) {
+  aside {
+    display: none;
+    width: 260px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    z-index: 40;
+  }
+  
+  aside[style*="translateX(0)"] {
+    display: flex;
+  }
+}
+
+@media (min-width: 1024px) {
+  aside {
+    display: flex !important;
+    position: relative !important;
+    transform: translateX(0) !important;
+    width: 260px;
+    height: auto;
+  }
+  
+  header {
+    display: none !important;
+  }
+  
+  main {
+    margin-left: 0 !important;
+  }
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Input placeholder styling */
+input::placeholder,
+select::placeholder,
+textarea::placeholder {
+  color: #9ca3af;
+}
+
+/* Selection styling */
+::selection {
+  background-color: #bfdbfe;
+  color: #1e3a8a;
 }

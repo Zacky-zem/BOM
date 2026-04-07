@@ -8,12 +8,14 @@ import MasterAssyPage from '@/components/MasterAssyPage';
 import MasterPartPage from '@/components/MasterPartPage';
 import MasterBomPage  from '@/components/MasterBomPage';
 import ProdPlanPage   from '@/components/ProdPlanPage';
+import { Sidebar, SidebarHeader, SidebarNav, SidebarItem, SidebarUserCard, MobileMenuButton } from '@/components/ui';
 
 export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [page, setPage] = useState<'assy' | 'part' | 'bom' | 'prodplan'>('assy');
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/login');
@@ -60,90 +62,88 @@ export default function Home() {
   ] as const;
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f1f5f9', fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: '#fff', fontFamily: "'DM Sans', system-ui, sans-serif", display: 'flex', flexDirection: 'column' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         @keyframes slideUp { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:translateY(0) } }
         @keyframes spin    { to { transform: rotate(360deg) } }
         @keyframes fadeIn  { from { opacity:0; transform:scale(.98) } to { opacity:1; transform:scale(1) } }
+        
+        @media (max-width: 768px) {
+          aside { display: none; }
+          aside.sidebar-open { display: flex !important; }
+        }
+        @media (min-width: 1024px) {
+          aside { display: flex !important; transform: translateX(0) !important; position: relative !important; height: auto !important; }
+          .mobile-menu-btn { display: none !important; }
+        }
       `}</style>
 
-      {/* Navbar */}
-      <nav style={{
-        background: '#fff',
-        borderBottom: '1px solid #e8eaed',
-        padding: '0 40px', display: 'flex', alignItems: 'center',
-        position: 'sticky', top: 0, zIndex: 100, height: 58,
+      {/* Sidebar */}
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)}>
+        <SidebarHeader />
+        <SidebarNav>
+          {tabs.map(t => (
+            <SidebarItem
+              key={t.key}
+              label={t.label}
+              icon={t.icon}
+              active={page === t.key}
+              onClick={() => {
+                setPage(t.key);
+                setSidebarOpen(false);
+              }}
+            />
+          ))}
+          <div style={{ height: 8 }} />
+          <SidebarItem
+            label="Report"
+            icon="📊"
+            active={false}
+            onClick={() => {
+              router.push('/report');
+              setSidebarOpen(false);
+            }}
+          />
+        </SidebarNav>
+        <SidebarUserCard
+          userName={userName}
+          role={role}
+          onLogout={() => signOut({ callbackUrl: '/login' })}
+        />
+      </Sidebar>
+
+      {/* Header for mobile */}
+      <header style={{
+        display: 'none', alignItems: 'center', justifyContent: 'space-between',
+        background: '#fff', borderBottom: '1px solid #e8eaed',
+        padding: '12px 16px', position: 'sticky', top: 0, zIndex: 50,
         boxShadow: '0 1px 0 #e8eaed, 0 2px 8px rgba(0,0,0,.04)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginRight: 28, paddingRight: 28, borderRight: '1px solid #f1f5f9' }}>
-          <div style={{ width: 34, height: 34, borderRadius: 9, background: 'linear-gradient(135deg, #1e3a8a, #2563eb)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, boxShadow: '0 2px 10px rgba(37,99,235,.28)', flexShrink: 0 }}>📋</div>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: 14, color: '#0f172a', lineHeight: 1.2, letterSpacing: -0.3 }}>BOM Database</div>
-            <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 500, letterSpacing: 0.2 }}>Master Data System</div>
-          </div>
+        '@media (maxWidth: 1024px)': { display: 'flex' }
+      }}
+      >
+        <div style={{ fontWeight: 700, fontSize: 14, color: '#111827' }}>BOM Database</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <MobileMenuButton onClick={() => setSidebarOpen(!sidebarOpen)} />
         </div>
+      </header>
 
-        {tabs.map(t => (
-          <button key={t.key} onClick={() => setPage(t.key)} style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            padding: '0 16px', height: 60, fontSize: 13,
-            fontWeight: page === t.key ? 600 : 500,
-            color: page === t.key ? '#1d4ed8' : '#6b7280',
-            borderBottom: page === t.key ? '2px solid #1d4ed8' : '2px solid transparent',
-            fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 7,
-            transition: 'color .15s', whiteSpace: 'nowrap',
-          }}>
-            <span style={{ fontSize: 14 }}>{t.icon}</span>{t.label}
-          </button>
-        ))}
+      {/* Main Content Area */}
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        <main style={{
+          flex: 1, padding: '28px 24px', overflowY: 'auto',
+          maxWidth: '100%', margin: '0 auto',
+          background: '#f8f9fa',
+        }}>
+          {page === 'assy' && <MasterAssyPage showToast={showToast} role={role} />}
+          {page === 'part' && <MasterPartPage showToast={showToast} role={role} />}
+          {page === 'bom'  && <MasterBomPage  showToast={showToast} role={role} />}
+          {page === 'prodplan' && <ProdPlanPage showToast={showToast} role={role} />}
+        </main>
+      </div>
 
-        <Link href="/report" style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          padding: '0 16px', height: 60, fontSize: 13,
-          fontWeight: 500, color: '#6b7280',
-          borderBottom: '2px solid transparent',
-          fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 7,
-          textDecoration: 'none', transition: 'color .15s', whiteSpace: 'nowrap',
-        }}
-        onMouseOver={e => { e.currentTarget.style.color = '#1d4ed8'; }}
-        onMouseOut={e  => { e.currentTarget.style.color = '#6b7280'; }}
-        >
-          <span style={{ fontSize: 14 }}>📊</span>Report
-        </Link>
-
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', borderRadius: 8, background: roleBg[role] || '#f8fafc', border: `1px solid ${roleColor[role] || '#e2e8f0'}22` }}>
-            <div style={{ width: 26, height: 26, borderRadius: 6, background: roleColor[role] || '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 700 }}>
-              {userName.charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#111827', lineHeight: 1.2 }}>{userName}</div>
-              <div style={{ fontSize: 10, fontWeight: 600, color: roleColor[role] || '#6b7280' }}>{role}</div>
-            </div>
-          </div>
-          <button onClick={() => signOut({ callbackUrl: '/login' })} style={{
-            background: 'none', border: '1.5px solid #e2e8f0', borderRadius: 8,
-            padding: '7px 14px', fontSize: 12, fontWeight: 600, color: '#6b7280',
-            cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 6,
-            transition: 'all .15s',
-          }}
-          onMouseOver={e => { e.currentTarget.style.borderColor = '#fca5a5'; e.currentTarget.style.color = '#dc2626'; e.currentTarget.style.background = '#fef2f2'; }}
-          onMouseOut={e =>  { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = '#6b7280'; e.currentTarget.style.background = 'none'; }}
-          >
-            🚪 Logout
-          </button>
-        </div>
-      </nav>
-
-      <main style={{ padding: '28px 40px', maxWidth: 1440, margin: '0 auto' }}>
-        {page === 'assy' && <MasterAssyPage showToast={showToast} role={role} />}
-        {page === 'part' && <MasterPartPage showToast={showToast} role={role} />}
-        {page === 'bom'  && <MasterBomPage  showToast={showToast} role={role} />}
-        {page === 'prodplan' && <ProdPlanPage showToast={showToast} role={role} />}
-      </main>
-
+      {/* Toast Notification */}
       {toast && (
         <div style={{
           position: 'fixed', bottom: 28, right: 28, zIndex: 9999,

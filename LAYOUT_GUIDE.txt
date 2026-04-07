@@ -1,0 +1,422 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                                                                               ║
+║                    BOM DATABASE - LAYOUT & STRUCTURE GUIDE                    ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+DESKTOP VIEW (1024px and above)
+═══════════════════════════════════════════════════════════════════════════════════
+
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│ ║                                                                               │
+│ ║  ┌─────────────────────────┐  ┌──────────────────────────────────────────┐  │
+│ ║  │     SIDEBAR (260px)     │  │         MAIN CONTENT AREA (Flex)         │  │
+│ ║  ├─────────────────────────┤  │                                          │  │
+│ ║  │ [📋] BOM Database       │  │ Master ASSY / Part / BOM / Prod Plan    │  │
+│ ║  │ Master Data             │  │                                          │  │
+│ ║  │                         │  │ • Responsive padding (28px/24px)         │  │
+│ ║  │ ─────────────────────── │  │ • Tables & forms                         │  │
+│ ║  │ ┌ 🔩 Master ASSY      ┐ │  │ • Pagination                             │  │
+│ ║  │ │                     │ │  │ • Modals                                 │  │
+│ ║  │ ├ ⚙️ Master Part     ├─┼──┤ • All interactive elements               │  │
+│ ║  │ │                     │ │  │ • Toast notifications (fixed bottom-right)│  │
+│ ║  │ ├ 📋 Master BOM      ├─┼──┤                                          │  │
+│ ║  │ │                     │ │  │ Background: #f8f9fa (light gray)        │  │
+│ ║  │ ├ 💰 Prod Plan       ├─┼──┤ Full responsive width                    │  │
+│ ║  │ │                     │ │  │                                          │  │
+│ ║  │ ├ 📊 Report          ├─┼──┤                                          │  │
+│ ║  │ │                     │ │  │                                          │  │
+│ ║  │ ─────────────────────── │  │                                          │  │
+│ ║  │ ┌─────────────────────┐ │  │                                          │  │
+│ ║  │ │ [A] John Doe        │ │  │                                          │  │
+│ ║  │ │     MPC             │ │  │                                          │  │
+│ ║  │ ├─────────────────────┤ │  │                                          │  │
+│ ║  │ │ 🚪 Logout           │ │  │                                          │  │
+│ ║  │ └─────────────────────┘ │  │                                          │  │
+│ ║  └─────────────────────────┘  └──────────────────────────────────────────┘  │
+│ ║                                                                               │
+└──────────────────────────────────────────────────────────────────────────────────┘
+
+FEATURES:
+  ✓ Sidebar always visible (position: relative)
+  ✓ Width: 260px fixed
+  ✓ Navigation items dengan icon + label
+  ✓ Active item: blue background + left border
+  ✓ Hover effect pada items
+  ✓ User card at bottom dengan logout button
+  ✓ Main content takes remaining space (flex: 1)
+  ✓ Full height layout
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+TABLET VIEW (768px - 1023px)
+═══════════════════════════════════════════════════════════════════════════════════
+
+STATE 1: SIDEBAR CLOSED
+┌──────────────────────────────────────────────────────────────────────────┐
+│ [☰] BOM Database                                    [A] John Doe [MPC]  │ ← Header
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│              MAIN CONTENT AREA (Full width when sidebar closed)          │
+│                                                                          │
+│              Master ASSY / Part / BOM / Prod Plan                        │
+│                                                                          │
+│              • Responsive padding                                        │
+│              • Full width available                                      │
+│              • Tables with scroll                                        │
+│              • Modal overlays                                            │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+STATE 2: SIDEBAR OPEN
+┌──────────────────────────────────────────────────────────────────────────┐
+│◄─ SIDEBAR (260px) ─►                    CONTENT (If visible)            │
+├──────────────────────────────────────────────────────────────────────────┤
+│ ┌───────────────┐ ◄──────────────────────────────────────────────────┐  │
+│ │ [📋] BOM DB  │ │  Dark Overlay (50% opacity, clickable to close)  │  │
+│ │              │ │                                                   │  │
+│ │ ──────────── │ │  SIDEBAR CONTENT:                                 │  │
+│ │ 🔩 ASSY     │ │  • Navigation items                               │  │
+│ │ ⚙️ PART     │ │  • User card                                      │  │
+│ │ 📋 BOM      │ │  • Logout button                                  │  │
+│ │ 💰 PROD PLN │ │                                                   │  │
+│ │ 📊 REPORT   │ │  Smooth slide from left with overlay              │  │
+│ │ ──────────── │ │                                                   │  │
+│ │ [A] John     │ │  Tap overlay or back button to close             │  │
+│ │ [🚪 Logout]  │ │                                                   │  │
+│ └───────────────┘ ◄──────────────────────────────────────────────────┘  │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+FEATURES:
+  ✓ Header always visible (mobile style)
+  ✓ Hamburger menu (☰) to toggle sidebar
+  ✓ Sidebar: position: fixed, width: 260px
+  ✓ Smooth transform animation (.3s ease-out)
+  ✓ Dark overlay backdrop (rgba(0,0,0,.5))
+  ✓ Tap overlay to close sidebar
+  ✓ Content below overlay (clickable when sidebar closed)
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+MOBILE VIEW (< 768px)
+═══════════════════════════════════════════════════════════════════════════════════
+
+STATE 1: SIDEBAR CLOSED (Default)
+┌────────────────────────────────────────┐
+│ [☰] BOM Database        [A] John [MPC]│ ← Header (sticky, 56px)
+├────────────────────────────────────────┤
+│                                        │
+│      MAIN CONTENT AREA (Full width)    │
+│                                        │
+│   Master ASSY / Part / BOM / Prod Pln  │
+│                                        │
+│   • Mobile-optimized padding (24px)    │
+│   • Single column layout                │
+│   • Tables with horizontal scroll       │
+│   • Full-screen modals                  │
+│   • Touch-friendly buttons              │
+│                                        │
+│                                        │
+└────────────────────────────────────────┘
+
+STATE 2: SIDEBAR OPEN (After tap hamburger menu)
+┌────────────────────────────────────────┐
+│ ┌────────────────────────────────────┐ │
+│ │ [📋] BOM Database                  │ │
+│ │                                    │ │ ◄─ Sidebar
+│ │ ──────────────────────────────────│ │
+│ │ 🔩 Master ASSY                     │ │
+│ │ ⚙️ Master Part                     │ │
+│ │ 📋 Master BOM                      │ │
+│ │ 💰 Production Plan                 │ │
+│ │ 📊 Report                          │ │
+│ │                                    │ │
+│ │ ──────────────────────────────────│ │
+│ │ [A] John Doe                       │ │
+│ │ MPC                                │ │
+│ │ ──────────────────────────────────│ │
+│ │ 🚪 Logout                          │ │
+│ │                                    │ │
+│ └────────────────────────────────────┘ │
+│ ◄───────────► (Dark overlay - tap to close)
+│                                        │
+└────────────────────────────────────────┘
+
+FEATURES:
+  ✓ Header always visible (56px height)
+  ✓ Hamburger menu (☰) for navigation
+  ✓ Sidebar: position: fixed, width: 260px (80% of viewport max)
+  ✓ Sidebar slides from left
+  ✓ Full-screen dark overlay backdrop
+  ✓ Touch-friendly tap areas
+  ✓ Tap overlay or back gesture to close
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+RESPONSIVE BREAKPOINTS & BEHAVIOR
+═══════════════════════════════════════════════════════════════════════════════════
+
+BREAKPOINT 1: max-width 1023px (Mobile & Tablet)
+┌─────────────────────────────────────────────────────┐
+│ LAYOUT BEHAVIOR:                                    │
+│ • Sidebar: position: fixed (hidden by default)      │
+│ • Header: display: flex (always visible)            │
+│ • Main: full width (100% - no sidebar space)        │
+│ • Hamburger: visible & functional                   │
+│ • Overlay: shows when sidebar open                  │
+│ • Transition: smooth .3s ease-out                   │
+│                                                     │
+│ CSS: @media (max-width: 1023px) { ... }             │
+└─────────────────────────────────────────────────────┘
+
+BREAKPOINT 2: min-width 1024px (Desktop)
+┌─────────────────────────────────────────────────────┐
+│ LAYOUT BEHAVIOR:                                    │
+│ • Sidebar: position: relative (always visible)      │
+│ • Header: display: none (hidden)                    │
+│ • Sidebar width: 260px fixed                        │
+│ • Main: flex: 1 (takes remaining space)             │
+│ • Hamburger: hidden                                 │
+│ • No overlay needed                                 │
+│ • Sticky layout (no transform)                      │
+│                                                     │
+│ CSS: @media (min-width: 1024px) { ... }             │
+└─────────────────────────────────────────────────────┘
+
+PADDING & SPACING
+┌─────────────────────────────────────────────────────┐
+│ DESKTOP (1024px+):     MOBILE/TABLET (<1024px):     │
+│ • Main padding: 28px   • Main padding: 24px         │
+│ • Item padding: 10px   • Item padding: 10px         │
+│ • Gap between items: 4px                            │
+│ • Header height: n/a   • Header height: 56px        │
+│ • Sidebar width: 260px • Sidebar width: 260px       │
+│                                                     │
+│ Consistent spacing untuk visual harmony             │
+└─────────────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+COLOR SCHEME & VISUAL HIERARCHY
+═══════════════════════════════════════════════════════════════════════════════════
+
+BACKGROUND COLORS:
+  ┌────────────────────────────────────────┐
+  │ Outer Container: #fff (Pure white)    │
+  │ Sidebar: #fff (Pure white)             │
+  │ Main Content: #f8f9fa (Light gray)    │
+  │ Headers: #fff (White)                  │
+  │ Tables: #fff (White)                   │
+  │ Modals: #fff (White)                   │
+  │ Hover states: #f9fafb (Very light)    │
+  └────────────────────────────────────────┘
+
+TEXT COLORS:
+  ┌────────────────────────────────────────┐
+  │ Primary text: #111827 (Dark gray)     │
+  │ Secondary text: #6b7280 (Medium gray) │
+  │ Disabled text: #9ca3af (Light gray)   │
+  │ Links/Active: #2563eb (Blue)          │
+  │ Error text: #dc2626 (Red)             │
+  │ Success text: #16a34a (Green)         │
+  └────────────────────────────────────────┘
+
+ACCENT COLORS:
+  ┌────────────────────────────────────────┐
+  │ Primary: #2563eb (Blue) - Default      │
+  │ Danger: #dc2626 (Red) - Delete         │
+  │ Success: #16a34a (Green) - Created     │
+  │ Warning: #d97706 (Orange) - Caution    │
+  │ Info: #0d9488 (Teal) - Information     │
+  └────────────────────────────────────────┘
+
+BORDER & SHADOW:
+  ┌────────────────────────────────────────┐
+  │ Border color: #e8eaed (Light gray)    │
+  │ Light shadow: 0 1px 3px rgba(0,0,0...)│
+  │ Medium shadow: 0 4px 12px rgba(0,0..)  │
+  │ Focus glow: 0 0 0 3px rgba(37,99,235..)│
+  └────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+INTERACTIVE ELEMENTS & STATES
+═══════════════════════════════════════════════════════════════════════════════════
+
+SIDEBAR ITEM STATES:
+┌────────────────────────────────────────────────────────────┐
+│ INACTIVE (Default):                                        │
+│ ┌──────────────────────────────────────┐                  │
+│ │ 🔩 Master ASSY      [Empty space]    │                  │
+│ └──────────────────────────────────────┘                  │
+│ Background: transparent                                    │
+│ Text color: #4b5563 (gray)                                 │
+│ Border: transparent                                        │
+│                                                            │
+│ INACTIVE HOVER:                                            │
+│ ┌──────────────────────────────────────┐                  │
+│ │ 🔩 Master ASSY      [Empty space]    │                  │
+│ └──────────────────────────────────────┘                  │
+│ Background: #f9fafb (very light gray)                     │
+│ Text color: #111827 (dark)                                 │
+│ Border: transparent                                        │
+│                                                            │
+│ ACTIVE:                                                    │
+│ ┌──────────────────────────────────────┐                  │
+│ │ 🔩 Master ASSY      ▌   [Blue bar]   │ ◄ Right indicator│
+│ └──────────────────────────────────────┘                  │
+│ Background: #eff6ff (light blue)                           │
+│ Text color: #2563eb (blue)                                 │
+│ Border: 1.5px solid #2563eb (blue)                         │
+│ Left indicator: 2px solid #2563eb                          │
+│                                                            │
+│ TRANSITIONS:                                               │
+│ • All changes: .2s smooth transition                       │
+│ • Hover lift: translateY(-1px)                             │
+│ • Color change: .15s transition                            │
+└────────────────────────────────────────────────────────────┘
+
+USER CARD STATES:
+┌────────────────────────────────────────────────────────────┐
+│ DEFAULT:                                                   │
+│ ┌────────────────────────────────────┐                    │
+│ │ [J] John Doe                       │                    │
+│ │     MPC                            │                    │
+│ ├────────────────────────────────────┤                    │
+│ │ 🚪 Logout                          │                    │
+│ └────────────────────────────────────┘                    │
+│ Card background: role-based (#eff6ff for MPC)             │
+│ Button border: #e8eaed (light)                             │
+│ Button text: #4b5563 (gray)                                │
+│                                                            │
+│ LOGOUT BUTTON HOVER:                                       │
+│ ┌────────────────────────────────────┐                    │
+│ │ [J] John Doe                       │                    │
+│ │     MPC                            │                    │
+│ ├────────────────────────────────────┤                    │
+│ │ 🚪 Logout                          │ ← Red highlight    │
+│ └────────────────────────────────────┘                    │
+│ Button border: #fca5a5 (light red)                         │
+│ Button text: #dc2626 (red)                                 │
+│ Button background: #fef2f2 (light red)                     │
+│ Transition: .15s                                           │
+└────────────────────────────────────────────────────────────┘
+
+BUTTONS & FORMS:
+┌────────────────────────────────────────────────────────────┐
+│ INPUT FOCUS:                                               │
+│ Default: 1.5px solid #e8eaed                               │
+│ Focus: 1.5px solid #2563eb + 0 0 0 3px rgba(37,99,235..)  │
+│                                                            │
+│ PRIMARY BUTTON:                                            │
+│ Default: linear-gradient(135deg, #2563eb, #3b82f6)        │
+│ Hover: opacity .92 + shadow                                │
+│ Active: no lift                                            │
+│                                                            │
+│ GHOST BUTTON:                                              │
+│ Default: white background + colored border                 │
+│ Hover: colored background + darker border                  │
+│ Disabled: gray appearance                                  │
+└────────────────────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+ANIMATIONS & TRANSITIONS
+═══════════════════════════════════════════════════════════════════════════════════
+
+SIDEBAR ANIMATION:
+  Transform: translateX(-100%) to translateX(0)
+  Duration: 300ms (.3s)
+  Easing: ease-out
+  Cubic: cubic-bezier(0.34, 1.56, 0.64, 1) - optional
+  GPU Acceleration: ✓ (transform property)
+
+ITEM HOVER:
+  Background: .15s transition
+  Color: .15s transition
+  Border: .15s transition
+  Transform: .1s transition
+  Result: smooth color + position change
+
+BUTTON INTERACTIONS:
+  Opacity: .15s
+  Transform: .1s
+  Shadow: .15s
+  Easing: linear
+  Result: smooth fade + lift effect
+
+MODAL POPUP:
+  Opacity: 0 → 1 (.2s)
+  Scale: .96 → 1
+  Transform: translateY(8px) → translateY(0)
+  Easing: cubic-bezier(.34, 1.56, .64, 1)
+  Backdrop: blur(8px)
+
+SCROLLING:
+  html { scroll-behavior: smooth; }
+  Duration: browser default (300-500ms)
+  Easing: ease-in-out
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+ACCESSIBILITY & TOUCH TARGETS
+═══════════════════════════════════════════════════════════════════════════════════
+
+TOUCH TARGETS (Mobile):
+  ┌─────────────────────────────────────┐
+  │ Minimum size: 44x44px (Apple)       │
+  │ Recommended: 48x48px                │
+  │                                     │
+  │ Sidebar items: 40px height          │
+  │ Hamburger: 40x40px                  │
+  │ Buttons: 40px+ height               │
+  │ Inputs: 44px minimum                │
+  │                                     │
+  │ Spacing: 8-16px between targets     │
+  └─────────────────────────────────────┘
+
+KEYBOARD NAVIGATION:
+  • Tab → Navigate buttons
+  • Space/Enter → Activate buttons
+  • Esc → Close modals/sidebar
+  • Arrow keys → Navigate items
+
+COLOR CONTRAST:
+  • Text on white: WCAG AA compliant
+  • Text on gray: WCAG AA compliant
+  • Interactive elements: ≥4.5:1 ratio
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+Z-INDEX HIERARCHY
+═══════════════════════════════════════════════════════════════════════════════════
+
+z-index 9999:  Toast notifications (top-most)
+z-index 1000:  Modals & modal backdrops
+z-index 100:   Sticky headers (initial z-index)
+z-index 50:    Main layout
+z-index 40:    Sidebar
+z-index 30:    Sidebar overlay backdrop
+z-index 0:     Default elements
+
+Visual Stacking (from back to front):
+  Page background (#f8f9fa)
+    ↓
+  Main content area
+    ↓
+  Sidebar (desktop) / Overlay backdrop (mobile)
+    ↓
+  Modals (if any)
+    ↓
+  Toast notifications
+
+
+═══════════════════════════════════════════════════════════════════════════════════
+
+                            Layout Design Complete!
+                  All components, spacing, and interactions documented.
+
+═══════════════════════════════════════════════════════════════════════════════════
