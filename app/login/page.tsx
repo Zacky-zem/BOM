@@ -57,9 +57,8 @@ export default function LoginPage() {
         <div style={{ position: 'absolute', top: '40%', right: -40, width: 180, height: 180, borderRadius: '50%', background: 'rgba(255,255,255,.03)' }} />
 
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 60 }}>
-            <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(255,255,255,.15)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, border: '1px solid rgba(255,255,255,.2)' }}>📋</div>
-            <span style={{ color: '#fff', fontWeight: 700, fontSize: 18, letterSpacing: -0.3 }}>BOM Database</span>
+          <div style={{ marginBottom: 60 }}>
+            <img src="/yazaki-logo.png" alt="YAZAKI Logo" style={{ height: 42, objectFit: 'contain' }} />
           </div>
 
           <h1 style={{ color: '#fff', fontSize: 38, fontWeight: 800, lineHeight: 1.2, letterSpacing: -1, marginBottom: 16 }}>

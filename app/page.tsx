@@ -123,7 +123,7 @@ export default function Home() {
         '@media (maxWidth: 1024px)': { display: 'flex' }
       }}
       >
-        <div style={{ fontWeight: 700, fontSize: 14, color: '#111827' }}>BOM Database</div>
+        <img src="/yazaki-logo.png" alt="YAZAKI Logo" style={{ height: 32, objectFit: 'contain' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <MobileMenuButton onClick={() => setSidebarOpen(!sidebarOpen)} />
         </div>
