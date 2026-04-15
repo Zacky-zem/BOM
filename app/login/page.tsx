@@ -94,12 +94,8 @@ export default function LoginPage() {
       }}>
         <div style={{ width: '100%', animation: 'fadeUp .4s ease' }}>
           {/* Logo mobile */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 40 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg, #1d4ed8, #3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 4px 12px rgba(37,99,235,.3)' }}>📋</div>
-            <div>
-              <div style={{ fontWeight: 800, fontSize: 16, color: '#111827', letterSpacing: -0.3 }}>BOM Database</div>
-              <div style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500 }}>Master Data Input System</div>
-            </div>
+          <div style={{ marginBottom: 40 }}>
+            <img src="/yazaki-logo.png" alt="YAZAKI Logo" style={{ height: 38, objectFit: 'contain' }} />
           </div>
 
           <h2 style={{ fontSize: 26, fontWeight: 800, color: '#111827', marginBottom: 6, letterSpacing: -0.5 }}>Selamat Datang</h2>
