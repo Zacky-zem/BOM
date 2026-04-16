@@ -150,6 +150,22 @@ function ReportContent() {
   const totalParts  = currentData?.total_parts  ?? 0;
   const totalPages  = Math.ceil(totalParts / LIMIT) || 1;
 
+  // Build multi-period prodQtyMap for gabungan mode
+  const multiPeriodProdQtyMap = (() => {
+    if (mode !== 'gabungan') return {};
+    const map: Record<string, Record<string, number>> = {};
+    for (const per of periodes) {
+      const perData = results[per];
+      if (!perData) continue;
+      const perProdMap = perData.prod_qty_map ?? {};
+      for (const assy of assyCodes) {
+        if (!map[assy]) map[assy] = {};
+        map[assy][per] = perProdMap[assy] ?? 0;
+      }
+    }
+    return map;
+  })();
+
   const calcTotalUsage = (part_no: string) => {
     let sum = 0;
     for (const assy of assyCodes) {
@@ -401,11 +417,14 @@ function ReportContent() {
                     <td style={{ background: '#0f172a', borderRight: '2px solid #475569' }} />
                     {mode === 'gabungan' ? (
                       assyCodes.flatMap(a => 
-                        periodes.map(p => (
-                          <td key={`${a}-${p}`} style={{ padding: '6px 8px', textAlign: 'center', fontWeight: 700, fontSize: 11, color: (prodQtyMap[a] ?? 0) > 0 ? '#fbbf24' : '#475569', borderRight: '1px solid #1e293b' }}>
-                            {(prodQtyMap[a] ?? 0) > 0 ? Number(prodQtyMap[a]).toLocaleString() : '—'}
-                          </td>
-                        ))
+                        periodes.map(p => {
+                          const val = multiPeriodProdQtyMap[a]?.[p] ?? 0;
+                          return (
+                            <td key={`${a}-${p}`} style={{ padding: '6px 8px', textAlign: 'center', fontWeight: 700, fontSize: 11, color: val > 0 ? '#fbbf24' : '#475569', borderRight: '1px solid #1e293b' }}>
+                              {val > 0 ? Number(val).toLocaleString() : '—'}
+                            </td>
+                          );
+                        })
                       )
                     ) : (
                       assyCodes.map(a => (
