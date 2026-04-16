@@ -126,6 +126,8 @@ export default function BomGabunganModal({ onClose, availablePeriodes }: {
     const [sY,sM] = sampai.split('-').map(Number);
     return (sY - dY) * 12 + (sM - dM) + 1;
   })();
+  const isExceedsMax = jumlahBulan > 12;
+  const maxBulanReached = jumlahBulan === 12;
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', background: 'rgba(0,0,0,.45)', padding: '20px 16px', overflowY: 'auto' }}>
@@ -148,12 +150,12 @@ export default function BomGabunganModal({ onClose, availablePeriodes }: {
               <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 {idx === 1 && <span style={{ color: '#9ca3af', fontSize: 16 }}>→</span>}
                 <span style={{ fontSize: 12.5, color: '#374151', fontWeight: 500 }}>{item.label}:</span>
-                <select value={item.val} onChange={e => item.set(e.target.value)} style={{ padding: '7px 12px', borderRadius: 8, border: '1.5px solid #e2e8f0', fontSize: 13, fontFamily: font, background: '#fff', cursor: 'pointer' }}>
+                <select value={item.val} onChange={e => item.set(e.target.value)} style={{ padding: '7px 12px', borderRadius: 8, border: `1.5px solid ${isExceedsMax ? '#ef4444' : '#e2e8f0'}`, fontSize: 13, fontFamily: font, background: '#fff', cursor: 'pointer' }}>
                   {safePeriodes.map(p => <option key={p} value={p}>{MONTHS[Number(p.split('-')[1])-1]} {p.split('-')[0]}</option>)}
                 </select>
               </div>
             ))}
-            <button onClick={handleLoad} style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#1d4ed8,#3b82f6)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: font, boxShadow: '0 2px 8px rgba(59,130,246,.3)' }}>
+            <button onClick={handleLoad} disabled={isExceedsMax} style={{ padding: '8px 20px', borderRadius: 8, border: 'none', background: isExceedsMax ? '#d1d5db' : 'linear-gradient(135deg,#1d4ed8,#3b82f6)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: isExceedsMax ? 'not-allowed' : 'pointer', fontFamily: font, boxShadow: isExceedsMax ? 'none' : '0 2px 8px rgba(59,130,246,.3)' }}>
               🔍 Tampilkan
             </button>
             {hasLoaded && (
@@ -162,6 +164,11 @@ export default function BomGabunganModal({ onClose, availablePeriodes }: {
               </div>
             )}
           </div>
+          {isExceedsMax && (
+            <div style={{ marginTop: 12, padding: '12px 14px', borderRadius: 8, background: '#fef2f2', border: '1px solid #fecaca', fontSize: 13, color: '#991b1b', fontWeight: 500 }}>
+              ⚠️ Maksimal 12 bulan untuk dibandingkan. Anda memilih {jumlahBulan} bulan.
+            </div>
+          )}
         </div>
 
         {/* Tabs + Search */}
