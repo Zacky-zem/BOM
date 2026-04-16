@@ -292,14 +292,7 @@ function ReportContent() {
           </div>
         </div>
 
-        {/* Mode gabungan info */}
-        {hasLoaded && mode === 'gabungan' && periodes.length > 0 && (
-          <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, padding: '7px 14px', fontSize: 12.5, color: '#1d4ed8', fontWeight: 600 }}>
-              Menampilkan: {periodes.map(p => fmtPeriode(p)).join(' · ')} ({periodes.length} bulan)
-            </div>
-          </div>
-        )}
+
         
         {/* Periode tabs (mode single hanya) */}
         {hasLoaded && mode === 'single' && periodes.length > 1 && (
@@ -342,7 +335,9 @@ function ReportContent() {
               <span style={{ fontSize: 12.5, color: '#6b7280' }}>
                 <b style={{ color: '#111827' }}>{totalParts.toLocaleString()}</b> part ·
                 <b style={{ color: '#111827' }}> {assyCodes.length}</b> ASSY ·
-                Periode: <b style={{ color: '#1d4ed8' }}>{fmtPeriode(activePer)}</b>
+                Periode: <b style={{ color: '#1d4ed8' }}>
+                  {mode === 'gabungan' ? `${periodes.map(p => fmtPeriode(p)).join(' · ')} (${periodes.length} bulan)` : fmtPeriode(activePer)}
+                </b>
               </span>
               {!Object.values(prodQtyMap).some(v => v > 0) && (
                 <span style={{ background: '#fef9c3', color: '#854d0e', borderRadius: 6, padding: '4px 10px', fontSize: 11.5, fontWeight: 600 }}>
@@ -362,11 +357,21 @@ function ReportContent() {
                     <th style={{ padding: '9px 12px', color: '#cbd5e1', fontWeight: 600, fontSize: 10, background: '#1e3a5f', borderRight: '1px solid #334155', minWidth: 110 }}>SUPPLIER</th>
                     <th style={{ padding: '9px 12px', color: '#cbd5e1', fontWeight: 600, fontSize: 10, background: '#1e3a5f', borderRight: '1px solid #334155', minWidth: 150 }}>PART NAME</th>
                     <th style={{ padding: '9px 12px', color: '#cbd5e1', fontWeight: 600, fontSize: 10, textAlign: 'center', background: '#1e3a5f', borderRight: '2px solid #475569', minWidth: 55 }}>UNIT</th>
-                    {assyCodes.map(a => (
-                      <th key={a} style={{ padding: '6px 8px', color: '#93c5fd', fontWeight: 600, fontSize: 9.5, textAlign: 'center', borderRight: '1px solid #334155', minWidth: 72 }} title={a}>
-                        {a.length > 13 ? a.slice(0,12)+'…' : a}
-                      </th>
-                    ))}
+                    {mode === 'gabungan' ? (
+                      assyCodes.flatMap(a => 
+                        periodes.map(p => (
+                          <th key={`${a}-${p}`} style={{ padding: '6px 8px', color: '#93c5fd', fontWeight: 600, fontSize: 9.5, textAlign: 'center', borderRight: '1px solid #334155', minWidth: 100 }} title={a}>
+                            {a}
+                          </th>
+                        ))
+                      )
+                    ) : (
+                      assyCodes.map(a => (
+                        <th key={a} style={{ padding: '6px 8px', color: '#93c5fd', fontWeight: 600, fontSize: 9.5, textAlign: 'center', borderRight: '1px solid #334155', minWidth: 100 }} title={a}>
+                          {a}
+                        </th>
+                      ))
+                    )}
                     <th style={{ padding: '9px 10px', color: '#fbbf24', fontWeight: 700, fontSize: 10, textAlign: 'right', borderLeft: '2px solid #f59e0b', minWidth: 72, background: '#1c2d1e', position: 'sticky', right: 90 }}>TOTAL</th>
                     <th style={{ padding: '9px 10px', color: '#4ade80', fontWeight: 700, fontSize: 10, textAlign: 'right', borderLeft: '2px solid #16a34a', minWidth: 90, background: '#1c2d1e', position: 'sticky', right: 0 }}>TOTAL USAGE</th>
                   </tr>
@@ -378,15 +383,13 @@ function ReportContent() {
                       <td style={{ background: '#1a2f3f', borderRight: '1px solid #334155' }} />
                       <td style={{ background: '#1a2f3f', borderRight: '1px solid #334155' }} />
                       <td style={{ background: '#1a2f3f', borderRight: '2px solid #475569' }} />
-                      {assyCodes.map(a => (
-                        <td key={a} style={{ padding: '4px 8px', textAlign: 'center', fontWeight: 500, fontSize: 9, color: '#94a3b8', borderRight: '1px solid #334155', background: '#1a2f3f' }}>
-                          {periodes.map(p => {
-                            const [y, m] = p.split('-').map(Number);
-                            const month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][m-1];
-                            return <div key={p}>{month} {y}</div>;
-                          }).slice(0, 3)}
-                        </td>
-                      ))}
+                      {assyCodes.flatMap(a => 
+                        periodes.map(p => {
+                          const [y, m] = p.split('-').map(Number);
+                          const month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][m-1];
+                          return <td key={`${a}-${p}`} style={{ padding: '4px 8px', textAlign: 'center', fontWeight: 500, fontSize: 9, color: '#94a3b8', borderRight: '1px solid #334155', background: '#1a2f3f', minWidth: 60 }}>{month} {y}</td>;
+                        })
+                      )}
                       <td style={{ borderLeft: '2px solid #f59e0b', background: '#1a2f3f', position: 'sticky', right: 90 }} />
                       <td style={{ borderLeft: '2px solid #16a34a', background: '#1a2f3f', position: 'sticky', right: 0 }} />
                     </tr>
@@ -398,11 +401,21 @@ function ReportContent() {
                     <td style={{ background: '#0f172a', borderRight: '1px solid #1e293b' }} />
                     <td style={{ background: '#0f172a', borderRight: '1px solid #1e293b' }} />
                     <td style={{ background: '#0f172a', borderRight: '2px solid #475569' }} />
-                    {assyCodes.map(a => (
-                      <td key={a} style={{ padding: '6px 8px', textAlign: 'center', fontWeight: 700, fontSize: 11, color: (prodQtyMap[a] ?? 0) > 0 ? '#fbbf24' : '#475569', borderRight: '1px solid #1e293b' }}>
-                        {(prodQtyMap[a] ?? 0) > 0 ? Number(prodQtyMap[a]).toLocaleString() : '—'}
-                      </td>
-                    ))}
+                    {mode === 'gabungan' ? (
+                      assyCodes.flatMap(a => 
+                        periodes.map(p => (
+                          <td key={`${a}-${p}`} style={{ padding: '6px 8px', textAlign: 'center', fontWeight: 700, fontSize: 11, color: (prodQtyMap[a] ?? 0) > 0 ? '#fbbf24' : '#475569', borderRight: '1px solid #1e293b' }}>
+                            {(prodQtyMap[a] ?? 0) > 0 ? Number(prodQtyMap[a]).toLocaleString() : '—'}
+                          </td>
+                        ))
+                      )
+                    ) : (
+                      assyCodes.map(a => (
+                        <td key={a} style={{ padding: '6px 8px', textAlign: 'center', fontWeight: 700, fontSize: 11, color: (prodQtyMap[a] ?? 0) > 0 ? '#fbbf24' : '#475569', borderRight: '1px solid #1e293b' }}>
+                          {(prodQtyMap[a] ?? 0) > 0 ? Number(prodQtyMap[a]).toLocaleString() : '—'}
+                        </td>
+                      ))
+                    )}
                     <td style={{ borderLeft: '2px solid #f59e0b', background: '#0f172a', position: 'sticky', right: 90 }} />
                     <td style={{ borderLeft: '2px solid #16a34a', background: '#0f172a', position: 'sticky', right: 0 }} />
                   </tr>
