@@ -370,7 +370,28 @@ function ReportContent() {
                     <th style={{ padding: '9px 10px', color: '#fbbf24', fontWeight: 700, fontSize: 10, textAlign: 'right', borderLeft: '2px solid #f59e0b', minWidth: 72, background: '#1c2d1e', position: 'sticky', right: 90 }}>TOTAL</th>
                     <th style={{ padding: '9px 10px', color: '#4ade80', fontWeight: 700, fontSize: 10, textAlign: 'right', borderLeft: '2px solid #16a34a', minWidth: 90, background: '#1c2d1e', position: 'sticky', right: 0 }}>TOTAL USAGE</th>
                   </tr>
-                  {/* Row 2: Prod Qty */}
+                  {/* Row 2: Period header (mode gabungan only) */}
+                  {mode === 'gabungan' && periodes.length > 0 && (
+                    <tr style={{ background: '#1a2f3f' }}>
+                      <td style={{ background: '#1a2f3f', borderRight: '1px solid #334155' }} />
+                      <td style={{ background: '#1a2f3f', borderRight: '1px solid #334155' }} />
+                      <td style={{ background: '#1a2f3f', borderRight: '1px solid #334155' }} />
+                      <td style={{ background: '#1a2f3f', borderRight: '1px solid #334155' }} />
+                      <td style={{ background: '#1a2f3f', borderRight: '2px solid #475569' }} />
+                      {assyCodes.map(a => (
+                        <td key={a} style={{ padding: '4px 8px', textAlign: 'center', fontWeight: 500, fontSize: 9, color: '#94a3b8', borderRight: '1px solid #334155', background: '#1a2f3f' }}>
+                          {periodes.map(p => {
+                            const [y, m] = p.split('-').map(Number);
+                            const month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][m-1];
+                            return <div key={p}>{month} {y}</div>;
+                          }).slice(0, 3)}
+                        </td>
+                      ))}
+                      <td style={{ borderLeft: '2px solid #f59e0b', background: '#1a2f3f', position: 'sticky', right: 90 }} />
+                      <td style={{ borderLeft: '2px solid #16a34a', background: '#1a2f3f', position: 'sticky', right: 0 }} />
+                    </tr>
+                  )}
+                  {/* Row 3: Prod Qty */}
                   <tr style={{ background: '#0f172a' }}>
                     <td style={{ padding: '6px 12px', color: '#f59e0b', fontWeight: 700, fontSize: 10.5, position: 'sticky', left: 0, background: '#0f172a', zIndex: 11, borderRight: '1px solid #1e293b' }}>PROD QTY →</td>
                     <td style={{ background: '#0f172a', borderRight: '1px solid #1e293b' }} />
