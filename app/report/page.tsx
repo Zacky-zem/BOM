@@ -358,13 +358,11 @@ function ReportContent() {
                     <th style={{ padding: '9px 12px', color: '#cbd5e1', fontWeight: 600, fontSize: 10, background: '#1e3a5f', borderRight: '1px solid #334155', minWidth: 150 }}>PART NAME</th>
                     <th style={{ padding: '9px 12px', color: '#cbd5e1', fontWeight: 600, fontSize: 10, textAlign: 'center', background: '#1e3a5f', borderRight: '2px solid #475569', minWidth: 55 }}>UNIT</th>
                     {mode === 'gabungan' ? (
-                      assyCodes.flatMap(a => 
-                        periodes.map(p => (
-                          <th key={`${a}-${p}`} style={{ padding: '6px 8px', color: '#93c5fd', fontWeight: 600, fontSize: 9.5, textAlign: 'center', borderRight: '1px solid #334155', minWidth: 100 }} title={a}>
-                            {a}
-                          </th>
-                        ))
-                      )
+                      assyCodes.map(a => (
+                        <th key={a} colSpan={periodes.length} style={{ padding: '6px 8px', color: '#93c5fd', fontWeight: 600, fontSize: 9.5, textAlign: 'center', borderRight: '1px solid #334155' }} title={a}>
+                          {a}
+                        </th>
+                      ))
                     ) : (
                       assyCodes.map(a => (
                         <th key={a} style={{ padding: '6px 8px', color: '#93c5fd', fontWeight: 600, fontSize: 9.5, textAlign: 'center', borderRight: '1px solid #334155', minWidth: 100 }} title={a}>
