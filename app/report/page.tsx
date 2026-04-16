@@ -133,6 +133,15 @@ function ReportContent() {
     fetchData(1, val);
   };
 
+  // Validasi maksimal 12 bulan untuk mode gabungan
+  const jumlahBulan = (() => {
+    if (mode !== 'gabungan' || !dari || !sampai) return 0;
+    const [dY,dM] = dari.split('-').map(Number);
+    const [sY,sM] = sampai.split('-').map(Number);
+    return (sY - dY) * 12 + (sM - dM) + 1;
+  })();
+  const isExceedsMax = jumlahBulan > 12;
+
   const currentData = results[activePer];
   const assyCodes   = currentData?.assy_codes   ?? [];
   const prodQtyMap  = currentData?.prod_qty_map ?? {};
@@ -232,7 +241,7 @@ function ReportContent() {
                   <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     {idx === 1 && <span style={{ color: '#9ca3af' }}>→</span>}
                     <span style={{ fontSize: 12.5, color: '#374151', fontWeight: 500 }}>{item.label}:</span>
-                    <select value={item.val} onChange={e => item.set(e.target.value)} style={{ padding: '7px 12px', borderRadius: 8, border: '1.5px solid #e2e8f0', fontSize: 13, fontFamily: font, background: '#fff', cursor: 'pointer' }}>
+                    <select value={item.val} onChange={e => item.set(e.target.value)} style={{ padding: '7px 12px', borderRadius: 8, border: `1.5px solid ${isExceedsMax ? '#ef4444' : '#e2e8f0'}`, fontSize: 13, fontFamily: font, background: '#fff', cursor: 'pointer' }}>
                       {availPer.map(p => <option key={p} value={p}>{fmtPeriode(p)}</option>)}
                     </select>
                   </div>
@@ -272,14 +281,28 @@ function ReportContent() {
               </>
             )}
 
-            <button onClick={handleLoad} style={{ padding: '8px 24px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#1e3a8a,#2563eb)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: font, boxShadow: '0 3px 10px rgba(37,99,235,.3)', letterSpacing: 0.1 }}>
+            <button onClick={handleLoad} disabled={mode === 'gabungan' && isExceedsMax} style={{ padding: '8px 24px', borderRadius: 8, border: 'none', background: mode === 'gabungan' && isExceedsMax ? '#d1d5db' : 'linear-gradient(135deg,#1e3a8a,#2563eb)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: mode === 'gabungan' && isExceedsMax ? 'not-allowed' : 'pointer', fontFamily: font, boxShadow: mode === 'gabungan' && isExceedsMax ? 'none' : '0 3px 10px rgba(37,99,235,.3)', letterSpacing: 0.1 }}>
               🔍 Tampilkan
             </button>
+            {mode === 'gabungan' && isExceedsMax && (
+              <div style={{ marginLeft: 0, padding: '10px 14px', borderRadius: 8, background: '#fef2f2', border: '1px solid #fecaca', fontSize: 13, color: '#991b1b', fontWeight: 500 }}>
+                ⚠️ Maksimal 12 bulan. Anda memilih {jumlahBulan} bulan.
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Periode tabs (mode gabungan) */}
-        {hasLoaded && periodes.length > 1 && (
+        {/* Mode gabungan info */}
+        {hasLoaded && mode === 'gabungan' && periodes.length > 0 && (
+          <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, padding: '7px 14px', fontSize: 12.5, color: '#1d4ed8', fontWeight: 600 }}>
+              Menampilkan: {periodes.map(p => fmtPeriode(p)).join(' · ')} ({periodes.length} bulan)
+            </div>
+          </div>
+        )}
+        
+        {/* Periode tabs (mode single hanya) */}
+        {hasLoaded && mode === 'single' && periodes.length > 1 && (
           <div style={{ display: 'flex', gap: 8, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 }}>
             {periodes.map(p => (
               <button key={p} onClick={() => { setActivePer(p); setPage(1); }} style={{
