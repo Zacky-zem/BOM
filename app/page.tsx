@@ -101,13 +101,7 @@ export default function Home() {
       }}>
         {/* Sidebar Header */}
         <div style={{ padding: '20px 18px', borderBottom: '1px solid #e2e8f0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg, #0f766e, #14b8a6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, boxShadow: '0 2px 8px rgba(15,118,110,.24)', flexShrink: 0 }}>📋</div>
-            <div>
-              <div style={{ fontWeight: 800, fontSize: 13, color: '#0f172a', lineHeight: 1.1 }}>BOM</div>
-              <div style={{ fontSize: 9, color: '#94a3b8', fontWeight: 600 }}>Database</div>
-            </div>
-          </div>
+          <img src="/yazaki-logo.jpeg" alt="YAZAKI Logo" style={{ height: 38, objectFit: 'contain' }} />
         </div>
 
         {/* Sidebar Menu */}
@@ -260,6 +254,9 @@ export default function Home() {
             ☰
           </button>
 
+          {/* Logo di Mobile */}
+          {isMobile && <img src="/yazaki-logo.jpeg" alt="YAZAKI Logo" style={{ height: 32, objectFit: 'contain' }} />}
+          
           <div style={{ flex: 1 }} />
 
           {/* Right Section */}

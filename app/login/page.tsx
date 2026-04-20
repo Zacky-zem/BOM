@@ -57,9 +57,9 @@ export default function LoginPage() {
         <div style={{ position: 'absolute', top: '40%', right: -40, width: 180, height: 180, borderRadius: '50%', background: 'rgba(255,255,255,.03)' }} />
 
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 60 }}>
-            <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(255,255,255,.15)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, border: '1px solid rgba(255,255,255,.2)' }}>📋</div>
-            <span style={{ color: '#fff', fontWeight: 700, fontSize: 18, letterSpacing: -0.3 }}>BOM Database</span>
+          <div style={{ marginBottom: 60 }}>
+            <img src="/yazaki-logo.jpeg?v=1" alt="YAZAKI Logo" style={{ height: 42, objectFit: 'contain' }} />
+          
           </div>
 
           <h1 style={{ color: '#fff', fontSize: 38, fontWeight: 800, lineHeight: 1.2, letterSpacing: -1, marginBottom: 16 }}>
@@ -95,12 +95,8 @@ export default function LoginPage() {
       }}>
         <div style={{ width: '100%', animation: 'fadeUp .4s ease' }}>
           {/* Logo mobile */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 40 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg, #1d4ed8, #3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, boxShadow: '0 4px 12px rgba(37,99,235,.3)' }}>📋</div>
-            <div>
-              <div style={{ fontWeight: 800, fontSize: 16, color: '#111827', letterSpacing: -0.3 }}>BOM Database</div>
-              <div style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500 }}>Master Data Input System</div>
-            </div>
+          <div style={{ marginBottom: 40 }}>
+            <img src="/yazaki-logo.jpeg" alt="YAZAKI Logo" style={{ height: 38, objectFit: 'contain' }} />
           </div>
 
           <h2 style={{ fontSize: 26, fontWeight: 800, color: '#111827', marginBottom: 6, letterSpacing: -0.5 }}>Selamat Datang</h2>
