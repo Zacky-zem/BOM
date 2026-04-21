@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import MasterAssyPage from '@/components/MasterAssyPage';
 import MasterPartPage from '@/components/MasterPartPage';
 import MasterBomPage  from '@/components/MasterBomPage';
@@ -11,15 +10,13 @@ import ProdPlanPage   from '@/components/ProdPlanPage';
 
 export default function Home() {
   const { data: session, status } = useSession();
-  const router = useRouter();
   const [page, setPage] = useState<'assy' | 'part' | 'bom' | 'prodplan'>('assy');
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
-  useEffect(() => {
-    if (status === 'unauthenticated') router.push('/login');
-  }, [status, router]);
+  // ✅ DIHAPUS: useEffect redirect — sekarang middleware yang handle ini server-side
+  // Tidak perlu lagi: if (status === 'unauthenticated') router.push('/login')
 
   useEffect(() => {
     const handleResize = () => {
@@ -27,7 +24,6 @@ export default function Home() {
       setIsMobile(mobile);
       if (mobile) setSidebarOpen(false);
     };
-    
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -38,7 +34,9 @@ export default function Home() {
     setTimeout(() => setToast(null), 3500);
   };
 
-  if (status === 'loading' || !session) {
+  // ✅ Tampilkan loading HANYA saat status masih 'loading'
+  // Kalau 'unauthenticated', middleware sudah redirect ke /login sebelum sampai sini
+  if (status === 'loading') {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', fontFamily: "'DM Sans', system-ui, sans-serif" }}>
         <div style={{ textAlign: 'center', color: '#475569' }}>
@@ -49,6 +47,10 @@ export default function Home() {
       </div>
     );
   }
+
+  // ✅ Guard: kalau tidak ada session (seharusnya tidak pernah terjadi karena middleware)
+  // tapi ini sebagai safety net
+  if (!session) return null;
 
   const role = (session.user as { role?: string })?.role ?? '';
   const userName = session.user?.name ?? role;
@@ -124,7 +126,7 @@ export default function Home() {
                 fontWeight: page === t.key ? 600 : 500,
                 color: page === t.key ? roleColor[role] || '#0f766e' : '#64748b',
                 borderLeft: page === t.key ? '3px solid ' + (roleColor[role] || '#0f766e') : '3px solid transparent',
-                background: page === t.key ? (roleBg[role] || '#f0fdfa') : 'transparent',
+                backgroundColor: page === t.key ? (roleBg[role] || '#f0fdfa') : 'transparent',
                 fontFamily: 'inherit',
                 display: 'flex',
                 alignItems: 'center',
@@ -133,14 +135,10 @@ export default function Home() {
                 marginBottom: '2px',
               }}
               onMouseOver={e => {
-                if (page !== t.key) {
-                  e.currentTarget.style.background = '#f1f5f9';
-                }
+                if (page !== t.key) e.currentTarget.style.backgroundColor = '#f1f5f9';
               }}
               onMouseOut={e => {
-                if (page !== t.key) {
-                  e.currentTarget.style.background = 'transparent';
-                }
+                if (page !== t.key) e.currentTarget.style.backgroundColor = 'transparent';
               }}
             >
               <span style={{ fontSize: 16 }}>{t.icon}</span>
@@ -159,22 +157,20 @@ export default function Home() {
             color: '#64748b',
             textDecoration: 'none',
             borderLeft: '3px solid transparent',
-            background: 'transparent',
+            backgroundColor: 'transparent',
             fontFamily: 'inherit',
             transition: 'all .2s',
             marginTop: '2px',
           }}
           onMouseOver={e => {
-            e.currentTarget.style.background = '#f1f5f9';
+            e.currentTarget.style.backgroundColor = '#f1f5f9';
             e.currentTarget.style.color = roleColor[role] || '#0f766e';
           }}
           onMouseOut={e => {
-            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.backgroundColor = 'transparent';
             e.currentTarget.style.color = '#64748b';
           }}
-          onClick={() => {
-            if (isMobile) setSidebarOpen(false);
-          }}
+          onClick={() => { if (isMobile) setSidebarOpen(false); }}
           >
             <span style={{ fontSize: 16 }}>📊</span>
             <span>Report</span>
@@ -200,11 +196,8 @@ export default function Home() {
         <div
           onClick={() => setSidebarOpen(false)}
           style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15,23,42,.5)',
-            zIndex: 998,
-            animation: 'fadeIn .2s ease',
+            position: 'fixed', inset: 0, background: 'rgba(15,23,42,.5)',
+            zIndex: 998, animation: 'fadeIn .2s ease',
           }}
         />
       )}
@@ -213,79 +206,44 @@ export default function Home() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Top Header */}
         <header style={{
-          background: '#fff',
-          borderBottom: '1px solid #e2e8f0',
-          padding: '14px 20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          height: 60,
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
+          background: '#fff', borderBottom: '1px solid #e2e8f0',
+          padding: '14px 20px', display: 'flex', alignItems: 'center',
+          justifyContent: 'space-between', height: 60,
+          position: 'sticky', top: 0, zIndex: 50,
           boxShadow: '0 1px 0 rgba(0,0,0,.04)',
         }}>
-          {/* Mobile Menu Button */}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '6px 8px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 6,
-              color: '#64748b',
-              fontSize: 20,
-              transition: 'all .2s',
-              marginRight: 12,
+              background: 'none', border: 'none', cursor: 'pointer',
+              padding: '6px 8px', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', borderRadius: 6, color: '#64748b',
+              fontSize: 20, transition: 'all .2s', marginRight: 12,
             }}
-            onMouseOver={e => {
-              e.currentTarget.style.background = '#f1f5f9';
-              e.currentTarget.style.color = '#0f766e';
-            }}
-            onMouseOut={e => {
-              e.currentTarget.style.background = 'none';
-              e.currentTarget.style.color = '#64748b';
-            }}
+            onMouseOver={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#0f766e'; }}
+            onMouseOut={e =>  { e.currentTarget.style.background = 'none';    e.currentTarget.style.color = '#64748b'; }}
           >
             ☰
           </button>
 
-          {/* Logo di Mobile */}
-          {isMobile && <img src="/yazaki-logo.jpeg" alt="YAZAKI Logo" style={{ height: 32, objectFit: 'contain' }} />}
-          
+          {/* ✅ Logo di header (mobile) — selalu tampil, tidak bergantung session */}
+          {isMobile && (
+            <img src="/yazaki-logo.jpeg" alt="YAZAKI Logo" style={{ height: 32, objectFit: 'contain' }} />
+          )}
+
           <div style={{ flex: 1 }} />
 
-          {/* Right Section */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
               style={{
-                background: 'none',
-                border: '1.5px solid #e2e8f0',
-                borderRadius: 7,
-                padding: '7px 14px',
-                fontSize: 12,
-                fontWeight: 600,
-                color: '#dc2626',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                transition: 'all .2s',
+                background: 'none', border: '1.5px solid #e2e8f0', borderRadius: 7,
+                padding: '7px 14px', fontSize: 12, fontWeight: 600, color: '#dc2626',
+                cursor: 'pointer', fontFamily: 'inherit', display: 'flex',
+                alignItems: 'center', gap: 6, transition: 'all .2s',
               }}
-              onMouseOver={e => {
-                e.currentTarget.style.borderColor = '#fecaca';
-                e.currentTarget.style.background = '#fef2f2';
-              }}
-              onMouseOut={e => {
-                e.currentTarget.style.borderColor = '#e2e8f0';
-                e.currentTarget.style.background = 'none';
-              }}
+              onMouseOver={e => { e.currentTarget.style.borderColor = '#fecaca'; e.currentTarget.style.background = '#fef2f2'; }}
+              onMouseOut={e =>  { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = 'none'; }}
             >
               🚪 Logout
             </button>
@@ -294,62 +252,37 @@ export default function Home() {
 
         {/* Main Content Area */}
         <main style={{ flex: 1, overflow: 'auto', padding: isMobile ? '20px' : '28px 32px' }}>
-          {page === 'assy' && <MasterAssyPage showToast={showToast} role={role} />}
-          {page === 'part' && <MasterPartPage showToast={showToast} role={role} />}
-          {page === 'bom' && <MasterBomPage showToast={showToast} role={role} />}
-          {page === 'prodplan' && <ProdPlanPage showToast={showToast} role={role} />}
+          {page === 'assy'     && <MasterAssyPage showToast={showToast} role={role} />}
+          {page === 'part'     && <MasterPartPage showToast={showToast} role={role} />}
+          {page === 'bom'      && <MasterBomPage  showToast={showToast} role={role} />}
+          {page === 'prodplan' && <ProdPlanPage   showToast={showToast} role={role} />}
         </main>
       </div>
 
       {/* Toast Notification */}
       {toast && (
         <div style={{
-          position: 'fixed',
-          bottom: 20,
-          right: 20,
-          zIndex: 10000,
+          position: 'fixed', bottom: 20, right: 20, zIndex: 10000,
           background: toast.type === 'success' ? '#15803d' : '#dc2626',
-          color: '#fff',
-          borderRadius: 10,
-          padding: '12px 18px',
-          fontSize: 13.5,
-          fontWeight: 500,
+          color: '#fff', borderRadius: 10, padding: '12px 18px',
+          fontSize: 13.5, fontWeight: 500,
           boxShadow: '0 10px 28px rgba(0,0,0,.2)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          animation: 'slideUp .25s ease',
-          fontFamily: 'inherit',
+          display: 'flex', alignItems: 'center', gap: 10,
+          animation: 'slideUp .25s ease', fontFamily: 'inherit',
         }}>
           <span style={{ fontSize: 16 }}>{toast.type === 'success' ? '✓' : '✕'}</span>
           {toast.msg}
           <button
             onClick={() => setToast(null)}
             style={{
-              background: 'rgba(255,255,255,.2)',
-              border: 'none',
-              color: '#fff',
-              cursor: 'pointer',
-              marginLeft: 6,
-              borderRadius: 5,
-              width: 20,
-              height: 20,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 14,
-              padding: 0,
-              transition: 'background .2s',
+              background: 'rgba(255,255,255,.2)', border: 'none', color: '#fff',
+              cursor: 'pointer', marginLeft: 6, borderRadius: 5,
+              width: 20, height: 20, display: 'flex', alignItems: 'center',
+              justifyContent: 'center', fontSize: 14, padding: 0, transition: 'background .2s',
             }}
-            onMouseOver={e => {
-              e.currentTarget.style.background = 'rgba(255,255,255,.3)';
-            }}
-            onMouseOut={e => {
-              e.currentTarget.style.background = 'rgba(255,255,255,.2)';
-            }}
-          >
-            ×
-          </button>
+            onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,.3)'}
+            onMouseOut={e =>  e.currentTarget.style.background = 'rgba(255,255,255,.2)'}
+          >×</button>
         </div>
       )}
     </div>
