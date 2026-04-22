@@ -17,7 +17,6 @@ export default function LoginPage() {
     setLoading(true); setError('');
     const res = await signIn('credentials', { username, password, redirect: false });
     if (res?.ok) {
-      // ✅ Paksa hard navigation ke / agar session ter-refresh sempurna
       window.location.href = '/';
     } else {
       setError('Username atau password salah');

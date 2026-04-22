@@ -39,14 +39,15 @@ const tokens = {
 export function Badge({ active }: { active: boolean }) {
   return (
     <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: 5,
-      padding: '3px 10px', borderRadius: 20, fontSize: 11.5, fontWeight: 600,
+      display: 'inline-flex', alignItems: 'center', gap: 4,
+      padding: '2px 8px', borderRadius: 12, fontSize: 10.5, fontWeight: 600,
       background: active ? tokens.successLight : tokens.dangerLight,
       color: active ? tokens.success : tokens.danger,
       border: `1px solid ${active ? '#bbf7d0' : tokens.dangerBorder}`,
-      whiteSpace: 'nowrap', letterSpacing: 0.2,
+      whiteSpace: 'nowrap', letterSpacing: 0.1,
+      minWidth: 52, justifyContent: 'center',
     }}>
-      <span style={{ width: 5, height: 5, borderRadius: '50%', background: active ? tokens.success : tokens.danger, flexShrink: 0 }} />
+      <span style={{ width: 4, height: 4, borderRadius: '50%', background: active ? tokens.success : tokens.danger, flexShrink: 0 }} />
       {active ? 'Active' : 'Inactive'}
     </span>
   );

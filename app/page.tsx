@@ -90,16 +90,21 @@ export default function Home() {
       {/* Sidebar */}
       <aside style={{
         width: sidebarOpen ? 260 : 0,
+        minWidth: sidebarOpen ? 260 : 0,
+        maxWidth: 260,
         background: '#fff',
-        borderRight: '1px solid #e2e8f0',
-        position: isMobile ? 'fixed' : 'relative',
-        height: isMobile ? '100vh' : '100vh',
-        zIndex: isMobile ? 999 : 'auto',
+        borderRight: sidebarOpen ? '1px solid #e2e8f0' : 'none',
+        position: 'fixed',
+        left: 0,
+        top: 0,
+        height: '100vh',
+        zIndex: 999,
         overflow: 'hidden',
-        transition: 'width .3s ease, opacity .3s ease',
+        transition: 'width .3s ease, min-width .3s ease, opacity .3s ease',
         opacity: sidebarOpen ? 1 : 0,
         display: 'flex',
         flexDirection: 'column',
+        flexShrink: 0,
       }}>
         {/* Sidebar Header */}
         <div style={{ padding: '20px 18px', borderBottom: '1px solid #e2e8f0' }}>
@@ -107,7 +112,8 @@ export default function Home() {
         </div>
 
         {/* Sidebar Menu */}
-        <nav style={{ flex: 1, overflow: 'auto', padding: '12px 0' }}>
+        <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+        <nav style={{ flex: 1, padding: '12px 0' }}>
           {tabs.map(t => (
             <button
               key={t.key}
@@ -176,16 +182,63 @@ export default function Home() {
             <span>Report</span>
           </Link>
         </nav>
+        </div>
 
         {/* Sidebar Footer - User Info */}
-        <div style={{ padding: '14px 14px', borderTop: '1px solid #e2e8f0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, background: roleBg[role] || '#f8fafc' }}>
-            <div style={{ width: 28, height: 28, borderRadius: 6, background: roleColor[role] || '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
-              {userName.charAt(0).toUpperCase()}
+        <div style={{ 
+          padding: '14px', 
+          borderTop: '1px solid #e2e8f0',
+          background: '#fff',
+          flexShrink: 0,
+          position: 'sticky',
+          bottom: 0,
+          zIndex: 10,
+        }}>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 10, 
+            padding: '10px 12px', 
+            borderRadius: 8, 
+            background: roleBg[role] || '#f8fafc',
+            width: '100%',
+            boxSizing: 'border-box',
+          }}>
+            <div style={{ 
+              width: 32, 
+              height: 32, 
+              borderRadius: 8, 
+              background: roleColor[role] || '#475569', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              color: '#fff', 
+              fontSize: 13, 
+              fontWeight: 700, 
+              flexShrink: 0,
+            }}>              {userName.charAt(0).toUpperCase()}
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 11.5, fontWeight: 600, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{userName}</div>
-              <div style={{ fontSize: 9, fontWeight: 600, color: roleColor[role] || '#475569' }}>{role}</div>
+            <div style={{ 
+              flex: 1, 
+              minWidth: 0, 
+              overflow: 'hidden',
+            }}>
+              <div style={{ 
+                fontSize: 12.5, 
+                fontWeight: 600, 
+                color: '#0f172a', 
+                overflow: 'hidden', 
+                textOverflow: 'ellipsis', 
+                whiteSpace: 'nowrap',
+                lineHeight: 1.3,
+              }}>{userName}</div>
+              <div style={{ 
+                fontSize: 10, 
+                fontWeight: 600, 
+                color: roleColor[role] || '#475569',
+                lineHeight: 1.3,
+                marginTop: 2,
+              }}>{role}</div>
             </div>
           </div>
         </div>
@@ -203,7 +256,14 @@ export default function Home() {
       )}
 
       {/* Main Content */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ 
+        flex: 1, 
+        display: 'flex', 
+        flexDirection: 'column', 
+        overflow: 'hidden',
+        marginLeft: sidebarOpen && !isMobile ? 260 : 0,
+        transition: 'margin-left .3s ease',
+      }}>
         {/* Top Header */}
         <header style={{
           background: '#fff', borderBottom: '1px solid #e2e8f0',
@@ -225,12 +285,6 @@ export default function Home() {
           >
             ☰
           </button>
-
-          {/* ✅ Logo di header (mobile) — selalu tampil, tidak bergantung session */}
-          {isMobile && (
-            <img src="/yazaki-logo.jpeg" alt="YAZAKI Logo" style={{ height: 32, objectFit: 'contain' }} />
-          )}
-
           <div style={{ flex: 1 }} />
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
