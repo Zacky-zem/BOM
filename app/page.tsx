@@ -108,25 +108,10 @@ export default function Home() {
         <header style={{
           background: '#fff', borderBottom: '1px solid #e2e8f0',
           padding: '14px 20px', display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between', height: 60,
+          justifyContent: 'flex-end', height: 60,
           position: 'sticky', top: 0, zIndex: 50,
           boxShadow: '0 1px 0 rgba(0,0,0,.04)',
         }}>
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              padding: '6px 8px', display: 'flex', alignItems: 'center',
-              justifyContent: 'center', borderRadius: 6, color: '#64748b',
-              fontSize: 20, transition: 'all .2s', marginRight: 12,
-            }}
-            onMouseOver={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#0f766e'; }}
-            onMouseOut={e =>  { e.currentTarget.style.background = 'none';    e.currentTarget.style.color = '#64748b'; }}
-          >
-            ☰
-          </button>
-          <div style={{ flex: 1 }} />
-
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
