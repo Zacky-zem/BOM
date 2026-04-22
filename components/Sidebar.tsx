@@ -55,7 +55,7 @@ export default function Sidebar({
           background: '#fff',
           borderRight: '1px solid #e5e7eb',
           height: '100vh',
-          overflow: isOpen ? 'hidden' : 'visible',
+          overflow: 'hidden',
           transition: 'width .3s ease-out, min-width .3s ease-out',
           display: 'flex',
           flexDirection: 'column',
@@ -116,7 +116,7 @@ export default function Sidebar({
         <nav
           style={{
             flex: 1,
-            overflow: isOpen ? 'auto' : 'hidden',
+            overflow: 'auto',
             display: 'flex',
             flexDirection: 'column',
             padding: '8px 0',

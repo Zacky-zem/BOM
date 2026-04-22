@@ -81,21 +81,19 @@ export default function Home() {
         @keyframes slideOut { from { transform: translateX(0); opacity: 1 } to { transform: translateX(-100%); opacity: 0 } }
       `}</style>
 
-      {!isMobile && (
-        <Sidebar
-          isOpen={sidebarOpen}
-          onToggle={() => setSidebarOpen(!sidebarOpen)}
-          currentPage={page}
-          onPageChange={(newPage) => {
-            if (newPage === 'report') {
-              window.location.href = '/report';
-            } else {
-              setPage(newPage);
-            }
-          }}
-          isMobile={isMobile}
-        />
-      )}
+      <Sidebar
+        isOpen={sidebarOpen}
+        onToggle={() => setSidebarOpen(!sidebarOpen)}
+        currentPage={page}
+        onPageChange={(newPage) => {
+          if (newPage === 'report') {
+            window.location.href = '/report';
+          } else {
+            setPage(newPage);
+          }
+        }}
+        isMobile={isMobile}
+      />
 
       {/* Main Content */}
       <div style={{ 
