@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
+import Sidebar from '@/components/Sidebar';
 import MasterAssyPage from '@/components/MasterAssyPage';
 import MasterPartPage from '@/components/MasterPartPage';
 import MasterBomPage  from '@/components/MasterBomPage';
@@ -68,13 +69,6 @@ export default function Home() {
     FINANCE: '#fffbeb',
   };
 
-  const tabs = [
-    { key: 'assy',     label: 'Master ASSY', icon: '🔩' },
-    { key: 'part',     label: 'Master Part',  icon: '⚙️' },
-    { key: 'bom',      label: 'Master BOM',   icon: '📋' },
-    { key: 'prodplan', label: 'Prod Plan',    icon: '📅' },
-  ] as const;
-
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: "'DM Sans', system-ui, sans-serif", display: 'flex' }}>
       <style>{`
@@ -87,173 +81,19 @@ export default function Home() {
         @keyframes slideOut { from { transform: translateX(0); opacity: 1 } to { transform: translateX(-100%); opacity: 0 } }
       `}</style>
 
-      {/* Sidebar */}
-      <aside style={{
-        width: sidebarOpen ? 260 : 0,
-        minWidth: sidebarOpen ? 260 : 0,
-        maxWidth: 260,
-        background: '#fff',
-        borderRight: sidebarOpen ? '1px solid #e2e8f0' : 'none',
-        position: 'fixed',
-        left: 0,
-        top: 0,
-        height: '100vh',
-        zIndex: 999,
-        overflow: 'hidden',
-        transition: 'width .3s ease, min-width .3s ease, opacity .3s ease',
-        opacity: sidebarOpen ? 1 : 0,
-        display: 'flex',
-        flexDirection: 'column',
-        flexShrink: 0,
-      }}>
-        {/* Sidebar Header */}
-        <div style={{ padding: '20px 18px', borderBottom: '1px solid #e2e8f0' }}>
-          <img src="/yazaki-logo.jpeg" alt="YAZAKI Logo" style={{ height: 38, objectFit: 'contain' }} />
-        </div>
-
-        {/* Sidebar Menu */}
-        <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
-        <nav style={{ flex: 1, padding: '12px 0' }}>
-          {tabs.map(t => (
-            <button
-              key={t.key}
-              onClick={() => {
-                setPage(t.key);
-                if (isMobile) setSidebarOpen(false);
-              }}
-              style={{
-                width: '100%',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                padding: '10px 14px',
-                textAlign: 'left',
-                fontSize: 13.5,
-                fontWeight: page === t.key ? 600 : 500,
-                color: page === t.key ? roleColor[role] || '#0f766e' : '#64748b',
-                borderLeft: page === t.key ? '3px solid ' + (roleColor[role] || '#0f766e') : '3px solid transparent',
-                backgroundColor: page === t.key ? (roleBg[role] || '#f0fdfa') : 'transparent',
-                fontFamily: 'inherit',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                transition: 'all .2s',
-                marginBottom: '2px',
-              }}
-              onMouseOver={e => {
-                if (page !== t.key) e.currentTarget.style.backgroundColor = '#f1f5f9';
-              }}
-              onMouseOut={e => {
-                if (page !== t.key) e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              <span style={{ fontSize: 16 }}>{t.icon}</span>
-              <span>{t.label}</span>
-            </button>
-          ))}
-
-          <Link href="/report" style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '10px 14px',
-            fontSize: 13.5,
-            fontWeight: 500,
-            color: '#64748b',
-            textDecoration: 'none',
-            borderLeft: '3px solid transparent',
-            backgroundColor: 'transparent',
-            fontFamily: 'inherit',
-            transition: 'all .2s',
-            marginTop: '2px',
-          }}
-          onMouseOver={e => {
-            e.currentTarget.style.backgroundColor = '#f1f5f9';
-            e.currentTarget.style.color = roleColor[role] || '#0f766e';
-          }}
-          onMouseOut={e => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = '#64748b';
-          }}
-          onClick={() => { if (isMobile) setSidebarOpen(false); }}
-          >
-            <span style={{ fontSize: 16 }}>📊</span>
-            <span>Report</span>
-          </Link>
-        </nav>
-        </div>
-
-        {/* Sidebar Footer - User Info */}
-        <div style={{ 
-          padding: '14px', 
-          borderTop: '1px solid #e2e8f0',
-          background: '#fff',
-          flexShrink: 0,
-          position: 'sticky',
-          bottom: 0,
-          zIndex: 10,
-        }}>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 10, 
-            padding: '10px 12px', 
-            borderRadius: 8, 
-            background: roleBg[role] || '#f8fafc',
-            width: '100%',
-            boxSizing: 'border-box',
-          }}>
-            <div style={{ 
-              width: 32, 
-              height: 32, 
-              borderRadius: 8, 
-              background: roleColor[role] || '#475569', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              color: '#fff', 
-              fontSize: 13, 
-              fontWeight: 700, 
-              flexShrink: 0,
-            }}>              {userName.charAt(0).toUpperCase()}
-            </div>
-            <div style={{ 
-              flex: 1, 
-              minWidth: 0, 
-              overflow: 'hidden',
-            }}>
-              <div style={{ 
-                fontSize: 12.5, 
-                fontWeight: 600, 
-                color: '#0f172a', 
-                overflow: 'hidden', 
-                textOverflow: 'ellipsis', 
-                whiteSpace: 'nowrap',
-                lineHeight: 1.3,
-              }}>{userName}</div>
-              <div style={{ 
-                fontSize: 10, 
-                fontWeight: 600, 
-                color: roleColor[role] || '#475569',
-                lineHeight: 1.3,
-                marginTop: 2,
-              }}>{role}</div>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      {/* Overlay for mobile */}
-      {isMobile && sidebarOpen && (
-        <div
-          onClick={() => setSidebarOpen(false)}
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(15,23,42,.5)',
-            zIndex: 998, animation: 'fadeIn .2s ease',
-          }}
-        />
-      )}
+      <Sidebar
+        isOpen={sidebarOpen}
+        onToggle={() => setSidebarOpen(!sidebarOpen)}
+        currentPage={page}
+        onPageChange={(newPage) => {
+          if (newPage === 'report') {
+            window.location.href = '/report';
+          } else {
+            setPage(newPage);
+          }
+        }}
+        isMobile={isMobile}
+      />
 
       {/* Main Content */}
       <div style={{ 
@@ -261,8 +101,8 @@ export default function Home() {
         display: 'flex', 
         flexDirection: 'column', 
         overflow: 'hidden',
-        marginLeft: sidebarOpen && !isMobile ? 260 : 0,
-        transition: 'margin-left .3s ease',
+        marginLeft: isMobile ? 0 : sidebarOpen ? 260 : 80,
+        transition: 'margin-left .3s ease-out',
       }}>
         {/* Top Header */}
         <header style={{
