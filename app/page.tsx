@@ -70,7 +70,7 @@ export default function Home() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: "'DM Sans', system-ui, sans-serif", display: 'flex', position: 'relative' }}>
+    <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: "'DM Sans', system-ui, sans-serif", display: 'flex' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -81,31 +81,29 @@ export default function Home() {
         @keyframes slideOut { from { transform: translateX(0); opacity: 1 } to { transform: translateX(-100%); opacity: 0 } }
       `}</style>
 
-      <Sidebar
-        isOpen={sidebarOpen}
-        onToggle={() => setSidebarOpen(!sidebarOpen)}
-        currentPage={page}
-        onPageChange={(newPage) => {
-          if (newPage === 'report') {
-            window.location.href = '/report';
-          } else {
-            setPage(newPage);
-          }
-        }}
-        isMobile={isMobile}
-      />
+      {!isMobile && (
+        <Sidebar
+          isOpen={sidebarOpen}
+          onToggle={() => setSidebarOpen(!sidebarOpen)}
+          currentPage={page}
+          onPageChange={(newPage) => {
+            if (newPage === 'report') {
+              window.location.href = '/report';
+            } else {
+              setPage(newPage);
+            }
+          }}
+          isMobile={isMobile}
+        />
+      )}
 
       {/* Main Content */}
       <div style={{ 
-        position: 'absolute',
-        top: 0,
-        left: isMobile ? 0 : sidebarOpen ? 260 : 80,
-        right: 0,
-        bottom: 0,
+        flex: 1,
         display: 'flex', 
         flexDirection: 'column', 
         overflow: 'hidden',
-        transition: 'left .3s ease-out',
+        width: '100%',
       }}>
         {/* Top Header */}
         <header style={{
