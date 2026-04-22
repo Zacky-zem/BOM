@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import BomDetailModal from '@/components/BomDetailModal';
+import PartPriceModal from '@/components/PartPriceModal';
 import BomGabunganModal from '@/components/BomGabunganModal';
 import * as XLSX from 'xlsx';
 import { BtnPrimary, BtnGhost, ConfirmDialog, LoadingSpinner, Table, Modal } from '@/components/ui';
@@ -289,7 +290,8 @@ export default function MasterBomPage({ showToast, role }: {
   const [showUpload, setShowUpload] = useState(false);
   const [confirm, setConfirm]       = useState<string | null>(null);
   const [detailPeriode, setDetailPeriode] = useState<string | null>(null);
-  const [showGabungan, setShowGabungan]   = useState(false);
+  const [pricePeriode,  setPricePeriode]  = useState<string | null>(null);
+  const [showGabungan, setShowGabungan]     = useState(false);
 
   const fetchData = () => {
     setLoading(true);
@@ -322,6 +324,7 @@ export default function MasterBomPage({ showToast, role }: {
     <span style={{ fontSize: 12, color: '#6b7280' }}>{new Date(p.uploaded_at).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })}</span>,
     <div style={{ display: 'flex', gap: 6 }}>
       <BtnGhost onClick={() => setDetailPeriode(p.periode)} color="blue">👁 Detail</BtnGhost>
+      <BtnGhost onClick={() => setPricePeriode(p.periode)} color="teal">💰 Price</BtnGhost>
       {canDelete && <BtnGhost onClick={() => setConfirm(p.periode)} color="red">🗑 Hapus</BtnGhost>}
     </div>,
   ]);
@@ -368,13 +371,15 @@ export default function MasterBomPage({ showToast, role }: {
 
       {/* Stats */}
       <div style={{ display: 'flex', gap: 14, marginBottom: 24, flexWrap: 'wrap' }}>
-        <div style={{ background: '#fff', border: '1px solid #e8eaed', borderRadius: 12, padding: '14px 22px', minWidth: 140, boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
-          <div style={{ fontSize: 10.5, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.7, marginBottom: 4 }}>Total Periode</div>
-          <div style={{ fontSize: 26, fontWeight: 700, color: '#1d4ed8' }}>{periodes.length}</div>
+        <div style={{ background: '#fff', border: '1px solid #e8eaed', borderRadius: 12, padding: '16px 22px', minWidth: 150, boxShadow: '0 1px 3px rgba(0,0,0,.04)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: '#2563eb', borderRadius: '3px 0 0 3px' }} />
+          <div style={{ fontSize: 10.5, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>Total Periode</div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: '#2563eb', letterSpacing: -0.5, lineHeight: 1 }}>{periodes.length}</div>
         </div>
-        <div style={{ background: '#fff', border: '1px solid #e8eaed', borderRadius: 12, padding: '14px 22px', minWidth: 160, boxShadow: '0 1px 3px rgba(0,0,0,.04)' }}>
-          <div style={{ fontSize: 10.5, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.7, marginBottom: 4 }}>Periode Terbaru</div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#16a34a' }}>{periodes[0] ? formatPeriode(periodes[0].periode) : '—'}</div>
+        <div style={{ background: '#fff', border: '1px solid #e8eaed', borderRadius: 12, padding: '16px 22px', minWidth: 200, boxShadow: '0 1px 3px rgba(0,0,0,.04)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: '#16a34a', borderRadius: '3px 0 0 3px' }} />
+          <div style={{ fontSize: 10.5, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>Periode Terbaru</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#16a34a', letterSpacing: -0.3, lineHeight: 1 }}>{periodes[0] ? formatPeriode(periodes[0].periode) : '—'}</div>
         </div>
       </div>
 
@@ -402,6 +407,7 @@ export default function MasterBomPage({ showToast, role }: {
 
       {showUpload && <UploadModal onClose={() => setShowUpload(false)} onSuccess={fetchData} showToast={showToast} />}
       {detailPeriode && <BomDetailModal periode={detailPeriode} onClose={() => setDetailPeriode(null)} />}
+      {pricePeriode && <PartPriceModal periode={pricePeriode} role={role} onClose={() => setPricePeriode(null)} />}
       {showGabungan && <BomGabunganModal onClose={() => setShowGabungan(false)} availablePeriodes={periodes.map(p => p.periode).reverse()} />}
       {confirm && (
         <ConfirmDialog

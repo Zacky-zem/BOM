@@ -3,7 +3,10 @@ export interface Assy {
   id: number;
   assy_code: string;
   assy_number: number;
-  prod_qty: number | null;
+  sequence: number | null;
+  carline: string | null;
+  destinasi: string | null;
+  komoditi: string | null;
   description: string | null;
   is_active: boolean;
   created_at: string;
