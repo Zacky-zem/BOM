@@ -41,6 +41,9 @@ export default function LoginPage() {
         @keyframes slideUp { from { opacity:0; transform:translateY(20px) } to { opacity:1; transform:translateY(0) } }
         @keyframes spin { to { transform: rotate(360deg) } }
         @keyframes pulse { 0%, 100% { opacity: 0.6 } 50% { opacity: 0.8 } }
+        @keyframes orbFloat1 { 0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.4 } 25% { transform: translate(60px, -40px) scale(1.1); opacity: 0.5 } 50% { transform: translate(30px, 50px) scale(1); opacity: 0.4 } 75% { transform: translate(-40px, 30px) scale(0.95); opacity: 0.3 } }
+        @keyframes orbFloat2 { 0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.35 } 25% { transform: translate(-50px, 60px) scale(0.95); opacity: 0.45 } 50% { transform: translate(-20px, -40px) scale(1.05); opacity: 0.35 } 75% { transform: translate(50px, -20px) scale(1); opacity: 0.4 } }
+        @keyframes orbFloat3 { 0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.3 } 25% { transform: translate(40px, 50px) scale(1.05); opacity: 0.4 } 50% { transform: translate(-60px, 20px) scale(1); opacity: 0.3 } 75% { transform: translate(20px, -50px) scale(0.98); opacity: 0.35 } }
         input::placeholder { color: #94a3b8; }
         input::-webkit-autofill {
           -webkit-box-shadow: 0 0 0 1000px #fff inset !important;
@@ -78,20 +81,47 @@ export default function LoginPage() {
           background: 'linear-gradient(135deg, #0f766e 0%, #134e4a 50%, #0d9488 100%)',
         }}>
         
-        {/* Subtle grid background pattern */}
+        {/* Elegant gradient orbs */}
         <div style={{ 
-          position: 'absolute', 
-          inset: 0,
-          backgroundImage: `
-            linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px)
-          `,
-          backgroundSize: '40px 40px',
-          opacity: 0.3,
+          position: 'absolute',
+          top: '-10%',
+          right: '10%',
+          width: 280,
+          height: 280,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), rgba(255,255,255,0.05))',
+          filter: 'blur(40px)',
+          animation: 'orbFloat1 15s ease-in-out infinite',
+          pointerEvents: 'none',
+        }} />
+        
+        <div style={{ 
+          position: 'absolute',
+          bottom: '5%',
+          left: '-5%',
+          width: 320,
+          height: 320,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2), rgba(255,255,255,0.03))',
+          filter: 'blur(50px)',
+          animation: 'orbFloat2 18s ease-in-out infinite 2s',
+          pointerEvents: 'none',
+        }} />
+        
+        <div style={{ 
+          position: 'absolute',
+          top: '50%',
+          right: '-10%',
+          width: 250,
+          height: 250,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.15), rgba(255,255,255,0.02))',
+          filter: 'blur(45px)',
+          animation: 'orbFloat3 20s ease-in-out infinite 4s',
           pointerEvents: 'none',
         }} />
 
-        <div style={{ position: 'relative', zIndex: 2, maxWidth: 480 }}>
+        <div style={{ position: 'relative', zIndex: 2, maxWidth: 480, marginTop: -40 }}>
           {/* Logo */}
           <div style={{ 
             marginBottom: 40, 
