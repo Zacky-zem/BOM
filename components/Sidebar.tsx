@@ -100,6 +100,7 @@ export default function Sidebar({
           boxShadow: '1px 0 20px rgba(0,0,0,0.03)',
           transform: isMobile && !isOpen ? 'translateX(-100%)' : 'translateX(0)',
           opacity: isMobile && !isOpen ? 0 : 1,
+          position: 'relative',
         }}
       >
         {/* Sidebar Header */}
@@ -115,6 +116,7 @@ export default function Sidebar({
             flexShrink: 0,
             background: 'transparent',
             transition: 'all 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
+            position: 'relative',
           }}
         >
           {/* User Role at Top (moved from bottom) */}
@@ -124,16 +126,16 @@ export default function Sidebar({
               alignItems: 'center',
               justifyContent: isOpen ? 'flex-start' : 'center',
               gap: isOpen ? 12 : 0,
-              padding: isOpen ? '12px 14px' : '12px 8px',
+              padding: isOpen ? '12px 14px' : '8px',
               borderRadius: 12,
-              background: currentRoleBg,
-              border: `1px solid ${currentRoleColor}20`,
-              width: isOpen ? 'calc(100% - 16px)' : 'calc(100% - 16px)',
+              background: isOpen ? currentRoleBg : 'transparent',
+              border: isOpen ? `1px solid ${currentRoleColor}20` : 'none',
+              width: isOpen ? 'calc(100% - 16px)' : 'auto',
               boxSizing: 'border-box',
-              minHeight: 56,
+              minHeight: isOpen ? 56 : 'auto',
               transition: 'all 0.2s ease',
-              marginLeft: isOpen ? 8 : 8,
-              marginRight: isOpen ? 8 : 8,
+              marginLeft: isOpen ? 8 : 0,
+              marginRight: isOpen ? 8 : 0,
             }}
           >
             <div
@@ -200,34 +202,35 @@ export default function Sidebar({
             )}
           </div>
 
-          {/* Toggle button */}
+          {/* Toggle button - Arrow icon on the side */}
           <button
             onClick={onToggle}
             style={{
-              background: 'rgba(241, 245, 249, 0.8)',
+              position: 'absolute',
+              right: -12,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: 'rgba(241, 245, 249, 0.9)',
               border: '1px solid rgba(226, 232, 240, 0.6)',
               cursor: 'pointer',
-              padding: 8,
+              padding: 6,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              borderRadius: 10,
+              borderRadius: 6,
               color: '#64748b',
               transition: 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
               flexShrink: 0,
-              width: 34,
-              height: 34,
-              marginLeft: 8,
-              marginRight: 8,
+              width: 24,
+              height: 24,
+              zIndex: 10,
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.background = 'rgba(226, 232, 240, 0.9)';
-              e.currentTarget.style.transform = 'scale(1.05)';
+              e.currentTarget.style.background = 'rgba(226, 232, 240, 0.95)';
               e.currentTarget.style.color = '#334155';
             }}
             onMouseOut={(e) => {
-              e.currentTarget.style.background = 'rgba(241, 245, 249, 0.8)';
-              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.background = 'rgba(241, 245, 249, 0.9)';
               e.currentTarget.style.color = '#64748b';
             }}
             title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
@@ -239,13 +242,13 @@ export default function Sidebar({
               strokeWidth={2}
               stroke="currentColor"
               style={{
-                width: 16,
-                height: 16,
+                width: 12,
+                height: 12,
                 transition: 'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
-                transform: isOpen ? 'rotate(0deg)' : 'rotate(180deg)',
+                transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
               }}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
             </svg>
           </button>
         </div>
@@ -253,7 +256,7 @@ export default function Sidebar({
         {/* Navigation Label */}
         {isOpen && (
           <div style={{
-            padding: '12px 16px 8px',
+            padding: '8px 16px 8px',
             fontSize: 11,
             fontWeight: 600,
             color: '#94a3b8',
@@ -365,14 +368,14 @@ export default function Sidebar({
             onClick={onLogout}
             style={{
               width: isOpen ? 'calc(100% - 0px)' : 'calc(100% - 0px)',
-              background: 'rgba(255, 255, 255, 0.8)',
-              border: '1px solid rgba(226, 232, 240, 0.8)',
+              background: '#ef4444',
+              border: '1px solid #ef4444',
               borderRadius: 12,
               padding: isOpen ? '12px 14px' : '12px 8px',
               cursor: 'pointer',
               fontSize: 13.5,
               fontWeight: 500,
-              color: '#64748b',
+              color: '#fff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: isOpen ? 'flex-start' : 'center',
@@ -381,18 +384,19 @@ export default function Sidebar({
               transition: 'all .2s',
               minHeight: 44,
               boxSizing: 'border-box',
+              boxShadow: '0 2px 8px rgba(239, 68, 68, 0.3)',
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.borderColor = '#fecaca';
-              e.currentTarget.style.background = '#fef2f2';
-              e.currentTarget.style.color = '#dc2626';
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(220, 38, 38, 0.15)';
+              e.currentTarget.style.background = '#dc2626';
+              e.currentTarget.style.borderColor = '#dc2626';
+              e.currentTarget.style.boxShadow = '0 4px 12px rgba(220, 38, 38, 0.4)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
             }}
             onMouseOut={(e) => {
-              e.currentTarget.style.borderColor = 'rgba(226, 232, 240, 0.8)';
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.8)';
-              e.currentTarget.style.color = '#64748b';
-              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.background = '#ef4444';
+              e.currentTarget.style.borderColor = '#ef4444';
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(239, 68, 68, 0.3)';
+              e.currentTarget.style.transform = 'translateY(0)';
             }}
           >
             <svg 
