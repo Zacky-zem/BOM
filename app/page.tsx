@@ -100,36 +100,111 @@ export default function Home() {
         flex: 1,
         display: 'flex', 
         flexDirection: 'column', 
-        overflow: 'hidden',
+        overflow: 'auto',
         width: '100%',
+        position: 'relative',
       }}>
-        {/* Top Header */}
+        {/* Top Header - Fixed with Glassmorphism effect */}
         <header style={{
-          background: '#fff', borderBottom: '1px solid #e2e8f0',
-          padding: '14px 20px', display: 'flex', alignItems: 'center',
-          justifyContent: 'flex-end', height: 60,
-          position: 'sticky', top: 0, zIndex: 50,
-          boxShadow: '0 1px 0 rgba(0,0,0,.04)',
+          background: 'rgba(248, 250, 252, 0.5)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderBottom: 'none',
+          padding: '12px 24px', 
+          display: 'flex', 
+          alignItems: 'center',
+          justifyContent: 'flex-end', 
+          height: 56,
+          position: 'fixed', 
+          top: 0, 
+          right: 0,
+          left: isMobile ? 0 : (sidebarOpen ? 260 : 72),
+          zIndex: 100,
+          transition: 'left 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
         }}>
+          {/* Mobile hamburger button and title */}
+          {isMobile && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginRight: 'auto' }}>
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.8)',
+                  border: '1px solid rgba(226, 232, 240, 0.8)',
+                  borderRadius: 10,
+                  padding: 8,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  transition: 'all 0.2s',
+                }}
+                onMouseOver={e => { e.currentTarget.style.background = 'rgba(241, 245, 249, 0.9)'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
+                onMouseOut={e => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.8)'; e.currentTarget.style.borderColor = 'rgba(226, 232, 240, 0.8)'; }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" style={{ width: 20, height: 20 }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+              </button>
+              <h1 style={{
+                fontSize: 15,
+                fontWeight: 600,
+                color: '#334155',
+                margin: 0,
+              }}>
+                {page === 'assy' && 'Master ASSY'}
+                {page === 'part' && 'Master Part'}
+                {page === 'bom' && 'Master BOM'}
+                {page === 'prodplan' && 'Prod Plan'}
+              </h1>
+            </div>
+          )}
+
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
               style={{
-                background: 'none', border: '1.5px solid #e2e8f0', borderRadius: 7,
-                padding: '7px 14px', fontSize: 12, fontWeight: 600, color: '#dc2626',
-                cursor: 'pointer', fontFamily: 'inherit', display: 'flex',
-                alignItems: 'center', gap: 6, transition: 'all .2s',
+                background: 'rgba(255, 255, 255, 0.8)', 
+                border: '1px solid rgba(226, 232, 240, 0.8)', 
+                borderRadius: 10,
+                padding: '8px 16px', 
+                fontSize: 13, 
+                fontWeight: 500, 
+                color: '#64748b',
+                cursor: 'pointer', 
+                fontFamily: 'inherit', 
+                display: 'flex',
+                alignItems: 'center', 
+                gap: 8, 
+                transition: 'all .2s',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
               }}
-              onMouseOver={e => { e.currentTarget.style.borderColor = '#fecaca'; e.currentTarget.style.background = '#fef2f2'; }}
-              onMouseOut={e =>  { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = 'none'; }}
+              onMouseOver={e => { 
+                e.currentTarget.style.borderColor = '#fecaca'; 
+                e.currentTarget.style.background = '#fef2f2'; 
+                e.currentTarget.style.color = '#dc2626'; 
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(220, 38, 38, 0.15)';
+              }}
+              onMouseOut={e => { 
+                e.currentTarget.style.borderColor = 'rgba(226, 232, 240, 0.8)'; 
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.8)'; 
+                e.currentTarget.style.color = '#64748b'; 
+                e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.04)';
+              }}
             >
-              🚪 Logout
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: 16, height: 16 }}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+              </svg>
+              {!isMobile && 'Logout'}
             </button>
           </div>
         </header>
 
-        {/* Main Content Area */}
-        <main style={{ flex: 1, overflow: 'auto', padding: isMobile ? '20px' : '28px 32px' }}>
+        {/* Main Content Area - with top padding for fixed header */}
+        <main style={{ 
+          flex: 1, 
+          padding: isMobile ? '72px 12px 16px' : '80px 28px 24px',
+        }}>
           {page === 'assy'     && <MasterAssyPage showToast={showToast} role={role} />}
           {page === 'part'     && <MasterPartPage showToast={showToast} role={role} />}
           {page === 'bom'      && <MasterBomPage  showToast={showToast} role={role} />}

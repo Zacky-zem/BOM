@@ -40,8 +40,10 @@ export default function LoginPage() {
         @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
         @keyframes slideUp { from { opacity:0; transform:translateY(20px) } to { opacity:1; transform:translateY(0) } }
         @keyframes spin { to { transform: rotate(360deg) } }
-        @keyframes float { 0%, 100% { transform: translateY(0px) } 50% { transform: translateY(-12px) } }
         @keyframes pulse { 0%, 100% { opacity: 0.6 } 50% { opacity: 0.8 } }
+        @keyframes orbFloat1 { 0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.4 } 25% { transform: translate(60px, -40px) scale(1.1); opacity: 0.5 } 50% { transform: translate(30px, 50px) scale(1); opacity: 0.4 } 75% { transform: translate(-40px, 30px) scale(0.95); opacity: 0.3 } }
+        @keyframes orbFloat2 { 0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.35 } 25% { transform: translate(-50px, 60px) scale(0.95); opacity: 0.45 } 50% { transform: translate(-20px, -40px) scale(1.05); opacity: 0.35 } 75% { transform: translate(50px, -20px) scale(1); opacity: 0.4 } }
+        @keyframes orbFloat3 { 0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.3 } 25% { transform: translate(40px, 50px) scale(1.05); opacity: 0.4 } 50% { transform: translate(-60px, 20px) scale(1); opacity: 0.3 } 75% { transform: translate(20px, -50px) scale(0.98); opacity: 0.35 } }
         input::placeholder { color: #94a3b8; }
         input::-webkit-autofill {
           -webkit-box-shadow: 0 0 0 1000px #fff inset !important;
@@ -79,30 +81,48 @@ export default function LoginPage() {
           background: 'linear-gradient(135deg, rgba(248,250,252,0.95) 0%, rgba(241,245,249,0.9) 100%)',
         }}>
         
-        {/* Decorative elements */}
+        {/* Elegant gradient orbs */}
         <div style={{ 
-          position: 'absolute', 
-          top: -100, 
-          right: -100, 
-          width: 300, 
-          height: 300, 
-          borderRadius: '50%', 
-          background: 'linear-gradient(135deg, rgba(30,64,175,0.08) 0%, rgba(59,130,246,0.05) 100%)', 
-          animation: 'float 8s ease-in-out infinite' 
+          position: 'absolute',
+          top: '-10%',
+          right: '10%',
+          width: 280,
+          height: 280,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle at 30% 30%, rgba(30,64,175,0.12), rgba(30,64,175,0.02))',
+          filter: 'blur(40px)',
+          animation: 'orbFloat1 15s ease-in-out infinite',
+          pointerEvents: 'none',
         }} />
+        
         <div style={{ 
-          position: 'absolute', 
-          bottom: -50, 
-          left: -50, 
-          width: 200, 
-          height: 200, 
-          borderRadius: '50%', 
-          background: 'linear-gradient(135deg, rgba(30,64,175,0.06) 0%, rgba(59,130,246,0.03) 100%)', 
-          animation: 'float 10s ease-in-out infinite 1s' 
+          position: 'absolute',
+          bottom: '5%',
+          left: '-5%',
+          width: 320,
+          height: 320,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle at 30% 30%, rgba(59,130,246,0.1), rgba(59,130,246,0.01))',
+          filter: 'blur(50px)',
+          animation: 'orbFloat2 18s ease-in-out infinite 2s',
+          pointerEvents: 'none',
+        }} />
+        
+        <div style={{ 
+          position: 'absolute',
+          top: '50%',
+          right: '-10%',
+          width: 250,
+          height: 250,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle at 30% 30%, rgba(30,64,175,0.08), rgba(30,64,175,0.01))',
+          filter: 'blur(45px)',
+          animation: 'orbFloat3 20s ease-in-out infinite 4s',
+          pointerEvents: 'none',
         }} />
 
         <div style={{ position: 'relative', zIndex: 2, maxWidth: 480 }}>
-          {/* Logo - larger and with white background */}
+          {/* Logo */}
           <div style={{ 
             marginBottom: 40, 
             animation: 'fadeInLeft .6s ease .1s backwards',
@@ -137,7 +157,7 @@ export default function LoginPage() {
             maxWidth: 420, 
             animation: 'fadeInLeft .6s ease .3s backwards' 
           }}>
-            Platform terpusat untuk manajemen data BOM, Prod Plan, dan kalkulasi Total Usage lintas departemen Yazaki.
+            Platform terpusat untuk manajemen data BOM, Prod Plan, dan kalkulasi Total Usage lintas departemen.
           </p>
         </div>
       </div>
