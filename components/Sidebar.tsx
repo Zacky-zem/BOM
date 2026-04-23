@@ -201,39 +201,40 @@ export default function Sidebar({
             )}
           </div>
 
-          {/* Toggle button - Integrated Tab Design */}
+          {/* Toggle button - Notch Design */}
           <button
             onClick={onToggle}
             style={{
               position: 'absolute',
-              right: -16,
+              right: -24,
               top: '50%',
               transform: 'translateY(-50%)',
-              background: `linear-gradient(135deg, ${currentRoleColor} 0%, ${currentRoleColor}dd 100%)`,
+              background: '#ffffff',
               border: 'none',
               cursor: 'pointer',
               padding: 0,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              borderRadius: '0 8px 8px 0',
-              color: '#ffffff',
+              borderRadius: '0 50% 50% 0',
+              color: currentRoleColor,
               transition: 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
               flexShrink: 0,
-              width: 16,
-              height: 48,
+              width: 24,
+              height: 56,
               zIndex: 10,
-              boxShadow: `2px 0 12px ${currentRoleColor}30`,
+              boxShadow: '2px 0 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
+              clipPath: 'inset(-20px -20px -20px 0)',
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.width = '20px';
-              e.currentTarget.style.background = `linear-gradient(135deg, ${currentRoleColor}ee 0%, ${currentRoleColor} 100%)`;
-              e.currentTarget.style.boxShadow = `3px 0 16px ${currentRoleColor}50`;
+              e.currentTarget.style.width = '28px';
+              e.currentTarget.style.background = currentRoleBg;
+              e.currentTarget.style.boxShadow = `3px 0 20px ${currentRoleColor}20, 0 0 0 1px ${currentRoleColor}15`;
             }}
             onMouseOut={(e) => {
-              e.currentTarget.style.width = '16px';
-              e.currentTarget.style.background = `linear-gradient(135deg, ${currentRoleColor} 0%, ${currentRoleColor}dd 100%)`;
-              e.currentTarget.style.boxShadow = `2px 0 12px ${currentRoleColor}30`;
+              e.currentTarget.style.width = '24px';
+              e.currentTarget.style.background = '#ffffff';
+              e.currentTarget.style.boxShadow = '2px 0 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)';
             }}
             title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
           >
@@ -241,11 +242,11 @@ export default function Sidebar({
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
-              strokeWidth={2.5}
+              strokeWidth={2}
               stroke="currentColor"
               style={{
-                width: 10,
-                height: 10,
+                width: 14,
+                height: 14,
                 transition: 'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
                 transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
               }}
