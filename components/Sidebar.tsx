@@ -153,7 +153,7 @@ export default function Sidebar({
                 boxShadow: `0 2px 8px ${currentRoleColor}40`,
               }}
             >
-              {userName.charAt(0).toUpperCase()}
+              {role.charAt(0).toUpperCase()}
             </div>
             {isOpen && (
               <div
@@ -174,7 +174,7 @@ export default function Sidebar({
                     lineHeight: 1.4,
                   }}
                 >
-                  {userName}
+                  {role}
                 </div>
                 <div
                   style={{
@@ -195,7 +195,7 @@ export default function Sidebar({
                     background: currentRoleColor,
                     flexShrink: 0,
                   }} />
-                  {role}
+                  Tim {role}
                 </div>
               </div>
             )}
