@@ -90,15 +90,17 @@ export default function Home() {
             window.location.href = '/report';
           } else {
             setPage(newPage);
+            // Auto-close sidebar after menu selection
+            if (sidebarOpen) {
+              setSidebarOpen(false);
+            }
           }
         }}
         isMobile={isMobile}
         onMenuSelect={() => {
-          // Auto-close sidebar on desktop after menu selection
-          if (!isMobile && sidebarOpen) {
-            setSidebarOpen(false);
-          }
+          // This callback is optional - menu selection will auto-close via onPageChange
         }}
+        onLogout={() => signOut({ callbackUrl: '/login' })}
       />
 
       {/* Main Content */}
@@ -117,8 +119,11 @@ export default function Home() {
           position: 'sticky', top: 0, zIndex: 50,
           boxShadow: '0 1px 0 rgba(0,0,0,.04)',
         }}>
-          {/* Logo on Left */}
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          {/* Empty space on Left */}
+          <div />
+
+          {/* Logo and Text in Center */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <img
               src="/yazaki-logo.jpeg"
               alt="YAZAKI Logo"
@@ -126,22 +131,8 @@ export default function Home() {
             />
           </div>
 
-          {/* Logout Button on Right */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <button
-              onClick={() => signOut({ callbackUrl: '/login' })}
-              style={{
-                background: 'none', border: '1.5px solid #e2e8f0', borderRadius: 7,
-                padding: '7px 14px', fontSize: 12, fontWeight: 600, color: '#dc2626',
-                cursor: 'pointer', fontFamily: 'inherit', display: 'flex',
-                alignItems: 'center', gap: 6, transition: 'all .2s',
-              }}
-              onMouseOver={e => { e.currentTarget.style.borderColor = '#fecaca'; e.currentTarget.style.background = '#fef2f2'; }}
-              onMouseOut={e =>  { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = 'none'; }}
-            >
-              🚪 Logout
-            </button>
-          </div>
+          {/* Empty space on Right */}
+          <div />
         </header>
 
         {/* Main Content Area */}

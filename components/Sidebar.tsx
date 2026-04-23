@@ -10,6 +10,7 @@ interface SidebarProps {
   onPageChange: (page: 'assy' | 'part' | 'bom' | 'prodplan' | 'report') => void;
   isMobile: boolean;
   onMenuSelect?: () => void;
+  onLogout?: () => void;
 }
 
 const tabs = [
@@ -41,6 +42,7 @@ export default function Sidebar({
   onPageChange,
   isMobile,
   onMenuSelect,
+  onLogout,
 }: SidebarProps) {
   const { data: session } = useSession();
   const role = (session?.user as { role?: string })?.role ?? '';
@@ -65,7 +67,7 @@ export default function Sidebar({
           boxShadow: '0 1px 3px rgba(0,0,0,.05)',
         }}
       >
-        {/* Sidebar Header - Role */}
+        {/* Sidebar Header - Toggle Button */}
         <div
           style={{
             padding: '14px',
@@ -77,72 +79,42 @@ export default function Sidebar({
             justifyContent: isOpen ? 'flex-start' : 'center',
           }}
         >
-          <div
+          <button
+            onClick={onToggle}
             style={{
+              background: 'none',
+              border: '1px solid #e5e7eb',
+              cursor: 'pointer',
+              padding: '8px 12px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: isOpen ? 'flex-start' : 'center',
-              gap: isOpen ? 10 : 0,
-              padding: isOpen ? '10px 12px' : '10px 8px',
-              borderRadius: 8,
-              background: roleBg[role] || '#f8fafc',
+              borderRadius: 6,
+              color: '#6b7280',
+              fontSize: 14,
+              fontWeight: 500,
+              transition: 'all .2s ease',
               width: '100%',
-              boxSizing: 'border-box',
-              minHeight: '44px',
+              fontFamily: 'inherit',
+              gap: 8,
             }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = '#f3f4f6';
+              e.currentTarget.style.color = '#374151';
+              e.currentTarget.style.borderColor = '#d1d5db';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'none';
+              e.currentTarget.style.color = '#6b7280';
+              e.currentTarget.style.borderColor = '#e5e7eb';
+            }}
+            title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
           >
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                background: roleColor[role] || '#475569',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-                fontSize: 12,
-                fontWeight: 700,
-                flexShrink: 0,
-              }}
-            >
-              {userName.charAt(0).toUpperCase()}
-            </div>
-            {isOpen && (
-              <div
-                style={{
-                  flex: 1,
-                  minWidth: 0,
-                  overflow: 'hidden',
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 12.5,
-                    fontWeight: 600,
-                    color: '#0f172a',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    lineHeight: 1.3,
-                  }}
-                >
-                  {userName}
-                </div>
-                <div
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: roleColor[role] || '#475569',
-                    lineHeight: 1.3,
-                    marginTop: 2,
-                  }}
-                >
-                  {role}
-                </div>
-              </div>
-            )}
-          </div>
+            <span style={{ fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {isOpen ? '‹' : '›'}
+            </span>
+            {isOpen && <span>{isOpen ? 'Collapse' : 'Expand'}</span>}
+          </button>
         </div>
 
         {/* Sidebar Menu */}
@@ -223,7 +195,7 @@ export default function Sidebar({
           })}
         </nav>
 
-        {/* Sidebar Footer - Logout Button & Toggle */}
+        {/* Sidebar Footer - Role & Logout Button */}
         <div
           style={{
             padding: '14px',
@@ -238,42 +210,99 @@ export default function Sidebar({
             gap: '10px',
           }}
         >
-          {/* Toggle Button */}
-          <button
-            onClick={onToggle}
+          {/* User Role Box */}
+          <div
             style={{
-              background: 'none',
-              border: '1px solid #e5e7eb',
-              cursor: 'pointer',
-              padding: '8px 12px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: isOpen ? 'flex-start' : 'center',
-              borderRadius: 6,
-              color: '#6b7280',
-              fontSize: 14,
-              fontWeight: 500,
-              transition: 'all .2s ease',
+              gap: isOpen ? 10 : 0,
+              padding: isOpen ? '10px 12px' : '10px 8px',
+              borderRadius: 8,
+              background: roleBg[role] || '#f8fafc',
               width: '100%',
-              fontFamily: 'inherit',
-              gap: 8,
+              boxSizing: 'border-box',
+              minHeight: '44px',
             }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.background = '#f3f4f6';
-              e.currentTarget.style.color = '#374151';
-              e.currentTarget.style.borderColor = '#d1d5db';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.background = 'none';
-              e.currentTarget.style.color = '#6b7280';
-              e.currentTarget.style.borderColor = '#e5e7eb';
-            }}
-            title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
           >
-            <span style={{ fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {isOpen ? '‹' : '›'}
-            </span>
-            {isOpen && <span>{isOpen ? 'Collapse' : 'Expand'}</span>}
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                background: roleColor[role] || '#475569',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#fff',
+                fontSize: 12,
+                fontWeight: 700,
+                flexShrink: 0,
+              }}
+            >
+              {userName.charAt(0).toUpperCase()}
+            </div>
+            {isOpen && (
+              <div
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    color: '#0f172a',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {userName}
+                </div>
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 600,
+                    color: roleColor[role] || '#475569',
+                    lineHeight: 1.3,
+                    marginTop: 2,
+                  }}
+                >
+                  {role}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Logout Button */}
+          <button
+            onClick={onLogout}
+            style={{
+              background: 'none',
+              border: '1.5px solid #e2e8f0',
+              borderRadius: 7,
+              padding: '7px 14px',
+              fontSize: 12,
+              fontWeight: 600,
+              color: '#dc2626',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: isOpen ? 'flex-start' : 'center',
+              gap: 6,
+              transition: 'all .2s',
+              width: '100%',
+              boxSizing: 'border-box',
+            }}
+            onMouseOver={e => { e.currentTarget.style.borderColor = '#fecaca'; e.currentTarget.style.background = '#fef2f2'; }}
+            onMouseOut={e =>  { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = 'none'; }}
+          >
+            🚪 {isOpen ? 'Logout' : ''}
           </button>
         </div>
       </aside>
