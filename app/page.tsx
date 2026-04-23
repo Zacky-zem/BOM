@@ -93,6 +93,9 @@ export default function Home() {
           }
         }}
         isMobile={isMobile}
+        onMenuSelect={() => {
+          // Sidebar will auto-close after menu selection
+        }}
       />
 
       {/* Main Content */}
@@ -106,25 +109,36 @@ export default function Home() {
         {/* Top Header */}
         <header style={{
           background: '#fff', borderBottom: '1px solid #e2e8f0',
-          padding: '14px 20px', display: 'flex', alignItems: 'center',
-          justifyContent: 'flex-end', height: 60,
+          padding: '12px 20px', display: 'flex', alignItems: 'center',
+          justifyContent: 'space-between', height: 60,
           position: 'sticky', top: 0, zIndex: 50,
           boxShadow: '0 1px 0 rgba(0,0,0,.04)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <button
-              onClick={() => signOut({ callbackUrl: '/login' })}
-              style={{
-                background: 'none', border: '1.5px solid #e2e8f0', borderRadius: 7,
-                padding: '7px 14px', fontSize: 12, fontWeight: 600, color: '#dc2626',
-                cursor: 'pointer', fontFamily: 'inherit', display: 'flex',
-                alignItems: 'center', gap: 6, transition: 'all .2s',
-              }}
-              onMouseOver={e => { e.currentTarget.style.borderColor = '#fecaca'; e.currentTarget.style.background = '#fef2f2'; }}
-              onMouseOut={e =>  { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = 'none'; }}
-            >
-              🚪 Logout
-            </button>
+            {/* Hamburger menu button untuk mobile */}
+            {isMobile && (
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  padding: '6px 4px', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', borderRadius: 6, color: '#6b7280',
+                  fontSize: 20, transition: 'all .2s ease', fontFamily: 'inherit',
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.background = '#f3f4f6'; e.currentTarget.style.color = '#374151'; }}
+                onMouseOut={(e) => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#6b7280'; }}
+                title="Toggle sidebar"
+              >
+                ≡
+              </button>
+            )}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <img
+              src="/yazaki-logo.jpeg"
+              alt="YAZAKI Logo"
+              style={{ height: 30, objectFit: 'contain' }}
+            />
           </div>
         </header>
 

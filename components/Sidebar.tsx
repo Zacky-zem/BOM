@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 
 interface SidebarProps {
@@ -9,6 +9,7 @@ interface SidebarProps {
   currentPage: 'assy' | 'part' | 'bom' | 'prodplan' | 'report';
   onPageChange: (page: 'assy' | 'part' | 'bom' | 'prodplan' | 'report') => void;
   isMobile: boolean;
+  onMenuSelect?: () => void;
 }
 
 const tabs = [
@@ -63,7 +64,7 @@ export default function Sidebar({
           boxShadow: '0 1px 3px rgba(0,0,0,.05)',
         }}
       >
-        {/* Sidebar Header with Logo and Toggle */}
+        {/* Sidebar Header with User Role and Toggle */}
         <div
           style={{
             padding: isOpen ? '20px 18px' : '20px 12px',
@@ -76,11 +77,65 @@ export default function Sidebar({
           }}
         >
           {isOpen && (
-            <img
-              src="/yazaki-logo.jpeg"
-              alt="YAZAKI Logo"
-              style={{ height: 36, objectFit: 'contain' }}
-            />
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                flex: 1,
+                minWidth: 0,
+              }}
+            >
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  background: roleColor[role] || '#475569',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#fff',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  flexShrink: 0,
+                }}
+              >
+                {userName.charAt(0).toUpperCase()}
+              </div>
+              <div
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    color: '#0f172a',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {userName}
+                </div>
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 600,
+                    color: roleColor[role] || '#475569',
+                    lineHeight: 1.3,
+                    marginTop: 2,
+                  }}
+                >
+                  {role}
+                </div>
+              </div>
+            </div>
           )}
           <button
             onClick={onToggle}
@@ -129,9 +184,14 @@ export default function Sidebar({
                 key={t.key}
                 onClick={() => {
                   onPageChange(t.key as any);
-                  if (isMobile && isOpen) {
-                    // Don't auto-close for sidebar buttons
+                  // Auto-close sidebar after menu selection
+                  if (isOpen && isMobile) {
+                    onToggle();
+                  } else if (isOpen) {
+                    // Desktop: close sidebar to icon-only view
+                    onToggle();
                   }
+                  onMenuSelect?.();
                 }}
                 style={{
                   width: '100%',
@@ -189,7 +249,7 @@ export default function Sidebar({
           })}
         </nav>
 
-        {/* Sidebar Footer - User Info */}
+        {/* Sidebar Footer - Logout Button */}
         <div
           style={{
             padding: '14px',
@@ -201,72 +261,43 @@ export default function Sidebar({
             zIndex: 10,
           }}
         >
-          <div
+          <button
+            onClick={() => signOut({ callbackUrl: '/login' })}
             style={{
+              width: '100%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: isOpen ? 'flex-start' : 'center',
               gap: isOpen ? 10 : 0,
               padding: isOpen ? '10px 12px' : '10px 8px',
               borderRadius: 8,
-              background: roleBg[role] || '#f8fafc',
-              width: '100%',
-              boxSizing: 'border-box',
+              background: '#fee2e2',
+              border: '1.5px solid #fecaca',
+              color: '#dc2626',
+              fontSize: isOpen ? 13.5 : 14,
+              fontWeight: 600,
+              cursor: 'pointer',
               minHeight: '44px',
+              boxSizing: 'border-box',
+              fontFamily: 'inherit',
+              transition: 'all .2s ease',
+              flexShrink: 0,
             }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = '#fecaca';
+              e.currentTarget.style.borderColor = '#f87171';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = '#fee2e2';
+              e.currentTarget.style.borderColor = '#fecaca';
+            }}
+            title="Logout"
           >
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                background: roleColor[role] || '#475569',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-                fontSize: 12,
-                fontWeight: 700,
-                flexShrink: 0,
-              }}
-            >
-              {userName.charAt(0).toUpperCase()}
-            </div>
-            {isOpen && (
-              <div
-                style={{
-                  flex: 1,
-                  minWidth: 0,
-                  overflow: 'hidden',
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 12.5,
-                    fontWeight: 600,
-                    color: '#0f172a',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    lineHeight: 1.3,
-                  }}
-                >
-                  {userName}
-                </div>
-                <div
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: roleColor[role] || '#475569',
-                    lineHeight: 1.3,
-                    marginTop: 2,
-                  }}
-                >
-                  {role}
-                </div>
-              </div>
-            )}
-          </div>
+            <span style={{ fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              🚪
+            </span>
+            {isOpen && <span>Logout</span>}
+          </button>
         </div>
       </aside>
 
