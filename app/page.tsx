@@ -107,29 +107,72 @@ export default function Home() {
         <header style={{
           background: '#fff', borderBottom: '1px solid #e2e8f0',
           padding: '14px 20px', display: 'flex', alignItems: 'center',
-          justifyContent: 'flex-end', height: 60,
+          justifyContent: 'space-between', height: 60,
           position: 'sticky', top: 0, zIndex: 50,
-          boxShadow: '0 1px 0 rgba(0,0,0,.04)',
+          boxShadow: '0 1px 3px rgba(0,0,0,.03)',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {/* Mobile hamburger button */}
+          {isMobile && (
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              style={{
+                background: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                borderRadius: 8,
+                padding: 8,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: '#64748b',
+                transition: 'all 0.2s',
+              }}
+              onMouseOver={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
+              onMouseOut={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" style={{ width: 20, height: 20 }}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              </svg>
+            </button>
+          )}
+
+          {/* Page title for mobile */}
+          {isMobile && (
+            <h1 style={{
+              fontSize: 16,
+              fontWeight: 600,
+              color: '#1e293b',
+              margin: 0,
+            }}>
+              {page === 'assy' && 'Master ASSY'}
+              {page === 'part' && 'Master Part'}
+              {page === 'bom' && 'Master BOM'}
+              {page === 'prodplan' && 'Prod Plan'}
+            </h1>
+          )}
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginLeft: isMobile ? 0 : 'auto' }}>
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
               style={{
-                background: 'none', border: '1.5px solid #e2e8f0', borderRadius: 7,
-                padding: '7px 14px', fontSize: 12, fontWeight: 600, color: '#dc2626',
+                background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8,
+                padding: '8px 14px', fontSize: 13, fontWeight: 500, color: '#64748b',
                 cursor: 'pointer', fontFamily: 'inherit', display: 'flex',
                 alignItems: 'center', gap: 6, transition: 'all .2s',
               }}
-              onMouseOver={e => { e.currentTarget.style.borderColor = '#fecaca'; e.currentTarget.style.background = '#fef2f2'; }}
-              onMouseOut={e =>  { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = 'none'; }}
+              onMouseOver={e => { e.currentTarget.style.borderColor = '#fecaca'; e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.color = '#dc2626'; }}
+              onMouseOut={e =>  { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#64748b'; }}
             >
-              🚪 Logout
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{ width: 16, height: 16 }}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+              </svg>
+              {!isMobile && 'Logout'}
             </button>
           </div>
         </header>
 
         {/* Main Content Area */}
-        <main style={{ flex: 1, overflow: 'auto', padding: isMobile ? '20px' : '28px 32px' }}>
+        <main style={{ flex: 1, overflow: 'auto', padding: isMobile ? '16px 12px' : '24px 28px' }}>
           {page === 'assy'     && <MasterAssyPage showToast={showToast} role={role} />}
           {page === 'part'     && <MasterPartPage showToast={showToast} role={role} />}
           {page === 'bom'      && <MasterBomPage  showToast={showToast} role={role} />}
