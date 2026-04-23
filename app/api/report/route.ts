@@ -345,12 +345,17 @@ export async function GET(request: Request) {
       }
 
       if (download) {
-        const headers = ['Periode', 'Part No', 'Part No AS400', 'Supplier', 'Part Name', 'Unit', ...assyCodes, 'Total BOM', 'Total Usage'];
-        const prodQtyRow = ['PROD QTY →', '', '', '', '', '', ...assyCodes.map(a => prodMap[a] ?? 0), '', ''];
+        // Struktur yang sama dengan halaman web untuk mode single
+        // Row 1: Headers - Part No | Part No AS400 | Supplier | Part Name | Unit | [ASSY1] | [ASSY2] | ... | Total BOM | Total Usage
+        // Row 2: PROD QTY - (label + blank cells) | [qty1] | [qty2] | ... | (blank x2)
+        // Row 3+: Part data
+        
+        const headers = ['Part No', 'Part No AS400', 'Supplier', 'Part Name', 'Unit', ...assyCodes, 'Total BOM', 'Total Usage'];
+        const prodQtyRow = ['PROD QTY →', '', '', '', '', ...assyCodes.map(a => prodMap[a] ?? 0), '', ''];
         const data = [headers, prodQtyRow];
+        
         for (const part of partsResult.rows) {
           const row = [
-            per,
             part.part_no,
             part.part_no_as400 || '',
             part.supplier_name || '',
@@ -362,10 +367,24 @@ export async function GET(request: Request) {
           ];
           data.push(row);
         }
+        
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.aoa_to_sheet(data);
-        ws['!cols'] = headers.map(h => ({ wch: Math.min(Math.max(h.length + 2, 12), 30) }));
-        XLSX.utils.book_append_sheet(wb, ws, 'Report');
+        
+        // Sesuaikan column widths untuk tampilan yang lebih baik
+        const colWidths = [
+          { wch: 15 }, // Part No
+          { wch: 18 }, // Part No AS400
+          { wch: 25 }, // Supplier
+          { wch: 30 }, // Part Name
+          { wch: 10 }, // Unit
+          ...assyCodes.map(() => ({ wch: 12 })), // ASSY columns
+          { wch: 12 }, // Total BOM
+          { wch: 12 }, // Total Usage
+        ];
+        ws['!cols'] = colWidths;
+        
+        XLSX.utils.book_append_sheet(wb, ws, `Report_${per}`);
         const buffer = XLSX.write(wb, { bookType: 'xlsx', type: 'buffer' });
         return new Response(buffer, {
           headers: {
