@@ -119,29 +119,52 @@ export async function GET(request: Request) {
       }
 
       if (download) {
-        // Untuk download gabungan: buat sheet per periode
+        // Untuk download gabungan: buat SATU sheet dengan periode sebagai nested columns
+        // Struktur: Part No | Part No AS400 | Supplier | Part Name | Unit | [Assy1 Mar 2026 | Assy1 Apr 2026 | ... | Assy1 May 2026 | Assy2 Mar 2026 | ...] | Total | Total Usage
+        
         const wb = XLSX.utils.book_new();
-        for (const per of periodeList) {
-          const headers = ['Part No', 'Part No AS400', 'Supplier', 'Part Name', 'Unit', ...assyCodes, 'Total BOM', 'Total Usage'];
-          const prodQtyRow = ['PROD QTY →', '', '', '', '', ...assyCodes.map(a => prodMap[a]?.[per] ?? 0), '', ''];
-          const data = [headers, prodQtyRow];
-          for (const part of partsResult.rows) {
-            const row = [
-              part.part_no,
-              part.part_no_as400 || '',
-              part.supplier_name || '',
-              part.part_name || '',
-              part.unit || '',
-              ...assyCodes.map(a => qtyMap[part.part_no]?.[a]?.[per] ?? 0),
-              assyCodes.reduce((sum, a) => sum + (qtyMap[part.part_no]?.[a]?.[per] ?? 0), 0),
-              Math.ceil(assyCodes.reduce((sum, a) => sum + ((qtyMap[part.part_no]?.[a]?.[per] ?? 0) * (prodMap[a]?.[per] ?? 0)), 0)),
-            ];
-            data.push(row);
+        
+        // Build headers: setiap (assy, periode) sebagai column
+        const baseHeaders = ['Part No', 'Part No AS400', 'Supplier', 'Part Name', 'Unit'];
+        const assyPeriodeHeaders: string[] = [];
+        const assyPeriodeMapping: Array<{ assy: string; periode: string }> = [];
+        
+        for (const assy of assyCodes) {
+          for (const per of periodeList) {
+            assyPeriodeHeaders.push(`${assy} ${per}`);
+            assyPeriodeMapping.push({ assy, periode: per });
           }
-          const ws = XLSX.utils.aoa_to_sheet(data);
-          ws['!cols'] = headers.map(h => ({ wch: Math.min(Math.max(h.length + 2, 12), 30) }));
-          XLSX.utils.book_append_sheet(wb, ws, per);
         }
+        
+        const totalHeaders = ['Total', 'Total Usage'];
+        const headers = [...baseHeaders, ...assyPeriodeHeaders, ...totalHeaders];
+        
+        // Build PROD QTY row
+        const prodQtyRow = ['PROD QTY →', '', '', '', '', ...assyPeriodeMapping.map(ap => prodMap[ap.assy]?.[ap.periode] ?? 0), '', ''];
+        
+        // Build data rows
+        const data = [headers, prodQtyRow];
+        for (const part of partsResult.rows) {
+          const row = [
+            part.part_no,
+            part.part_no_as400 || '',
+            part.supplier_name || '',
+            part.part_name || '',
+            part.unit || '',
+            ...assyPeriodeMapping.map(ap => qtyMap[part.part_no]?.[ap.assy]?.[ap.periode] ?? 0),
+            // Total BOM: sum dari semua assy×periode untuk part ini
+            assyPeriodeMapping.reduce((sum, ap) => sum + (qtyMap[part.part_no]?.[ap.assy]?.[ap.periode] ?? 0), 0),
+            // Total Usage: sum(bom_qty × prod_qty) untuk semua assy×periode
+            Math.ceil(assyPeriodeMapping.reduce((sum, ap) => sum + ((qtyMap[part.part_no]?.[ap.assy]?.[ap.periode] ?? 0) * (prodMap[ap.assy]?.[ap.periode] ?? 0)), 0)),
+          ];
+          data.push(row);
+        }
+        
+        // Create worksheet & workbook
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        ws['!cols'] = headers.map(h => ({ wch: Math.min(Math.max(h.length + 2, 12), 20) }));
+        XLSX.utils.book_append_sheet(wb, ws, `Combined_${dari}_${sampai}`);
+        
         const buffer = XLSX.write(wb, { bookType: 'xlsx', type: 'buffer' });
         return new Response(buffer, {
           headers: {
