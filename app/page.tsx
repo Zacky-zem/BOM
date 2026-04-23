@@ -15,8 +15,6 @@ export default function Home() {
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [autoCollapseTimer, setAutoCollapseTimer] = useState<NodeJS.Timeout | null>(null);
-  const [idleTimer, setIdleTimer] = useState<NodeJS.Timeout | null>(null);
 
   // ✅ DIHAPUS: useEffect redirect — sekarang middleware yang handle ini server-side
   // Tidak perlu lagi: if (status === 'unauthenticated') router.push('/login')
@@ -32,43 +30,30 @@ export default function Home() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Auto-collapse sidebar when idle (no interaction for 3 seconds)
+  // Close sidebar when clicking outside of it (on main content area)
   useEffect(() => {
     if (!sidebarOpen || isMobile) return;
 
-    // Clear existing idle timer
-    if (idleTimer) clearTimeout(idleTimer);
-
-    // Set new idle timer: auto-collapse after 3 seconds of inactivity
-    const timer = setTimeout(() => {
-      setSidebarOpen(false);
-    }, 3000);
-
-    setIdleTimer(timer);
-
-    // Reset timer on mouse movement over sidebar
-    const handleMouseMove = () => {
-      if (idleTimer) clearTimeout(idleTimer);
-      const newTimer = setTimeout(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const sidebarElement = document.querySelector('[data-sidebar]');
+      const target = e.target as Node;
+      
+      // If click is outside sidebar, close it
+      if (sidebarElement && !sidebarElement.contains(target)) {
         setSidebarOpen(false);
-      }, 3000);
-      setIdleTimer(newTimer);
+      }
     };
 
-    // Get sidebar element to attach event listeners
-    const sidebarElement = document.querySelector('[data-sidebar]');
-    if (sidebarElement) {
-      sidebarElement.addEventListener('mousemove', handleMouseMove);
-      return () => {
-        sidebarElement.removeEventListener('mousemove', handleMouseMove);
-        if (timer) clearTimeout(timer);
-      };
-    }
+    // Add small delay to avoid closing immediately on toggle click
+    const timer = setTimeout(() => {
+      document.addEventListener('click', handleClickOutside);
+    }, 50);
 
     return () => {
-      if (timer) clearTimeout(timer);
+      clearTimeout(timer);
+      document.removeEventListener('click', handleClickOutside);
     };
-  }, [sidebarOpen, isMobile, idleTimer]);
+  }, [sidebarOpen, isMobile]);
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
     setToast({ msg, type });
@@ -124,24 +109,16 @@ export default function Home() {
       <div data-sidebar>
         <Sidebar
           isOpen={sidebarOpen}
-          onToggle={() => {
-            setSidebarOpen(!sidebarOpen);
-            // Clear any pending auto-collapse timer when user manually toggles
-            if (autoCollapseTimer) clearTimeout(autoCollapseTimer);
-            if (idleTimer) clearTimeout(idleTimer);
-          }}
+          onToggle={() => setSidebarOpen(!sidebarOpen)}
         currentPage={page}
         onPageChange={(newPage) => {
           if (newPage === 'report') {
             window.location.href = '/report';
           } else {
             setPage(newPage);
-            // Auto-collapse sidebar after menu selection (on desktop)
+            // Close sidebar after menu selection
             if (!isMobile && sidebarOpen) {
-              const timer = setTimeout(() => {
-                setSidebarOpen(false);
-              }, 500);
-              setAutoCollapseTimer(timer);
+              setSidebarOpen(false);
             }
           }
         }}
