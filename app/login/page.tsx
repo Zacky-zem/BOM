@@ -65,19 +65,6 @@ export default function LoginPage() {
         }
       `}</style>
 
-      {/* Background Image Layer */}
-      <div 
-        style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundImage: 'url(/login-bg.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          opacity: 0.15,
-          animation: 'fadeIn 1s ease',
-        }}
-      />
-
       {/* LEFT SECTION — Branding */}
       <div
         className="left-section"
