@@ -230,13 +230,13 @@ export default function Sidebar({
             position: 'relative',
           }}
         >
-          {/* Toggle button - Notch Design (positioned in menu area) */}
+          {/* Toggle button - Notch Design (positioned at Master BOM level) */}
           <button
             onClick={onToggle}
             style={{
               position: 'absolute',
               right: -24,
-              top: 80,
+              top: 100,
               background: '#ffffff',
               border: 'none',
               cursor: 'pointer',
