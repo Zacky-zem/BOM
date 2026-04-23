@@ -16,6 +16,7 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [autoCollapseTimer, setAutoCollapseTimer] = useState<NodeJS.Timeout | null>(null);
+  const [idleTimer, setIdleTimer] = useState<NodeJS.Timeout | null>(null);
 
   // ✅ DIHAPUS: useEffect redirect — sekarang middleware yang handle ini server-side
   // Tidak perlu lagi: if (status === 'unauthenticated') router.push('/login')
@@ -30,6 +31,44 @@ export default function Home() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Auto-collapse sidebar when idle (no interaction for 3 seconds)
+  useEffect(() => {
+    if (!sidebarOpen || isMobile) return;
+
+    // Clear existing idle timer
+    if (idleTimer) clearTimeout(idleTimer);
+
+    // Set new idle timer: auto-collapse after 3 seconds of inactivity
+    const timer = setTimeout(() => {
+      setSidebarOpen(false);
+    }, 3000);
+
+    setIdleTimer(timer);
+
+    // Reset timer on mouse movement over sidebar
+    const handleMouseMove = () => {
+      if (idleTimer) clearTimeout(idleTimer);
+      const newTimer = setTimeout(() => {
+        setSidebarOpen(false);
+      }, 3000);
+      setIdleTimer(newTimer);
+    };
+
+    // Get sidebar element to attach event listeners
+    const sidebarElement = document.querySelector('[data-sidebar]');
+    if (sidebarElement) {
+      sidebarElement.addEventListener('mousemove', handleMouseMove);
+      return () => {
+        sidebarElement.removeEventListener('mousemove', handleMouseMove);
+        if (timer) clearTimeout(timer);
+      };
+    }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [sidebarOpen, isMobile, idleTimer]);
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
     setToast({ msg, type });
@@ -82,13 +121,15 @@ export default function Home() {
         @keyframes slideOut { from { transform: translateX(0); opacity: 1 } to { transform: translateX(-100%); opacity: 0 } }
       `}</style>
 
-      <Sidebar
-        isOpen={sidebarOpen}
-        onToggle={() => {
-          setSidebarOpen(!sidebarOpen);
-          // Clear any pending auto-collapse timer when user manually toggles
-          if (autoCollapseTimer) clearTimeout(autoCollapseTimer);
-        }}
+      <div data-sidebar>
+        <Sidebar
+          isOpen={sidebarOpen}
+          onToggle={() => {
+            setSidebarOpen(!sidebarOpen);
+            // Clear any pending auto-collapse timer when user manually toggles
+            if (autoCollapseTimer) clearTimeout(autoCollapseTimer);
+            if (idleTimer) clearTimeout(idleTimer);
+          }}
         currentPage={page}
         onPageChange={(newPage) => {
           if (newPage === 'report') {
@@ -106,7 +147,8 @@ export default function Home() {
         }}
         isMobile={isMobile}
         onLogout={() => signOut({ callbackUrl: '/login' })}
-      />
+        />
+      </div>
 
       {/* Main Content */}
       <div style={{ 
