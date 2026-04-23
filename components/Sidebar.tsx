@@ -201,36 +201,39 @@ export default function Sidebar({
             )}
           </div>
 
-          {/* Toggle button - Arrow icon on the side */}
+          {/* Toggle button - Integrated Tab Design */}
           <button
             onClick={onToggle}
             style={{
               position: 'absolute',
-              right: -12,
+              right: -16,
               top: '50%',
               transform: 'translateY(-50%)',
-              background: 'rgba(241, 245, 249, 0.9)',
-              border: '1px solid rgba(226, 232, 240, 0.6)',
+              background: `linear-gradient(135deg, ${currentRoleColor} 0%, ${currentRoleColor}dd 100%)`,
+              border: 'none',
               cursor: 'pointer',
-              padding: 6,
+              padding: 0,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              borderRadius: 6,
-              color: '#64748b',
+              borderRadius: '0 8px 8px 0',
+              color: '#ffffff',
               transition: 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
               flexShrink: 0,
-              width: 24,
-              height: 24,
+              width: 16,
+              height: 48,
               zIndex: 10,
+              boxShadow: `2px 0 12px ${currentRoleColor}30`,
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.background = 'rgba(226, 232, 240, 0.95)';
-              e.currentTarget.style.color = '#334155';
+              e.currentTarget.style.width = '20px';
+              e.currentTarget.style.background = `linear-gradient(135deg, ${currentRoleColor}ee 0%, ${currentRoleColor} 100%)`;
+              e.currentTarget.style.boxShadow = `3px 0 16px ${currentRoleColor}50`;
             }}
             onMouseOut={(e) => {
-              e.currentTarget.style.background = 'rgba(241, 245, 249, 0.9)';
-              e.currentTarget.style.color = '#64748b';
+              e.currentTarget.style.width = '16px';
+              e.currentTarget.style.background = `linear-gradient(135deg, ${currentRoleColor} 0%, ${currentRoleColor}dd 100%)`;
+              e.currentTarget.style.boxShadow = `2px 0 12px ${currentRoleColor}30`;
             }}
             title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
           >
@@ -238,11 +241,11 @@ export default function Sidebar({
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
-              strokeWidth={2}
+              strokeWidth={2.5}
               stroke="currentColor"
               style={{
-                width: 12,
-                height: 12,
+                width: 10,
+                height: 10,
                 transition: 'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
                 transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
               }}
