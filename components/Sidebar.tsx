@@ -101,32 +101,35 @@ export default function Sidebar({
         {/* Sidebar Header */}
         <div
           style={{
-            padding: isOpen ? '16px' : '16px 8px',
+            padding: isOpen ? '16px' : '12px 8px',
             borderBottom: '1px solid #e2e8f0',
             display: 'flex',
+            flexDirection: isOpen ? 'row' : 'column',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 8,
+            justifyContent: isOpen ? 'space-between' : 'center',
+            gap: isOpen ? 8 : 12,
             flexShrink: 0,
             background: '#fff',
-            minHeight: 72,
+            minHeight: isOpen ? 72 : 'auto',
           }}
         >
-          {/* Logo - centered when collapsed, left-aligned when expanded */}
+          {/* Logo */}
           <div style={{ 
             display: 'flex', 
             alignItems: 'center', 
-            justifyContent: isOpen ? 'flex-start' : 'center',
+            justifyContent: 'center',
             flex: isOpen ? 1 : 'none',
+            width: isOpen ? 'auto' : '100%',
           }}>
             <img
               src="/yazaki-logo.jpeg"
               alt="YAZAKI Logo"
               style={{ 
-                height: isOpen ? 40 : 32, 
+                height: isOpen ? 40 : 44, 
                 width: 'auto',
+                maxWidth: isOpen ? 'none' : 52,
                 objectFit: 'contain',
-                transition: 'height 0.3s ease',
+                transition: 'all 0.3s ease',
               }}
             />
           </div>
