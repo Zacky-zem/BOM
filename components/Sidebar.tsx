@@ -201,14 +201,42 @@ export default function Sidebar({
             )}
           </div>
 
-          {/* Toggle button - Notch Design */}
+        </div>
+
+        {/* Navigation Label */}
+        {isOpen && (
+          <div style={{
+            padding: '8px 16px 8px',
+            fontSize: 11,
+            fontWeight: 600,
+            color: '#94a3b8',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+          }}>
+            Menu
+          </div>
+        )}
+
+        {/* Sidebar Menu */}
+        <nav
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            padding: isOpen ? '0 12px' : '8px 8px 12px',
+            gap: 4,
+            position: 'relative',
+          }}
+        >
+          {/* Toggle button - Notch Design (positioned in menu area) */}
           <button
             onClick={onToggle}
             style={{
               position: 'absolute',
               right: -24,
-              top: '50%',
-              transform: 'translateY(-50%)',
+              top: 80,
               background: '#ffffff',
               border: 'none',
               cursor: 'pointer',
@@ -224,7 +252,6 @@ export default function Sidebar({
               height: 56,
               zIndex: 10,
               boxShadow: '2px 0 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
-              clipPath: 'inset(-20px -20px -20px 0)',
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.width = '28px';
@@ -254,34 +281,6 @@ export default function Sidebar({
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
             </svg>
           </button>
-        </div>
-
-        {/* Navigation Label */}
-        {isOpen && (
-          <div style={{
-            padding: '8px 16px 8px',
-            fontSize: 11,
-            fontWeight: 600,
-            color: '#94a3b8',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-          }}>
-            Menu
-          </div>
-        )}
-
-        {/* Sidebar Menu */}
-        <nav
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            overflowX: 'hidden',
-            display: 'flex',
-            flexDirection: 'column',
-            padding: isOpen ? '0 12px' : '8px 8px 12px',
-            gap: 4,
-          }}
-        >
           {tabs.map((t) => {
             const isActive = currentPage === t.key;
             return (
