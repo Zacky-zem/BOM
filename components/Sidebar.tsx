@@ -9,6 +9,7 @@ interface SidebarProps {
   currentPage: 'assy' | 'part' | 'bom' | 'prodplan' | 'report';
   onPageChange: (page: 'assy' | 'part' | 'bom' | 'prodplan' | 'report') => void;
   isMobile: boolean;
+  onMenuSelect?: () => void;
 }
 
 const tabs = [
@@ -39,6 +40,7 @@ export default function Sidebar({
   currentPage,
   onPageChange,
   isMobile,
+  onMenuSelect,
 }: SidebarProps) {
   const { data: session } = useSession();
   const role = (session?.user as { role?: string })?.role ?? '';
@@ -63,142 +65,16 @@ export default function Sidebar({
           boxShadow: '0 1px 3px rgba(0,0,0,.05)',
         }}
       >
-        {/* Sidebar Header with Logo and Toggle */}
-        <div
-          style={{
-            padding: isOpen ? '20px 18px' : '20px 12px',
-            borderBottom: '1px solid #e5e7eb',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: isOpen ? 'space-between' : 'center',
-            gap: 8,
-            flexShrink: 0,
-          }}
-        >
-          {isOpen && (
-            <img
-              src="/yazaki-logo.jpeg"
-              alt="YAZAKI Logo"
-              style={{ height: 36, objectFit: 'contain' }}
-            />
-          )}
-          <button
-            onClick={onToggle}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '6px 4px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 6,
-              color: '#6b7280',
-              fontSize: 18,
-              transition: 'all .2s ease',
-              flexShrink: 0,
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.background = '#f3f4f6';
-              e.currentTarget.style.color = '#374151';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.background = 'none';
-              e.currentTarget.style.color = '#6b7280';
-            }}
-            title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-          >
-            {isOpen ? '‹' : '›'}
-          </button>
-        </div>
-
-        {/* Sidebar Menu */}
-        <nav
-          style={{
-            flex: 1,
-            overflow: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            padding: '8px 0',
-          }}
-        >
-          {tabs.map((t) => {
-            const isActive = currentPage === t.key;
-            return (
-              <button
-                key={t.key}
-                onClick={() => {
-                  onPageChange(t.key as any);
-                  if (isMobile && isOpen) {
-                    // Don't auto-close for sidebar buttons
-                  }
-                }}
-                style={{
-                  width: '100%',
-                  background: isActive
-                    ? (roleBg[role] || '#f0fdfa')
-                    : 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: isOpen ? '12px 14px' : '12px 0',
-                  textAlign: isOpen ? 'left' : 'center',
-                  fontSize: 13.5,
-                  fontWeight: isActive ? 600 : 500,
-                  color: isActive ? (roleColor[role] || '#0f766e') : '#6b7280',
-                  borderLeft: isActive
-                    ? `3px solid ${roleColor[role] || '#0f766e'}`
-                    : '3px solid transparent',
-                  borderRight: 'none',
-                  fontFamily: 'inherit',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: isOpen ? 'flex-start' : 'center',
-                  gap: isOpen ? 12 : 0,
-                  transition: 'all .2s ease',
-                  marginBottom: '2px',
-                  minHeight: '44px',
-                  flexShrink: 0,
-                }}
-                onMouseOver={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.backgroundColor = '#f9fafb';
-                    e.currentTarget.style.color = '#374151';
-                  }
-                }}
-                onMouseOut={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.color = '#6b7280';
-                  }
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: 18,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                  }}
-                >
-                  {t.icon}
-                </span>
-                {isOpen && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.label}</span>}
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Sidebar Footer - User Info */}
+        {/* Sidebar Header - Role */}
         <div
           style={{
             padding: '14px',
-            borderTop: '1px solid #e5e7eb',
+            borderBottom: '1px solid #e5e7eb',
             background: '#fff',
             flexShrink: 0,
-            position: 'sticky',
-            bottom: 0,
-            zIndex: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: isOpen ? 'flex-start' : 'center',
           }}
         >
           <div
@@ -267,6 +143,138 @@ export default function Sidebar({
               </div>
             )}
           </div>
+        </div>
+
+        {/* Sidebar Menu */}
+        <nav
+          style={{
+            flex: 1,
+            overflow: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            padding: '8px 0',
+          }}
+        >
+          {tabs.map((t) => {
+            const isActive = currentPage === t.key;
+            return (
+              <button
+                key={t.key}
+                onClick={() => {
+                  onPageChange(t.key as any);
+                  if (isMobile && isOpen) {
+                    onToggle(); // Auto-close sidebar on mobile
+                  }
+                  onMenuSelect?.(); // Trigger menu selection callback
+                }}
+                style={{
+                  width: '100%',
+                  background: isActive
+                    ? (roleBg[role] || '#f0fdfa')
+                    : 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: isOpen ? '12px 14px' : '12px 0',
+                  textAlign: isOpen ? 'left' : 'center',
+                  fontSize: 13.5,
+                  fontWeight: isActive ? 600 : 500,
+                  color: isActive ? (roleColor[role] || '#0f766e') : '#6b7280',
+                  borderLeft: isActive
+                    ? `3px solid ${roleColor[role] || '#0f766e'}`
+                    : '3px solid transparent',
+                  borderRight: 'none',
+                  fontFamily: 'inherit',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: isOpen ? 'flex-start' : 'center',
+                  gap: isOpen ? 12 : 0,
+                  transition: 'all .2s ease',
+                  marginBottom: '2px',
+                  minHeight: '44px',
+                  flexShrink: 0,
+                }}
+                onMouseOver={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = '#f9fafb';
+                    e.currentTarget.style.color = '#374151';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#6b7280';
+                  }
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 18,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  {t.icon}
+                </span>
+                {isOpen && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.label}</span>}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Sidebar Footer - Logout Button & Toggle */}
+        <div
+          style={{
+            padding: '14px',
+            borderTop: '1px solid #e5e7eb',
+            background: '#fff',
+            flexShrink: 0,
+            position: 'sticky',
+            bottom: 0,
+            zIndex: 10,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+          }}
+        >
+          {/* Toggle Button */}
+          <button
+            onClick={onToggle}
+            style={{
+              background: 'none',
+              border: '1px solid #e5e7eb',
+              cursor: 'pointer',
+              padding: '8px 12px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: isOpen ? 'flex-start' : 'center',
+              borderRadius: 6,
+              color: '#6b7280',
+              fontSize: 14,
+              fontWeight: 500,
+              transition: 'all .2s ease',
+              width: '100%',
+              fontFamily: 'inherit',
+              gap: 8,
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = '#f3f4f6';
+              e.currentTarget.style.color = '#374151';
+              e.currentTarget.style.borderColor = '#d1d5db';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'none';
+              e.currentTarget.style.color = '#6b7280';
+              e.currentTarget.style.borderColor = '#e5e7eb';
+            }}
+            title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+          >
+            <span style={{ fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {isOpen ? '‹' : '›'}
+            </span>
+            {isOpen && <span>{isOpen ? 'Collapse' : 'Expand'}</span>}
+          </button>
         </div>
       </aside>
 

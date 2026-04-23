@@ -93,6 +93,12 @@ export default function Home() {
           }
         }}
         isMobile={isMobile}
+        onMenuSelect={() => {
+          // Auto-close sidebar on desktop after menu selection
+          if (!isMobile && sidebarOpen) {
+            setSidebarOpen(false);
+          }
+        }}
       />
 
       {/* Main Content */}
@@ -107,10 +113,20 @@ export default function Home() {
         <header style={{
           background: '#fff', borderBottom: '1px solid #e2e8f0',
           padding: '14px 20px', display: 'flex', alignItems: 'center',
-          justifyContent: 'flex-end', height: 60,
+          justifyContent: 'space-between', height: 60,
           position: 'sticky', top: 0, zIndex: 50,
           boxShadow: '0 1px 0 rgba(0,0,0,.04)',
         }}>
+          {/* Logo on Left */}
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <img
+              src="/yazaki-logo.jpeg"
+              alt="YAZAKI Logo"
+              style={{ height: 40, objectFit: 'contain' }}
+            />
+          </div>
+
+          {/* Logout Button on Right */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
