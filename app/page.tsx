@@ -100,23 +100,27 @@ export default function Home() {
         flex: 1,
         display: 'flex', 
         flexDirection: 'column', 
-        overflow: 'hidden',
+        overflow: 'auto',
         width: '100%',
+        position: 'relative',
       }}>
-        {/* Top Header - Glassmorphism effect */}
+        {/* Top Header - Fixed with Glassmorphism effect */}
         <header style={{
-          background: 'rgba(255, 255, 255, 0.7)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(226, 232, 240, 0.6)',
-          padding: '12px 20px', 
+          background: 'rgba(255, 255, 255, 0.75)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          borderBottom: '1px solid rgba(226, 232, 240, 0.5)',
+          padding: '12px 24px', 
           display: 'flex', 
           alignItems: 'center',
           justifyContent: 'flex-end', 
           height: 56,
-          position: 'sticky', 
+          position: 'fixed', 
           top: 0, 
-          zIndex: 50,
+          right: 0,
+          left: isMobile ? 0 : (sidebarOpen ? 260 : 72),
+          zIndex: 100,
+          transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         }}>
           {/* Mobile hamburger button and title */}
           {isMobile && (
@@ -196,8 +200,11 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Main Content Area */}
-        <main style={{ flex: 1, overflow: 'auto', padding: isMobile ? '16px 12px' : '24px 28px' }}>
+        {/* Main Content Area - with top padding for fixed header */}
+        <main style={{ 
+          flex: 1, 
+          padding: isMobile ? '72px 12px 16px' : '80px 28px 24px',
+        }}>
           {page === 'assy'     && <MasterAssyPage showToast={showToast} role={role} />}
           {page === 'part'     && <MasterPartPage showToast={showToast} role={role} />}
           {page === 'bom'      && <MasterBomPage  showToast={showToast} role={role} />}
