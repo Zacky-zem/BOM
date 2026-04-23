@@ -101,38 +101,37 @@ export default function Sidebar({
         {/* Sidebar Header */}
         <div
           style={{
-            padding: isOpen ? '20px 16px' : '20px 0',
+            padding: isOpen ? '16px' : '16px 8px',
             borderBottom: '1px solid #e2e8f0',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: isOpen ? 'space-between' : 'center',
+            justifyContent: 'space-between',
             gap: 8,
             flexShrink: 0,
             background: '#fff',
+            minHeight: 72,
           }}
         >
-          {isOpen && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <img
-                src="/yazaki-logo.jpeg"
-                alt="YAZAKI Logo"
-                style={{ 
-                  height: 32, 
-                  width: 'auto',
-                  objectFit: 'contain',
-                  borderRadius: 4,
-                }}
-              />
-              <span style={{ 
-                fontSize: 14, 
-                fontWeight: 700, 
-                color: '#1e293b',
-                letterSpacing: '-0.01em',
-              }}>
-                BOM System
-              </span>
-            </div>
-          )}
+          {/* Logo - centered when collapsed, left-aligned when expanded */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: isOpen ? 'flex-start' : 'center',
+            flex: isOpen ? 1 : 'none',
+          }}>
+            <img
+              src="/yazaki-logo.jpeg"
+              alt="YAZAKI Logo"
+              style={{ 
+                height: isOpen ? 40 : 32, 
+                width: 'auto',
+                objectFit: 'contain',
+                transition: 'height 0.3s ease',
+              }}
+            />
+          </div>
+          
+          {/* Toggle button */}
           <button
             onClick={onToggle}
             style={{
@@ -171,8 +170,6 @@ export default function Sidebar({
               style={{
                 width: 16,
                 height: 16,
-                transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                transition: 'transform 0.3s ease',
               }}
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
