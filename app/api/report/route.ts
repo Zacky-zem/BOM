@@ -22,11 +22,30 @@ export async function GET(request: Request) {
     // Tentukan periode list
     let periodeList: string[] = [];
     if (isGabungan) {
+      // Validasi: maksimal 12 bulan
+      const dariDate = new Date(dari + '-01');
+      const sampaiDate = new Date(sampai + '-01');
+      const monthDiff = (sampaiDate.getFullYear() - dariDate.getFullYear()) * 12 + 
+                        (sampaiDate.getMonth() - dariDate.getMonth());
+      
+      if (monthDiff < 0) {
+        return NextResponse.json({ error: 'Tanggal "dari" tidak boleh lebih besar dari "sampai"' }, { status: 400 });
+      }
+      if (monthDiff > 11) {
+        return NextResponse.json({ error: 'Maksimal range gabungan adalah 12 bulan' }, { status: 400 });
+      }
+
+      // Query periode dari database sesuai range
       const pr = await pool.query(
         `SELECT DISTINCT periode FROM bom_detail WHERE periode >= $1 AND periode <= $2 ORDER BY periode`,
         [dari, sampai]
       );
       periodeList = pr.rows.map((r: { periode: string }) => r.periode);
+      
+      // Jika tidak ada data di periode range, kembalikan error
+      if (periodeList.length === 0) {
+        return NextResponse.json({ error: 'Tidak ada data untuk range periode yang dipilih' }, { status: 404 });
+      }
     } else if (periode) {
       periodeList = [periode];
     } else {
