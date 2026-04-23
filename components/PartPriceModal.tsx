@@ -87,7 +87,7 @@ export default function PartPriceModal({ periode, role, onClose }: {
   // Debounce search
   const handleSearch = (val: string) => {
     setSearch(val); setPage(1);
-    clearTimeout(searchTimer.current);
+    if (searchTimer.current) clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => fetchPage(1, val, filter), 400);
   };
 
