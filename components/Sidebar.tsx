@@ -76,7 +76,7 @@ export default function Sidebar({
             width: sidebarWidth,
             minWidth: sidebarWidth,
             flexShrink: 0,
-            transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            transition: 'all 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
           }}
         />
       )}
@@ -86,31 +86,34 @@ export default function Sidebar({
         style={{
           position: 'fixed',
           top: 0,
-          left: isMobile && !isOpen ? -280 : 0,
+          left: 0,
           width: sidebarWidth,
           height: '100vh',
           background: 'linear-gradient(180deg, #ffffff 0%, #fafbfc 100%)',
-          borderRight: '1px solid #e2e8f0',
+          borderRight: 'none',
           display: 'flex',
           flexDirection: 'column',
           zIndex: 1000,
-          transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          boxShadow: isMobile && isOpen ? '4px 0 24px rgba(0,0,0,0.12)' : '0 0 0 1px rgba(0,0,0,0.03)',
+          transition: 'all 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
+          boxShadow: '1px 0 20px rgba(0,0,0,0.03)',
+          transform: isMobile && !isOpen ? 'translateX(-100%)' : 'translateX(0)',
+          opacity: isMobile && !isOpen ? 0 : 1,
         }}
       >
         {/* Sidebar Header */}
         <div
           style={{
             padding: isOpen ? '16px' : '12px 8px',
-            borderBottom: '1px solid #e2e8f0',
+            borderBottom: 'none',
             display: 'flex',
             flexDirection: isOpen ? 'row' : 'column',
             alignItems: 'center',
             justifyContent: isOpen ? 'space-between' : 'center',
             gap: isOpen ? 8 : 12,
             flexShrink: 0,
-            background: '#fff',
+            background: 'transparent',
             minHeight: isOpen ? 72 : 'auto',
+            transition: 'all 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
           }}
         >
           {/* Logo */}
@@ -138,28 +141,28 @@ export default function Sidebar({
           <button
             onClick={onToggle}
             style={{
-              background: '#f8fafc',
-              border: '1px solid #e2e8f0',
+              background: 'rgba(241, 245, 249, 0.8)',
+              border: '1px solid rgba(226, 232, 240, 0.6)',
               cursor: 'pointer',
               padding: 8,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              borderRadius: 8,
+              borderRadius: 10,
               color: '#64748b',
-              transition: 'all 0.2s ease',
+              transition: 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
               flexShrink: 0,
-              width: 32,
-              height: 32,
+              width: 34,
+              height: 34,
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.background = '#f1f5f9';
-              e.currentTarget.style.borderColor = '#cbd5e1';
+              e.currentTarget.style.background = 'rgba(226, 232, 240, 0.9)';
+              e.currentTarget.style.transform = 'scale(1.05)';
               e.currentTarget.style.color = '#334155';
             }}
             onMouseOut={(e) => {
-              e.currentTarget.style.background = '#f8fafc';
-              e.currentTarget.style.borderColor = '#e2e8f0';
+              e.currentTarget.style.background = 'rgba(241, 245, 249, 0.8)';
+              e.currentTarget.style.transform = 'scale(1)';
               e.currentTarget.style.color = '#64748b';
             }}
             title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
@@ -173,6 +176,8 @@ export default function Sidebar({
               style={{
                 width: 16,
                 height: 16,
+                transition: 'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
+                transform: isOpen ? 'rotate(0deg)' : 'rotate(180deg)',
               }}
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
@@ -227,28 +232,30 @@ export default function Sidebar({
                   fontSize: 13.5,
                   fontWeight: isActive ? 600 : 500,
                   color: isActive ? currentRoleColor : '#64748b',
-                  borderRadius: 10,
+                  borderRadius: 12,
                   fontFamily: 'inherit',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: isOpen ? 'flex-start' : 'center',
                   gap: isOpen ? 12 : 0,
-                  transition: 'all 0.2s ease',
+                  transition: 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
                   minHeight: 44,
                   flexShrink: 0,
                   position: 'relative',
-                  boxShadow: isActive ? `0 1px 3px ${currentRoleColor}15` : 'none',
+                  boxShadow: isActive ? `0 2px 8px ${currentRoleColor}15` : 'none',
                 }}
                 onMouseOver={(e) => {
                   if (!isActive) {
-                    e.currentTarget.style.backgroundColor = '#f8fafc';
+                    e.currentTarget.style.backgroundColor = 'rgba(241, 245, 249, 0.8)';
                     e.currentTarget.style.color = '#334155';
+                    e.currentTarget.style.transform = 'translateX(2px)';
                   }
                 }}
                 onMouseOut={(e) => {
                   if (!isActive) {
                     e.currentTarget.style.backgroundColor = 'transparent';
                     e.currentTarget.style.color = '#64748b';
+                    e.currentTarget.style.transform = 'translateX(0)';
                   }
                 }}
               >
@@ -283,9 +290,10 @@ export default function Sidebar({
         <div
           style={{
             padding: isOpen ? '16px' : '16px 8px',
-            borderTop: '1px solid #e2e8f0',
-            background: '#fff',
+            borderTop: 'none',
+            background: 'transparent',
             flexShrink: 0,
+            transition: 'all 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
           }}
         >
           <div
@@ -377,10 +385,11 @@ export default function Sidebar({
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(15, 23, 42, 0.6)',
-            backdropFilter: 'blur(2px)',
+            background: 'rgba(15, 23, 42, 0.4)',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
             zIndex: 999,
-            animation: 'fadeIn 0.2s ease',
+            animation: 'fadeIn 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
           }}
         />
       )}

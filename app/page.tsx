@@ -106,10 +106,10 @@ export default function Home() {
       }}>
         {/* Top Header - Fixed with Glassmorphism effect */}
         <header style={{
-          background: 'rgba(255, 255, 255, 0.75)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
-          borderBottom: '1px solid rgba(226, 232, 240, 0.5)',
+          background: 'rgba(248, 250, 252, 0.5)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderBottom: 'none',
           padding: '12px 24px', 
           display: 'flex', 
           alignItems: 'center',
@@ -120,7 +120,7 @@ export default function Home() {
           right: 0,
           left: isMobile ? 0 : (sidebarOpen ? 260 : 72),
           zIndex: 100,
-          transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: 'left 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
         }}>
           {/* Mobile hamburger button and title */}
           {isMobile && (
