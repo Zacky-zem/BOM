@@ -108,13 +108,12 @@ export default function Sidebar({
             padding: isOpen ? '16px' : '12px 8px',
             borderBottom: 'none',
             display: 'flex',
-            flexDirection: isOpen ? 'column' : 'column',
+            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'flex-start',
-            gap: isOpen ? 12 : 12,
+            gap: 12,
             flexShrink: 0,
             background: 'transparent',
-            minHeight: isOpen ? 'auto' : 'auto',
             transition: 'all 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
           }}
         >
@@ -129,10 +128,12 @@ export default function Sidebar({
               borderRadius: 12,
               background: currentRoleBg,
               border: `1px solid ${currentRoleColor}20`,
-              width: '100%',
+              width: isOpen ? 'calc(100% - 16px)' : 'calc(100% - 16px)',
               boxSizing: 'border-box',
-              minHeight: isOpen ? 56 : 56,
+              minHeight: 56,
               transition: 'all 0.2s ease',
+              marginLeft: isOpen ? 8 : 8,
+              marginRight: isOpen ? 8 : 8,
             }}
           >
             <div
@@ -216,6 +217,8 @@ export default function Sidebar({
               flexShrink: 0,
               width: 34,
               height: 34,
+              marginLeft: 8,
+              marginRight: 8,
             }}
             onMouseOver={(e) => {
               e.currentTarget.style.background = 'rgba(226, 232, 240, 0.9)';
@@ -250,7 +253,7 @@ export default function Sidebar({
         {/* Navigation Label */}
         {isOpen && (
           <div style={{
-            padding: '16px 16px 8px',
+            padding: '12px 16px 8px',
             fontSize: 11,
             fontWeight: 600,
             color: '#94a3b8',
@@ -269,7 +272,7 @@ export default function Sidebar({
             overflowX: 'hidden',
             display: 'flex',
             flexDirection: 'column',
-            padding: isOpen ? '0 12px 16px' : '16px 8px',
+            padding: isOpen ? '0 12px' : '8px 8px 12px',
             gap: 4,
           }}
         >
@@ -351,7 +354,7 @@ export default function Sidebar({
         {/* Sidebar Footer - Logout Button (Always at bottom) */}
         <div
           style={{
-            padding: isOpen ? '16px' : '16px 8px',
+            padding: isOpen ? '12px 16px' : '12px 8px',
             borderTop: 'none',
             background: 'transparent',
             flexShrink: 0,
@@ -361,7 +364,7 @@ export default function Sidebar({
           <button
             onClick={onLogout}
             style={{
-              width: '100%',
+              width: isOpen ? 'calc(100% - 0px)' : 'calc(100% - 0px)',
               background: 'rgba(255, 255, 255, 0.8)',
               border: '1px solid rgba(226, 232, 240, 0.8)',
               borderRadius: 12,

@@ -13,7 +13,7 @@ export default function Home() {
   const { data: session, status } = useSession();
   const [page, setPage] = useState<'assy' | 'part' | 'bom' | 'prodplan'>('assy');
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [autoCollapseTimer, setAutoCollapseTimer] = useState<NodeJS.Timeout | null>(null);
 
@@ -179,7 +179,7 @@ export default function Home() {
               src="/yazaki-logo.jpeg"
               alt="YAZAKI Logo"
               style={{
-                height: 32,
+                height: 48,
                 width: 'auto',
                 objectFit: 'contain',
                 opacity: isMobile ? 0 : 1,
