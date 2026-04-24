@@ -115,7 +115,6 @@ export default function Sidebar({
             flexShrink: 0,
             background: 'transparent',
             transition: 'all 0.4s cubic-bezier(0.22, 1, 0.36, 1)',
-            position: 'relative',
           }}
         >
           {/* User Role at Top (moved from bottom) */}
@@ -153,7 +152,7 @@ export default function Sidebar({
                 boxShadow: `0 2px 8px ${currentRoleColor}40`,
               }}
             >
-              {userName.charAt(0).toUpperCase()}
+              {role.charAt(0).toUpperCase()}
             </div>
             {isOpen && (
               <div
@@ -174,7 +173,7 @@ export default function Sidebar({
                     lineHeight: 1.4,
                   }}
                 >
-                  {userName}
+                  {role}
                 </div>
                 <div
                   style={{
@@ -195,42 +194,46 @@ export default function Sidebar({
                     background: currentRoleColor,
                     flexShrink: 0,
                   }} />
-                  {role}
+                  Tim {role}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Toggle button - Arrow icon on the side */}
+          {/* Toggle button - Notch Design */}
           <button
             onClick={onToggle}
             style={{
               position: 'absolute',
-              right: -12,
-              top: '50%',
+              right: -24,
+              top: '30%',
               transform: 'translateY(-50%)',
-              background: 'rgba(241, 245, 249, 0.9)',
-              border: '1px solid rgba(226, 232, 240, 0.6)',
+              background: '#ffffff',
+              border: 'none',
               cursor: 'pointer',
-              padding: 6,
+              padding: 0,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              borderRadius: 6,
-              color: '#64748b',
+              borderRadius: '0 50% 50% 0',
+              color: currentRoleColor,
               transition: 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
               flexShrink: 0,
               width: 24,
-              height: 24,
+              height: 56,
               zIndex: 10,
+              boxShadow: '2px 0 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)',
+              clipPath: 'inset(-20px -20px -20px 0)',
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.background = 'rgba(226, 232, 240, 0.95)';
-              e.currentTarget.style.color = '#334155';
+              e.currentTarget.style.width = '28px';
+              e.currentTarget.style.background = currentRoleBg;
+              e.currentTarget.style.boxShadow = `3px 0 20px ${currentRoleColor}20, 0 0 0 1px ${currentRoleColor}15`;
             }}
             onMouseOut={(e) => {
-              e.currentTarget.style.background = 'rgba(241, 245, 249, 0.9)';
-              e.currentTarget.style.color = '#64748b';
+              e.currentTarget.style.width = '24px';
+              e.currentTarget.style.background = '#ffffff';
+              e.currentTarget.style.boxShadow = '2px 0 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)';
             }}
             title={isOpen ? 'Collapse sidebar' : 'Expand sidebar'}
           >
@@ -241,8 +244,8 @@ export default function Sidebar({
               strokeWidth={2}
               stroke="currentColor"
               style={{
-                width: 12,
-                height: 12,
+                width: 14,
+                height: 14,
                 transition: 'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
                 transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
               }}
