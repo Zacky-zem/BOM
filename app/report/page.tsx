@@ -115,7 +115,7 @@ function VirtualReportTable({
   const dynW = colVirt.getTotalSize();
 
   return (
-    <div ref={scrollRef} style={{ overflow: 'auto', maxHeight: 'calc(100vh - 340px)', position: 'relative', fontSize: 11.5, whiteSpace: 'nowrap' }}>
+    <div ref={scrollRef} style={{ overflow: 'auto', maxHeight: 'calc(100vh - 260px)', position: 'relative', fontSize: 11.5, whiteSpace: 'nowrap' }}>
 
       {/* ── STICKY HEADER ── */}
       <div style={{ position: 'sticky', top: 0, zIndex: 20, display: 'flex', flexDirection: 'column', width: fixedTotalW + dynW + STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, minWidth: '100%' }}>
@@ -235,11 +235,11 @@ function VirtualReportTable({
               onMouseOut={e =>  (e.currentTarget.style.background = rowBg)}
             >
               {/* Fixed cells */}
-              <div style={{ width: FW[0], flexShrink: 0, padding: '0 10px', fontFamily: 'monospace', fontSize: 11, color: '#1d4ed8', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', position: 'sticky', left: 0, background: fixedBg, zIndex: 2, borderRight: '1px solid #e2e8f0', height: ROW_H, display: 'flex', alignItems: 'center' }}>{part.part_no}</div>
-              <div style={{ width: FW[1], flexShrink: 0, padding: '0 10px', fontFamily: 'monospace', fontSize: 10.5, color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', borderRight: '1px solid #f1f5f9', height: ROW_H, display: 'flex', alignItems: 'center' }}>{part.part_no_as400 || '—'}</div>
-              <div style={{ width: FW[2], flexShrink: 0, padding: '0 10px', fontSize: 11, color: '#4b5563', overflow: 'hidden', textOverflow: 'ellipsis', borderRight: '1px solid #f1f5f9', height: ROW_H, display: 'flex', alignItems: 'center' }}>{part.supplier_name || '—'}</div>
-              <div style={{ width: FW[3], flexShrink: 0, padding: '0 10px', fontSize: 11, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', borderRight: '1px solid #f1f5f9', height: ROW_H, display: 'flex', alignItems: 'center' }}>{part.part_name || '—'}</div>
-              <div style={{ width: FW[4], flexShrink: 0, padding: '0 6px', textAlign: 'center', borderRight: '2px solid #e2e8f0', height: ROW_H, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: FW[0], flexShrink: 0, padding: '0 10px', fontFamily: 'monospace', fontSize: 11, color: '#1d4ed8', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', position: 'sticky', left: FW.slice(0,0).reduce((a,b)=>a+b,0), background: fixedBg, zIndex: 2, borderRight: '1px solid #e2e8f0', height: ROW_H, display: 'flex', alignItems: 'center' }}>{part.part_no}</div>
+              <div style={{ width: FW[1], flexShrink: 0, padding: '0 10px', fontFamily: 'monospace', fontSize: 10.5, color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', position: 'sticky', left: FW.slice(0,1).reduce((a,b)=>a+b,0), background: fixedBg, zIndex: 2, borderRight: '1px solid #f1f5f9', height: ROW_H, display: 'flex', alignItems: 'center' }}>{part.part_no_as400 || '—'}</div>
+              <div style={{ width: FW[2], flexShrink: 0, padding: '0 10px', fontSize: 11, color: '#4b5563', overflow: 'hidden', textOverflow: 'ellipsis', position: 'sticky', left: FW.slice(0,2).reduce((a,b)=>a+b,0), background: fixedBg, zIndex: 2, borderRight: '1px solid #f1f5f9', height: ROW_H, display: 'flex', alignItems: 'center' }}>{part.supplier_name || '—'}</div>
+              <div style={{ width: FW[3], flexShrink: 0, padding: '0 10px', fontSize: 11, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', position: 'sticky', left: FW.slice(0,3).reduce((a,b)=>a+b,0), background: fixedBg, zIndex: 2, borderRight: '1px solid #f1f5f9', height: ROW_H, display: 'flex', alignItems: 'center' }}>{part.part_name || '—'}</div>
+              <div style={{ width: FW[4], flexShrink: 0, padding: '0 6px', textAlign: 'center', position: 'sticky', left: FW.slice(0,4).reduce((a,b)=>a+b,0), background: fixedBg, zIndex: 2, borderRight: '2px solid #e2e8f0', height: ROW_H, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <span style={{ background: '#eff6ff', color: '#1d4ed8', borderRadius: 4, padding: '1px 5px', fontSize: 10, fontWeight: 700 }}>{part.unit || '—'}</span>
               </div>
 
@@ -339,6 +339,8 @@ function ReportContent() {
   const [selectedAssy,   setSelectedAssy]   = useState<Set<string>>(new Set());
   const [assySearch,     setAssySearch]     = useState('');
   const [showAssyPicker, setShowAssyPicker] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
 
   const gabunganKey = `${dari}_${sampai}`;
 
@@ -501,9 +503,34 @@ function ReportContent() {
   };
 
   const handleExport = () => {
+    setIsDownloading(true);
+    setDownloadProgress(0);
+    
+    // Animate progress bar
+    const progressInterval = setInterval(() => {
+      setDownloadProgress(prev => {
+        if (prev >= 90) {
+          clearInterval(progressInterval);
+          return 90;
+        }
+        return prev + Math.random() * 30;
+      });
+    }, 300);
+    
+    // Trigger download
     const anchor = document.createElement('a');
     anchor.href  = buildDownloadUrl(search);
     anchor.click();
+    
+    // Complete download after 1.5 seconds
+    setTimeout(() => {
+      clearInterval(progressInterval);
+      setDownloadProgress(100);
+      setTimeout(() => {
+        setIsDownloading(false);
+        setDownloadProgress(0);
+      }, 500);
+    }, 1500);
   };
 
   return (
@@ -513,6 +540,7 @@ function ReportContent() {
         * { box-sizing: border-box; margin: 0; padding: 0; }
         @keyframes spin    { to { transform: rotate(360deg) } }
         @keyframes fadeUp  { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:translateY(0) } }
+        @keyframes slideDown { from { opacity:0; transform:translateY(-12px) } to { opacity:1; transform:translateY(0) } }
       `}</style>
 
       {/* Navbar */}
@@ -687,6 +715,29 @@ function ReportContent() {
                 </span>
               )}
             </div>
+
+            {/* Download Progress Bar */}
+            {isDownloading && (
+              <div style={{ background: '#fff', borderBottom: '1px solid #e8eaed', padding: '12px 20px', animation: 'slideDown 0.3s ease' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ fontSize: 14 }}>⬇️</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#0f172a', marginBottom: 4 }}>
+                      Mengunduh laporan... {Math.round(downloadProgress)}%
+                    </div>
+                    <div style={{ width: '100%', height: 6, background: '#e5e7eb', borderRadius: 3, overflow: 'hidden' }}>
+                      <div style={{
+                        width: `${downloadProgress}%`,
+                        height: '100%',
+                        background: 'linear-gradient(90deg, #10b981, #059669)',
+                        transition: 'width 0.2s ease',
+                        borderRadius: 3
+                      }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Virtual Table */}
             <VirtualReportTable
