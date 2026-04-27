@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import pool from '@/lib/db';
 import fs from 'fs';
 import path from 'path';
@@ -39,367 +39,256 @@ export async function GET(request: Request) {
 
   const stream = new ReadableStream({
     async start(controller) {
+      let connection;
       try {
+        connection = await pool.connect();
+        
         const sendEvent = (event: any) => {
           const data = JSON.stringify(event);
           const message = `data: ${data}\n\n`;
           controller.enqueue(encoder.encode(message));
         };
 
-        sendEvent({ progress: 5, status: 'Mengambil periode...' });
+        sendEvent({ progress: 5, status: 'Mempersiapkan data...' });
 
-        const [p1, p2] = isGabungan ? [dari!, sampai!] : [periode!, periode!];
-
-        // Get periode list
-        const periodeList = isGabungan
-          ? (await pool.query(
-              `SELECT DISTINCT periode FROM mv_bom_gabungan
-               WHERE periode >= $1 AND periode <= $2 ORDER BY periode`,
-              [p1, p2]
-            )).rows.map((r: { periode: string }) => r.periode)
-          : [periode!];
-
-        sendEvent({ progress: 10, status: 'Mengambil data ASSY...' });
-
-        // Get ASSY codes
-        const assyQuery = hasAssyFilter
-          ? `SELECT DISTINCT assy_code FROM mv_bom_gabungan
-             WHERE periode >= $1 AND periode <= $2 AND assy_code = ANY($3::text[])
-             ORDER BY assy_code`
-          : `SELECT DISTINCT assy_code FROM mv_bom_gabungan
-             WHERE periode >= $1 AND periode <= $2 ORDER BY assy_code`;
-        
-        const assyRes = await pool.query(
-          assyQuery,
-          hasAssyFilter ? [p1, p2, assyParams] : [p1, p2]
-        );
-        const assyCodes = assyRes.rows.map((r: { assy_code: string }) => r.assy_code);
-
-        sendEvent({ progress: 15, status: 'Mengambil prod qty...' });
-
-        // Get prod qty
-        const prodRes = await pool.query(
-          `SELECT assy_code, periode, COALESCE(prod_qty, 0) AS prod_qty
-           FROM prod_plan WHERE periode >= $1 AND periode <= $2`,
-          [p1, p2]
-        );
-        const prodMap: Record<string, Record<string, number>> = {};
-        for (const r of prodRes.rows) {
-          if (!prodMap[r.assy_code]) prodMap[r.assy_code] = {};
-          prodMap[r.assy_code][r.periode] = Number(r.prod_qty);
-        }
-
-        sendEvent({ progress: 25, status: 'Fetching total part count...' });
-
-        // Count total parts
-        const countSql = hasAssyFilter
-          ? `SELECT COUNT(DISTINCT part_no) as cnt FROM mv_bom_gabungan
-             WHERE periode >= $1 AND periode <= $2 AND assy_code = ANY($3::text[])
-             ${hasSearch ? `AND (part_no ILIKE $4 OR part_name ILIKE $4)` : ''}`
-          : `SELECT COUNT(DISTINCT part_no) as cnt FROM mv_bom_gabungan
-             WHERE periode >= $1 AND periode <= $2
-             ${hasSearch ? `AND (part_no ILIKE $3 OR part_name ILIKE $3)` : ''}`;
-        
-        const countRes = await pool.query(
-          countSql,
-          hasAssyFilter && hasSearch ? [p1, p2, assyParams, searchParam]
-            : hasAssyFilter ? [p1, p2, assyParams]
-            : hasSearch ? [p1, p2, searchParam]
-            : [p1, p2]
-        );
-        const totalParts = parseInt(countRes.rows[0].cnt);
-
-        sendEvent({ progress: 30, status: `Building Excel for ${totalParts} parts...` });
-
-        // Build headers
-        const wb = XLSX.utils.book_new();
-        
+        // Get period list
+        let periodeList: string[] = [];
         if (isGabungan) {
-          const baseHeaders = ['Part No', 'Part No AS400', 'Supplier', 'Part Name', 'Unit'];
-          const baseColCount = baseHeaders.length;
-          const periodesPerAssy = periodeList.length;
-
-          // Row 1: ASSY names
-          const row1: string[] = [...baseHeaders];
-          for (const assy of assyCodes) {
-            for (let i = 0; i < periodesPerAssy; i++) {
-              row1.push(assy);
-            }
-          }
-          row1.push('Total');
-          row1.push('Total Usage');
-
-          // Row 2: Periode
-          const row2: string[] = new Array(baseColCount).fill('');
-          for (const _assy of assyCodes) {
-            for (const per of periodeList) {
-              row2.push(formatMonth(per));
-            }
-          }
-          row2.push('');
-          row2.push('');
-
-          // Row 3: PROD QTY
-          const row3: (string | number)[] = ['PROD QTY →', '', '', '', ''];
-          for (const assy of assyCodes) {
-            for (const per of periodeList) {
-              row3.push(prodMap[assy]?.[per] ?? 0);
-            }
-          }
-          row3.push('');
-          row3.push('');
-
-          const data: (string | number)[][] = [row1, row2, row3];
-
-          // Stream parts data using cursor - process in chunks
-          const BATCH_SIZE = 200;
-          let processed = 0;
-
-          // Use cursor to stream data without loading all in memory
-          const partsSql = hasAssyFilter && hasSearch
-            ? `SELECT DISTINCT part_no, part_no_as400, part_name, unit, supplier_name
-               FROM mv_bom_gabungan
-               WHERE periode >= $1 AND periode <= $2 AND assy_code = ANY($3::text[])
-               AND (part_no ILIKE $4 OR part_name ILIKE $4)
-               ORDER BY part_no`
-            : hasAssyFilter
-            ? `SELECT DISTINCT part_no, part_no_as400, part_name, unit, supplier_name
-               FROM mv_bom_gabungan
-               WHERE periode >= $1 AND periode <= $2 AND assy_code = ANY($3::text[])
-               ORDER BY part_no`
-            : hasSearch
-            ? `SELECT DISTINCT part_no, part_no_as400, part_name, unit, supplier_name
-               FROM mv_bom_gabungan
-               WHERE periode >= $1 AND periode <= $2
-               AND (part_no ILIKE $3 OR part_name ILIKE $3)
-               ORDER BY part_no`
-            : `SELECT DISTINCT part_no, part_no_as400, part_name, unit, supplier_name
-               FROM mv_bom_gabungan
-               WHERE periode >= $1 AND periode <= $2
-               ORDER BY part_no`;
-
-          const paramsArray = hasAssyFilter && hasSearch ? [p1, p2, assyParams, searchParam]
-            : hasAssyFilter ? [p1, p2, assyParams]
-            : hasSearch ? [p1, p2, searchParam]
-            : [p1, p2];
-
-          const partsResult = await pool.query(partsSql, paramsArray);
-          const allParts = partsResult.rows;
-
-          // Pre-fetch all qty data for all parts at once
-          const partNos = allParts.map((p: any) => p.part_no);
-          
-          const qtyRes = await pool.query(
-            hasAssyFilter
-              ? `SELECT part_no, assy_code, periode, qty_per_unit
-                 FROM mv_bom_gabungan
-                 WHERE periode >= $1 AND periode <= $2
-                   AND part_no = ANY($3) AND assy_code = ANY($4::text[])`
-              : `SELECT part_no, assy_code, periode, qty_per_unit
-                 FROM mv_bom_gabungan
-                 WHERE periode >= $1 AND periode <= $2
-                   AND part_no = ANY($3)`,
-            hasAssyFilter ? [p1, p2, partNos, assyParams] : [p1, p2, partNos]
+          const periodeResult = await connection.query(
+            `SELECT DISTINCT periode FROM bom WHERE periode >= $1 AND periode <= $2 ORDER BY periode`,
+            [dari, sampai]
           );
-
-          // Build lookup map once
-          const lookup = new Map<string, number>();
-          for (const r of qtyRes.rows) {
-            lookup.set(`${r.part_no}|${r.assy_code}|${r.periode}`, Number(r.qty_per_unit));
-          }
-
-          // Process parts in batches and build data array
-          for (const part of allParts) {
-            const row: (string | number)[] = [
-              part.part_no,
-              part.part_no_as400 || '',
-              part.supplier_name || '',
-              part.part_name || '',
-              part.unit || '',
-            ];
-
-            let totalBom = 0;
-            let totalUsage = 0;
-            for (const assy of assyCodes) {
-              for (const per of periodeList) {
-                const qty = lookup.get(`${part.part_no}|${assy}|${per}`) ?? 0;
-                row.push(qty);
-                totalBom += qty;
-                totalUsage += qty * (prodMap[assy]?.[per] ?? 0);
-              }
-            }
-            row.push(totalBom);
-            row.push(Math.ceil(totalUsage));
-            data.push(row);
-
-            processed++;
-            const progressPct = 30 + Math.floor((processed / totalParts) * 60);
-            if (processed % 100 === 0) {
-              sendEvent({ progress: progressPct, status: `Processing parts (${processed}/${totalParts})...` });
-            }
-          }
-
-          sendEvent({ progress: 92, status: 'Creating Excel file...' });
-
-          const ws = XLSX.utils.aoa_to_sheet(data);
-          const merges: XLSX.Range[] = [];
-          let colIdx = baseColCount;
-          for (const _assy of assyCodes) {
-            merges.push({
-              s: { r: 0, c: colIdx },
-              e: { r: 0, c: colIdx + periodesPerAssy - 1 },
-            });
-            colIdx += periodesPerAssy;
-          }
-          ws['!merges'] = merges;
-          ws['!cols'] = [
-            { wch: 15 },
-            { wch: 18 },
-            { wch: 25 },
-            { wch: 30 },
-            { wch: 10 },
-            ...assyCodes.flatMap(() => periodeList.map(() => ({ wch: 12 }))),
-            { wch: 12 },
-            { wch: 12 },
-          ];
-
-          XLSX.utils.book_append_sheet(wb, ws, `Combined_${dari}_${sampai}`);
+          periodeList = periodeResult.rows.map(r => r.periode);
         } else {
-          // Single periode mode (same logic but simpler)
-          const baseHeaders = ['Part No', 'Part No AS400', 'Supplier', 'Part Name', 'Unit'];
-          const row1 = [...baseHeaders, ...assyCodes, 'Total', 'Total Usage'];
-          const row2: (string | number)[] = ['PROD QTY →', '', '', '', ''];
-          for (const assy of assyCodes) {
-            row2.push(prodMap[assy]?.[periode!] ?? 0);
-          }
-          row2.push('');
-          row2.push('');
-
-          const data: (string | number)[][] = [row1, row2];
-
-          const partsSql = hasAssyFilter && hasSearch
-            ? `SELECT DISTINCT part_no, part_no_as400, part_name, unit, supplier_name
-               FROM mv_bom_gabungan
-               WHERE periode = $1 AND assy_code = ANY($2::text[])
-               AND (part_no ILIKE $3 OR part_name ILIKE $3)
-               ORDER BY part_no`
-            : hasAssyFilter
-            ? `SELECT DISTINCT part_no, part_no_as400, part_name, unit, supplier_name
-               FROM mv_bom_gabungan
-               WHERE periode = $1 AND assy_code = ANY($2::text[])
-               ORDER BY part_no`
-            : hasSearch
-            ? `SELECT DISTINCT part_no, part_no_as400, part_name, unit, supplier_name
-               FROM mv_bom_gabungan
-               WHERE periode = $1 AND (part_no ILIKE $2 OR part_name ILIKE $2)
-               ORDER BY part_no`
-            : `SELECT DISTINCT part_no, part_no_as400, part_name, unit, supplier_name
-               FROM mv_bom_gabungan
-               WHERE periode = $1
-               ORDER BY part_no`;
-
-          const paramsArray = hasAssyFilter && hasSearch ? [periode!, assyParams, searchParam]
-            : hasAssyFilter ? [periode!, assyParams]
-            : hasSearch ? [periode!, searchParam]
-            : [periode!];
-
-          const partsResult = await pool.query(partsSql, paramsArray);
-          const allParts = partsResult.rows;
-          const partNos = allParts.map((p: any) => p.part_no);
-
-          const qtyRes = await pool.query(
-            hasAssyFilter
-              ? `SELECT part_no, assy_code, qty_per_unit
-                 FROM mv_bom_gabungan
-                 WHERE periode = $1 AND part_no = ANY($2) AND assy_code = ANY($3::text[])`
-              : `SELECT part_no, assy_code, qty_per_unit
-                 FROM mv_bom_gabungan
-                 WHERE periode = $1 AND part_no = ANY($2)`,
-            hasAssyFilter ? [periode!, partNos, assyParams] : [periode!, partNos]
-          );
-
-          const lookup = new Map<string, number>();
-          for (const r of qtyRes.rows) {
-            lookup.set(`${r.part_no}|${r.assy_code}`, Number(r.qty_per_unit));
-          }
-
-          let processed = 0;
-          for (const part of allParts) {
-            const row: (string | number)[] = [
-              part.part_no,
-              part.part_no_as400 || '',
-              part.supplier_name || '',
-              part.part_name || '',
-              part.unit || '',
-            ];
-
-            let totalBom = 0;
-            let totalUsage = 0;
-            for (const assy of assyCodes) {
-              const qty = lookup.get(`${part.part_no}|${assy}`) ?? 0;
-              row.push(qty);
-              totalBom += qty;
-              totalUsage += qty * (prodMap[assy]?.[periode!] ?? 0);
-            }
-            row.push(totalBom);
-            row.push(Math.ceil(totalUsage));
-            data.push(row);
-
-            processed++;
-            const progressPct = 30 + Math.floor((processed / totalParts) * 60);
-            if (processed % 100 === 0) {
-              sendEvent({ progress: progressPct, status: `Processing parts (${processed}/${totalParts})...` });
-            }
-          }
-
-          sendEvent({ progress: 92, status: 'Creating Excel file...' });
-
-          const ws = XLSX.utils.aoa_to_sheet(data);
-          ws['!cols'] = [
-            { wch: 15 },
-            { wch: 18 },
-            { wch: 25 },
-            { wch: 30 },
-            { wch: 10 },
-            ...assyCodes.map(() => ({ wch: 12 })),
-            { wch: 12 },
-            { wch: 12 },
-          ];
-
-          XLSX.utils.book_append_sheet(wb, ws, `Report_${periode}`);
+          periodeList = [periode as string];
         }
 
-        sendEvent({ progress: 95, status: 'Writing file...' });
+        if (periodeList.length === 0) {
+          sendEvent({ error: 'Tidak ada data periode yang ditemukan' });
+          controller.close();
+          return;
+        }
 
-        const buffer = XLSX.write(wb, { bookType: 'xlsx', type: 'buffer' });
-        const fileId = randomBytes(8).toString('hex');
-        const tmpDir = path.join('/tmp', 'bom_exports');
-        if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
-        const filePath = path.join(tmpDir, `${fileId}.xlsx`);
-        fs.writeFileSync(filePath, buffer);
+        sendEvent({ progress: 8, status: `Ditemukan ${periodeList.length} periode` });
 
-        sendEvent({ progress: 98, status: 'Verifying data...' });
+        // Create workbook
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Report');
 
-        const downloadUrl = `/api/report/download?fileId=${fileId}`;
+        // Setup headers
+        const headers = ['PART NO', 'PART NO AS400', 'SUPPLIER', 'PART NAME', 'UNIT', ...periodeList.map(p => formatMonth(p)), 'TOTAL', 'TOTAL USAGE'];
+        const headerRow = worksheet.addRow(headers);
+        
+        // Style header row
+        headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1f2937' } };
+        headerRow.alignment = { horizontal: 'center', vertical: 'center' };
+        headerRow.height = 20;
+
+        // Setup columns
+        worksheet.columns = [
+          { width: 15 },
+          { width: 15 },
+          { width: 20 },
+          { width: 25 },
+          { width: 10 },
+          ...periodeList.map(() => ({ width: 12 })),
+          { width: 12 },
+          { width: 15 }
+        ];
+
+        sendEvent({ progress: 10, status: 'Mengambil data dari database...' });
+
+        // Build WHERE clause parameters
+        let paramIndex = 1;
+        const params: any[] = [];
+        let whereClause = '1=1';
+
+        if (isGabungan) {
+          whereClause += ` AND q.periode >= $${paramIndex} AND q.periode <= $${paramIndex + 1}`;
+          params.push(dari, sampai);
+          paramIndex += 2;
+        } else {
+          whereClause += ` AND q.periode = $${paramIndex}`;
+          params.push(periode);
+          paramIndex += 1;
+        }
+
+        if (hasSearch) {
+          whereClause += ` AND (p.part_no ILIKE $${paramIndex} OR p.part_name ILIKE $${paramIndex})`;
+          params.push(searchParam);
+          paramIndex += 1;
+        }
+
+        if (hasAssyFilter) {
+          const placeholders = assyParams.map(() => `$${paramIndex++}`).join(',');
+          whereClause += ` AND p.id IN (SELECT part_id FROM part_assy WHERE assy_code IN (${placeholders}))`;
+          params.push(...assyParams);
+        }
+
+        // Simple, fast query without aggregation
+        const query = `
+          SELECT 
+            p.part_no,
+            p.part_no_as400,
+            COALESCE(s.supplier_name, '-') as supplier,
+            p.part_name,
+            p.unit,
+            q.periode,
+            COALESCE(q.qty, 0) as qty
+          FROM part p
+          LEFT JOIN supplier s ON p.supplier_id = s.id
+          LEFT JOIN part_qty q ON p.id = q.part_id
+          WHERE ${whereClause}
+          ORDER BY p.part_no, q.periode
+        `;
+
+        console.log('[Export] Query:', query);
+        console.log('[Export] Params:', params);
+
+        // Use cursor to stream data in batches
+        await connection.query('BEGIN');
+        await connection.query(`DECLARE data_cursor SCROLL CURSOR FOR ${query}`, params);
+
+        // Get total count for progress estimation
+        const countQuery = `SELECT COUNT(DISTINCT p.id) as total FROM part p
+          LEFT JOIN supplier s ON p.supplier_id = s.id
+          LEFT JOIN part_qty q ON p.id = q.part_id
+          WHERE ${whereClause}`;
+        const countResult = await connection.query(countQuery, params);
+        const totalParts = countResult.rows[0]?.total || 0;
+
+        console.log('[Export] Total parts:', totalParts);
+
+        let rowCount = 0;
+        let batchSize = 5000;
+        let currentProgress = 15;
+        let hasMoreRows = true;
+        let lastPartNo = '';
+        let partData: Record<string, any> = {};
+
+        while (hasMoreRows) {
+          const result = await connection.query(`FETCH ${batchSize} FROM data_cursor`);
+          const rows = result.rows;
+
+          if (rows.length === 0) {
+            hasMoreRows = false;
+            // Write last part if exists
+            if (lastPartNo && partData[lastPartNo]) {
+              const part = partData[lastPartNo];
+              const values = [
+                part.part_no,
+                part.part_no_as400,
+                part.supplier,
+                part.part_name,
+                part.unit,
+                ...periodeList.map(p => part.quantities?.[p] || 0),
+                part.total || 0,
+                part.total_usage || 0
+              ];
+              worksheet.addRow(values);
+              rowCount++;
+            }
+            break;
+          }
+
+          // Process rows - group by part_no
+          for (const row of rows) {
+            const { part_no, part_no_as400, supplier, part_name, unit, periode: rowPeriode, qty } = row;
+
+            if (lastPartNo && lastPartNo !== part_no) {
+              // Write previous part
+              const part = partData[lastPartNo];
+              const values = [
+                part.part_no,
+                part.part_no_as400,
+                part.supplier,
+                part.part_name,
+                part.unit,
+                ...periodeList.map(p => part.quantities?.[p] || 0),
+                part.total || 0,
+                part.total_usage || 0
+              ];
+              worksheet.addRow(values);
+              rowCount++;
+              partData = {};
+            }
+
+            if (!partData[part_no]) {
+              partData[part_no] = {
+                part_no,
+                part_no_as400,
+                supplier,
+                part_name,
+                unit,
+                quantities: {},
+                total: 0,
+                total_usage: 0
+              };
+            }
+
+            if (rowPeriode && qty) {
+              partData[part_no].quantities[rowPeriode] = qty;
+              partData[part_no].total += qty;
+            }
+
+            lastPartNo = part_no;
+          }
+
+          // Update progress
+          const estimatedProgress = totalParts > 0 ? 15 + (rowCount / totalParts) * 70 : 50;
+          currentProgress = Math.min(estimatedProgress, 95);
+          sendEvent({
+            progress: Math.round(currentProgress),
+            status: `Diproses ${rowCount.toLocaleString('id-ID')} part dari ${totalParts.toLocaleString('id-ID')}...`
+          });
+        }
+
+        await connection.query('CLOSE data_cursor');
+        await connection.query('COMMIT');
+
+        sendEvent({ progress: 96, status: 'Membuat file Excel...' });
+
+        // Write workbook to temporary file
+        const tempDir = path.join(process.cwd(), '.tmp');
+        if (!fs.existsSync(tempDir)) {
+          fs.mkdirSync(tempDir, { recursive: true });
+        }
+
+        const fileName = `report_${randomBytes(8).toString('hex')}.xlsx`;
+        const filePath = path.join(tempDir, fileName);
+
+        await workbook.xlsx.writeFile(filePath);
+
+        sendEvent({ progress: 98, status: 'Menyiapkan download...' });
+
+        // Return download URL
+        const downloadUrl = `/api/report/download?file=${fileName}`;
         sendEvent({
           progress: 100,
-          status: 'Complete!',
-          downloadUrl,
+          status: `Selesai! ${rowCount.toLocaleString('id-ID')} part berhasil diexport`,
+          downloadUrl
         });
 
         controller.close();
       } catch (error) {
         console.error('[Export Error]', error);
-        const encoder = new TextEncoder();
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-          error: error instanceof Error ? error.message : 'Unknown error'
-        })}\n\n`));
+        const sendEvent = (event: any) => {
+          const data = JSON.stringify(event);
+          const message = `data: ${data}\n\n`;
+          controller.enqueue(encoder.encode(message));
+        };
+        sendEvent({ error: error instanceof Error ? error.message : 'Unknown error' });
         controller.close();
+      } finally {
+        if (connection) {
+          connection.release();
+        }
       }
-    },
+    }
   });
 
-  return new Response(stream, {
+  return new NextResponse(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
