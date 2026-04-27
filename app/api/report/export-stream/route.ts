@@ -83,8 +83,8 @@ export async function GET(request: NextRequest) {
       ),
     ]);
 
-    const periodeList: string[] = periodeRes.rows.map((r: { periode: string }) => r.periode);
-    const assyCodes: string[] = assyRes.rows.map((r: { assy_code: string }) => r.assy_code);
+    const periodeList: string[] = periodeRes.rows.map((r: { periode: string | null }) => r.periode || '').filter(Boolean);
+    const assyCodes: string[] = assyRes.rows.map((r: { assy_code: string | null }) => r.assy_code || '').filter(Boolean);
     const parts: Row[] = partsRes.rows;
 
     // Build lookup map with index for O(1) access
