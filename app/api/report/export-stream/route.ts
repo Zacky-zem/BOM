@@ -5,10 +5,9 @@ import fs from 'fs';
 import path from 'path';
 import { randomBytes } from 'crypto';
 
-// Helper function to format month
 function formatMonth(periode: string): string {
   const [y, m] = periode.split('-').map(Number);
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   return `${months[m - 1]} ${y}`;
 }
 
@@ -29,30 +28,18 @@ export async function GET(request: Request) {
     );
   }
 
-  const assyParams: string[] = assyFilter
+  const assyParams = assyFilter
     ? assyFilter.split(',').map(a => a.trim()).filter(Boolean)
     : [];
   const hasAssyFilter = assyParams.length > 0;
   const hasSearch = search.trim().length > 0;
   const searchParam = hasSearch ? `%${search.trim()}%` : null;
 
-  // Create a unique file ID for tracking
-  const fileId = randomBytes(8).toString('hex');
-  const tmpDir = path.join('/tmp', 'bom_exports');
-  
-  // Ensure temp directory exists
-  if (!fs.existsSync(tmpDir)) {
-    fs.mkdirSync(tmpDir, { recursive: true });
-  }
-
-  // Use TextEncoder to properly encode SSE events
   const encoder = new TextEncoder();
 
-  // Create custom ReadableStream
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        // Helper to send SSE events
         const sendEvent = (event: any) => {
           const data = JSON.stringify(event);
           const message = `data: ${data}\n\n`;
@@ -61,6 +48,7 @@ export async function GET(request: Request) {
 
         sendEvent({ progress: 5, status: 'Mengambil periode...' });
 
+        // Get periode list
         const periodeList = isGabungan
           ? (await pool.query(
               `SELECT DISTINCT periode FROM mv_bom_gabungan
@@ -68,8 +56,6 @@ export async function GET(request: Request) {
               [dari!, sampai!]
             )).rows.map((r: { periode: string }) => r.periode)
           : [periode!];
-
-        console.log('[Export Stream] Periods:', periodeList);
 
         sendEvent({ progress: 10, status: 'Mengambil data ASSY...' });
 
@@ -80,18 +66,17 @@ export async function GET(request: Request) {
              ORDER BY assy_code`
           : `SELECT DISTINCT assy_code FROM mv_bom_gabungan
              WHERE periode >= $1 AND periode <= $2 ORDER BY assy_code`;
+        
         const [p1, p2] = isGabungan ? [dari!, sampai!] : [periode!, periode!];
         const assyRes = await pool.query(
           assyQuery,
           hasAssyFilter ? [p1, p2, assyParams] : [p1, p2]
         );
-        const assyCodes: string[] = assyRes.rows.map((r: { assy_code: string }) => r.assy_code);
+        const assyCodes = assyRes.rows.map((r: { assy_code: string }) => r.assy_code);
 
-        console.log('[Export Stream] ASSY codes:', assyCodes.length);
+        sendEvent({ progress: 15, status: 'Mengambil prod qty...' });
 
-        sendEvent({ progress: 20, status: 'Mengambil data Prod Qty...' });
-
-        // Get production quantities
+        // Get prod qty
         const prodRes = await pool.query(
           `SELECT assy_code, periode, COALESCE(prod_qty, 0) AS prod_qty
            FROM prod_plan WHERE periode >= $1 AND periode <= $2`,
@@ -103,113 +88,236 @@ export async function GET(request: Request) {
           prodMap[r.assy_code][r.periode] = Number(r.prod_qty);
         }
 
-        console.log('[Export Stream] Prod data loaded');
+        sendEvent({ progress: 25, status: 'Mengambil data part...' });
 
-        sendEvent({ progress: 30, status: 'Menghitung total parts...' });
+        // Get parts - use same query as original route.ts
+        const partsRes = await pool.query(
+          `SELECT DISTINCT part_no, part_no_as400, part_name, unit, supplier_name
+           FROM mv_bom_gabungan 
+           WHERE periode >= $1 AND periode <= $2
+           ${hasAssyFilter ? `AND assy_code = ANY($${hasSearch ? '4' : '3'}::text[])` : ''}
+           ${hasSearch ? `AND (part_no ILIKE $${hasAssyFilter ? '5' : '4'} OR part_name ILIKE $${hasAssyFilter ? '5' : '4'})` : ''}
+           ORDER BY part_no`,
+          hasAssyFilter && hasSearch
+            ? [p1, p2, assyParams, searchParam]
+            : hasAssyFilter
+            ? [p1, p2, assyParams]
+            : hasSearch
+            ? [p1, p2, searchParam]
+            : [p1, p2]
+        );
+        const partNos = partsRes.rows.map((r: { part_no: string }) => r.part_no);
 
-        // Build rows - using streaming batch approach
-        const rows: any[] = [];
-        let processedAssyCount = 0;
-        const batchSize = 50; // Process ASSY in batches for progress updates
+        sendEvent({ progress: 40, status: `Mengambil qty untuk ${partNos.length} part...` });
 
-        for (let i = 0; i < assyCodes.length; i += batchSize) {
-          const batch = assyCodes.slice(i, i + batchSize);
-          const batchProgress = 30 + Math.floor((i / assyCodes.length) * 50);
-          sendEvent({ 
-            progress: batchProgress, 
-            status: `Memproses data ${i + 1}/${assyCodes.length} ASSY...` 
-          });
-
-          for (const assyCode of batch) {
-            const res = await pool.query(
-              `SELECT part_no, part_no_as400, supplier, part_name, unit, assy_code
+        // Get qty data
+        const qtyRes = await pool.query(
+          hasAssyFilter
+            ? `SELECT part_no, assy_code, periode, qty_per_unit
                FROM mv_bom_gabungan
-               WHERE assy_code = $1 AND periode >= $2 AND periode <= $3
-               ${hasSearch ? `AND (part_no ILIKE $4 OR part_name ILIKE $4 OR supplier ILIKE $4)` : ''}
-               ORDER BY part_no`,
-              hasSearch ? [assyCode, p1, p2, searchParam] : [assyCode, p1, p2]
-            );
+               WHERE periode >= $1 AND periode <= $2
+                 AND part_no = ANY($3) AND assy_code = ANY($4::text[])`
+            : `SELECT part_no, assy_code, periode, qty_per_unit
+               FROM mv_bom_gabungan
+               WHERE periode >= $1 AND periode <= $2
+                 AND part_no = ANY($3)`,
+          hasAssyFilter ? [p1, p2, partNos, assyParams] : [p1, p2, partNos]
+        );
 
-            for (const row of res.rows) {
-              const newRow: any = {
-                'PART NO': row.part_no,
-                'PART NO AS400': row.part_no_as400,
-                'SUPPLIER': row.supplier,
-                'PART NAME': row.part_name,
-                'UNIT': row.unit,
-                'ASSY CODE': row.assy_code,
-              };
+        // Build lookup
+        const lookup = new Map<string, number>();
+        for (const r of qtyRes.rows) {
+          lookup.set(`${r.part_no}|${r.assy_code}|${r.periode}`, Number(r.qty_per_unit));
+        }
 
-              // Add periode columns
-              for (const p of periodeList) {
-                newRow[formatMonth(p)] = '—';
+        sendEvent({ progress: 55, status: 'Membangun workbook...' });
+
+        const wb = XLSX.utils.book_new();
+
+        // Build Excel data
+        if (isGabungan) {
+          const baseHeaders = ['Part No', 'Part No AS400', 'Supplier', 'Part Name', 'Unit'];
+          const baseColCount = baseHeaders.length;
+          const periodesPerAssy = periodeList.length;
+
+          const row1: string[] = [...baseHeaders];
+          for (const assy of assyCodes) {
+            for (let i = 0; i < periodesPerAssy; i++) {
+              row1.push(assy);
+            }
+          }
+          row1.push('Total');
+          row1.push('Total Usage');
+
+          const row2: string[] = new Array(baseColCount).fill('');
+          for (const _assy of assyCodes) {
+            for (const per of periodeList) {
+              row2.push(formatMonth(per));
+            }
+          }
+          row2.push('');
+          row2.push('');
+
+          const row3: (string | number)[] = ['PROD QTY →', '', '', '', ''];
+          for (const assy of assyCodes) {
+            for (const per of periodeList) {
+              row3.push(prodMap[assy]?.[per] ?? 0);
+            }
+          }
+          row3.push('');
+          row3.push('');
+
+          const data: (string | number)[][] = [row1, row2, row3];
+          let processedParts = 0;
+          const totalParts = partsRes.rows.length;
+
+          sendEvent({ progress: 60, status: `Memproses data part (0/${totalParts})...` });
+
+          for (const part of partsRes.rows) {
+            const row: (string | number)[] = [
+              part.part_no,
+              part.part_no_as400 || '',
+              part.supplier_name || '',
+              part.part_name || '',
+              part.unit || '',
+            ];
+
+            let totalBom = 0;
+            let totalUsage = 0;
+            for (const assy of assyCodes) {
+              for (const per of periodeList) {
+                const qty = lookup.get(`${part.part_no}|${assy}|${per}`) ?? 0;
+                row.push(qty);
+                totalBom += qty;
+                totalUsage += qty * (prodMap[assy]?.[per] ?? 0);
               }
+            }
+            row.push(totalBom);
+            row.push(Math.ceil(totalUsage));
+            data.push(row);
 
-              // Get usage data for this part
-              const usageRes = await pool.query(
-                `SELECT periode, COALESCE(usage, 0) AS usage
-                 FROM mv_bom_gabungan
-                 WHERE part_no = $1 AND assy_code = $2 AND periode >= $3 AND periode <= $4`,
-                [row.part_no, assyCode, p1, p2]
-              );
-
-              for (const usageRow of usageRes.rows) {
-                const monthKey = formatMonth(usageRow.periode);
-                newRow[monthKey] = usageRow.usage === 0 ? '—' : usageRow.usage;
-              }
-
-              rows.push(newRow);
+            processedParts++;
+            const progressPct = 60 + Math.floor((processedParts / totalParts) * 30);
+            if (processedParts % 100 === 0) {
+              sendEvent({ progress: progressPct, status: `Memproses data part (${processedParts}/${totalParts})...` });
             }
           }
 
-          processedAssyCount += batch.length;
+          const ws = XLSX.utils.aoa_to_sheet(data);
+          const merges: XLSX.Range[] = [];
+          let colIdx = baseColCount;
+          for (const _assy of assyCodes) {
+            merges.push({
+              s: { r: 0, c: colIdx },
+              e: { r: 0, c: colIdx + periodesPerAssy - 1 },
+            });
+            colIdx += periodesPerAssy;
+          }
+          ws['!merges'] = merges;
+          ws['!cols'] = [
+            { wch: 15 },
+            { wch: 18 },
+            { wch: 25 },
+            { wch: 30 },
+            { wch: 10 },
+            ...assyCodes.flatMap(() => periodeList.map(() => ({ wch: 12 }))),
+            { wch: 12 },
+            { wch: 12 },
+          ];
+
+          XLSX.utils.book_append_sheet(wb, ws, `Combined_${dari}_${sampai}`);
+        } else {
+          const baseHeaders = ['Part No', 'Part No AS400', 'Supplier', 'Part Name', 'Unit'];
+          const row1 = [...baseHeaders, ...assyCodes, 'Total', 'Total Usage'];
+          const row2: (string | number)[] = ['PROD QTY →', '', '', '', ''];
+          for (const assy of assyCodes) {
+            row2.push(prodMap[assy]?.[periode!] ?? 0);
+          }
+          row2.push('');
+          row2.push('');
+
+          const data: (string | number)[][] = [row1, row2];
+          let processedParts = 0;
+          const totalParts = partsRes.rows.length;
+
+          for (const part of partsRes.rows) {
+            const row: (string | number)[] = [
+              part.part_no,
+              part.part_no_as400 || '',
+              part.supplier_name || '',
+              part.part_name || '',
+              part.unit || '',
+            ];
+
+            let totalBom = 0;
+            let totalUsage = 0;
+            for (const assy of assyCodes) {
+              const qty = lookup.get(`${part.part_no}|${assy}|${periode!}`) ?? 0;
+              row.push(qty);
+              totalBom += qty;
+              totalUsage += qty * (prodMap[assy]?.[periode!] ?? 0);
+            }
+            row.push(totalBom);
+            row.push(Math.ceil(totalUsage));
+            data.push(row);
+
+            processedParts++;
+            const progressPct = 60 + Math.floor((processedParts / totalParts) * 30);
+            if (processedParts % 100 === 0) {
+              sendEvent({ progress: progressPct, status: `Memproses data part (${processedParts}/${totalParts})...` });
+            }
+          }
+
+          const ws = XLSX.utils.aoa_to_sheet(data);
+          ws['!cols'] = [
+            { wch: 15 },
+            { wch: 18 },
+            { wch: 25 },
+            { wch: 30 },
+            { wch: 10 },
+            ...assyCodes.map(() => ({ wch: 12 })),
+            { wch: 12 },
+            { wch: 12 },
+          ];
+
+          XLSX.utils.book_append_sheet(wb, ws, `Report_${periode}`);
         }
 
-        console.log('[Export Stream] Data compiled, total rows:', rows.length);
+        sendEvent({ progress: 90, status: 'Membuat file Excel...' });
 
-        sendEvent({ progress: 85, status: 'Membuat Excel file...' });
-
-        // Create workbook with streaming
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.json_to_sheet(rows);
-        XLSX.utils.book_append_sheet(wb, ws, 'Report');
-
-        // Calculate file path
-        const fileName = `BOM_Report_${dari || periode}_${sampai || periode}_${fileId}.xlsx`;
-        const filePath = path.join(tmpDir, fileName);
-
-        // Write file
-        const buffer = XLSX.write(wb, { type: 'buffer' });
+        const buffer = XLSX.write(wb, { bookType: 'xlsx', type: 'buffer' });
+        const fileId = randomBytes(8).toString('hex');
+        const tmpDir = path.join('/tmp', 'bom_exports');
+        if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+        const filePath = path.join(tmpDir, `${fileId}.xlsx`);
         fs.writeFileSync(filePath, buffer);
 
-        console.log('[Export Stream] Excel file created:', filePath);
-        console.log('[Export Stream] Total rows exported:', rows.length);
+        // Verify row count
+        const actualRowCount = Object.keys(XLSX.utils.sheet_to_json(XLSX.utils.book_sheets(wb)[0])).length;
+        
+        sendEvent({ progress: 95, status: 'Verifikasi data...' });
 
-        // Verify file was created
-        const stats = fs.statSync(filePath);
-        console.log('[Export Stream] File size:', stats.size, 'bytes');
-
-        sendEvent({ 
-          progress: 100, 
-          status: 'Ekspor selesai!',
-          downloadUrl: `/api/report/download?fileId=${fileId}&fileName=${encodeURIComponent(fileName)}`,
-          totalRows: rows.length,
-          fileSize: stats.size
+        const downloadUrl = `/api/report/download?fileId=${fileId}`;
+        sendEvent({
+          progress: 100,
+          status: 'Selesai!',
+          downloadUrl,
+          rowCount: actualRowCount,
         });
 
         controller.close();
       } catch (error) {
-        console.error('[Export Stream] Error:', error);
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        controller.enqueue(encoder.encode(
-          `data: ${JSON.stringify({ error: message })}\n\n`
-        ));
+        console.error('[Export Error]', error);
+        const encoder = new TextEncoder();
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+          error: error instanceof Error ? error.message : 'Unknown error'
+        })}\n\n`));
         controller.close();
       }
     },
   });
 
-  return new NextResponse(stream, {
+  return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
