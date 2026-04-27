@@ -194,7 +194,7 @@ function VirtualReportTable({
         <div style={{ display: 'flex', background: '#0f172a', height: HEAD3_H }}>
           <div style={{ width: FW[0], flexShrink: 0, padding: '0 10px', display: 'flex', alignItems: 'center', color: '#f59e0b', fontWeight: 700, fontSize: 10.5, borderRight: '1px solid #1e293b', position: 'sticky', left: 0, background: '#0f172a', zIndex: 21 }}>PROD QTY →</div>
           {FW.slice(1).map((w, i) => (
-            <div key={i} style={{ width: w, flexShrink: 0, borderRight: i === 3 ? '2px solid #475569' : '1px solid #1e293b', position: i === 0 ? 'sticky' : 'relative', left: i === 0 ? FW[0] : undefined, background: '#0f172a', zIndex: i === 0 ? 21 : undefined }} />
+            <div key={i} style={{ width: w, flexShrink: 0, borderRight: i === 3 ? '2px solid #475569' : '1px solid #1e293b', position: 'sticky', left: FW.slice(0, i+1).reduce((a,b)=>a+b,0), background: '#0f172a', zIndex: 21 }} />
           ))}
           <div style={{ position: 'relative', width: dynW, flexShrink: 0, height: HEAD3_H }}>
             {colVirt.getVirtualItems().map(vcol => {
@@ -281,7 +281,7 @@ function VirtualReportTable({
       }}>
         <div style={{ width: FW[0], flexShrink: 0, padding: '0 10px', display: 'flex', alignItems: 'center', color: '#fbbf24', fontWeight: 700, fontSize: 10.5, borderRight: '1px solid #334155', position: 'sticky', left: 0, background: '#1e3a5f', zIndex: 21 }}>∑ TOTAL PER ASSY</div>
         {FW.slice(1).map((w, i) => (
-          <div key={i} style={{ width: w, flexShrink: 0, borderRight: i === 3 ? '2px solid #475569' : '1px solid #334155', background: '#1e3a5f' }} />
+          <div key={i} style={{ width: w, flexShrink: 0, borderRight: i === 3 ? '2px solid #475569' : '1px solid #334155', position: 'sticky', left: FW.slice(0, i+1).reduce((a,b)=>a+b,0), background: '#1e3a5f', zIndex: 21 }} />
         ))}
         <div style={{ position: 'relative', width: dynW, flexShrink: 0, height: ROW_H }}>
           {colVirt.getVirtualItems().map(vcol => (
