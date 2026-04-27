@@ -82,7 +82,7 @@ export async function GET(request: Request) {
         // Style header row
         headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
         headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1f2937' } };
-        headerRow.alignment = { horizontal: 'center', vertical: 'center' };
+        headerRow.alignment = { horizontal: 'center', vertical: 'middle' };
         headerRow.height = 20;
 
         // Setup columns
