@@ -522,35 +522,58 @@ function ReportContent() {
     return `/api/report?periode=${encodeURIComponent(periode)}${selectedAssy.size > 0 ? `&assy_codes=${[...selectedAssy].join(',')}` : ''}&search=${encodeURIComponent(s)}&download=true`;
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
     setIsDownloading(true);
     setDownloadProgress(0);
     
-    // Animate progress bar
+    // Animate progress bar quickly
     const progressInterval = setInterval(() => {
       setDownloadProgress(prev => {
-        if (prev >= 90) {
+        if (prev >= 95) {
           clearInterval(progressInterval);
-          return 90;
+          return 95;
         }
-        return prev + Math.random() * 30;
+        return prev + Math.random() * 40;
       });
-    }, 300);
+    }, 100);
     
-    // Trigger download
-    const anchor = document.createElement('a');
-    anchor.href  = buildDownloadUrl(search);
-    anchor.click();
-    
-    // Complete download after 1.5 seconds
-    setTimeout(() => {
+    try {
+      // Fetch file from server
+      const url = buildDownloadUrl(search);
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        clearInterval(progressInterval);
+        setIsDownloading(false);
+        throw new Error('Download failed');
+      }
+      
+      // Complete progress bar to 100 when server responds
       clearInterval(progressInterval);
       setDownloadProgress(100);
+      
+      // Get blob and trigger download immediately
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = downloadUrl;
+      anchor.download = `report_${mode === 'gabungan' ? dari + '_' + sampai : periode}.xlsx`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      window.URL.revokeObjectURL(downloadUrl);
+      
+      // Hide progress bar after 500ms
       setTimeout(() => {
         setIsDownloading(false);
         setDownloadProgress(0);
       }, 500);
-    }, 1500);
+    } catch (error) {
+      console.error('Export error:', error);
+      clearInterval(progressInterval);
+      setIsDownloading(false);
+      setDownloadProgress(0);
+    }
   };
 
   return (
