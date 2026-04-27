@@ -780,28 +780,7 @@ function ReportContent() {
               )}
             </div>
 
-            {/* Download Progress Bar */}
-            {isDownloading && (
-              <div style={{ background: '#fff', borderBottom: '1px solid #e8eaed', padding: '12px 20px', animation: 'slideDown 0.3s ease' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ fontSize: 14 }}>⬇️</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: '#0f172a', marginBottom: 4 }}>
-                      Mengunduh laporan... {Math.round(downloadProgress)}%
-                    </div>
-                    <div style={{ width: '100%', height: 6, background: '#e5e7eb', borderRadius: 3, overflow: 'hidden' }}>
-                      <div style={{
-                        width: `${downloadProgress}%`,
-                        height: '100%',
-                        background: 'linear-gradient(90deg, #10b981, #059669)',
-                        transition: 'width 0.2s ease',
-                        borderRadius: 3
-                      }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+
 
             {/* Virtual Table */}
             <VirtualReportTable
