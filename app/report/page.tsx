@@ -526,43 +526,70 @@ function ReportContent() {
     setIsDownloading(true);
     setDownloadProgress(0);
     
-    // Animate progress bar quickly
-    const progressInterval = setInterval(() => {
-      setDownloadProgress(prev => {
-        if (prev >= 95) {
-          clearInterval(progressInterval);
-          return 95;
-        }
-        return prev + Math.random() * 40;
-      });
-    }, 100);
-    
     try {
-      // Fetch file from server
-      const url = buildDownloadUrl(search);
-      const response = await fetch(url);
+      // Build optimized export URL with streaming
+      const exportUrl = new URL('/api/report/export-stream', window.location.origin);
+      if (mode === 'gabungan') {
+        exportUrl.searchParams.set('dari', dari!);
+        exportUrl.searchParams.set('sampai', sampai!);
+      } else {
+        exportUrl.searchParams.set('periode', periode!);
+      }
+      exportUrl.searchParams.set('mode', mode);
+      
+      // Add assy filter if exists
+      if (selectedAssy.size > 0) {
+        selectedAssy.forEach(assy => exportUrl.searchParams.append('assy', assy));
+      }
+
+      // Fetch with real progress tracking based on content length
+      const response = await fetch(exportUrl.toString());
       
       if (!response.ok) {
-        clearInterval(progressInterval);
-        setIsDownloading(false);
-        throw new Error('Download failed');
+        throw new Error(`Export failed: ${response.status}`);
       }
+
+      // Track download progress based on actual bytes received
+      const contentLength = parseInt(response.headers.get('content-length') || '0', 10);
+      let receivedLength = 0;
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No response body');
+
+      const chunks: Uint8Array[] = [];
       
-      // Complete progress bar to 100 when server responds
-      clearInterval(progressInterval);
+      // Read chunks and update progress bar
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        chunks.push(value);
+        receivedLength += value.length;
+
+        // Update progress bar based on actual download
+        if (contentLength > 0) {
+          const progress = Math.min((receivedLength / contentLength) * 100, 99);
+          setDownloadProgress(Math.floor(progress));
+        }
+      }
+
+      // Combine chunks into blob
+      const blob = new Blob(chunks, {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      // Trigger download immediately when complete
       setDownloadProgress(100);
-      
-      // Get blob and trigger download immediately
-      const blob = await response.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
       const anchor = document.createElement('a');
       anchor.href = downloadUrl;
-      anchor.download = `report_${mode === 'gabungan' ? dari + '_' + sampai : periode}.xlsx`;
+      anchor.download = `report_${mode === 'gabungan' ? `${dari}_${sampai}` : periode}.xlsx`;
       document.body.appendChild(anchor);
       anchor.click();
       document.body.removeChild(anchor);
       window.URL.revokeObjectURL(downloadUrl);
-      
+
       // Hide progress bar after 500ms
       setTimeout(() => {
         setIsDownloading(false);
@@ -570,9 +597,9 @@ function ReportContent() {
       }, 500);
     } catch (error) {
       console.error('Export error:', error);
-      clearInterval(progressInterval);
       setIsDownloading(false);
       setDownloadProgress(0);
+      alert('Export failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 
