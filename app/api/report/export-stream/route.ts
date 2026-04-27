@@ -177,9 +177,6 @@ export async function GET(request: NextRequest) {
 
           processedCount++;
         }
-
-        // Commit to buffer every batch
-        await workbook.writer?.commit?.();
       }
 
       // Row footer: Total Per Assy
