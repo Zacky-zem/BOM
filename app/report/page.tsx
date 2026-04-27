@@ -84,16 +84,16 @@ function VirtualReportTable({
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Fixed columns: Part No, AS400, Supplier, Part Name, Unit = 5 cols
-  // lebar masing-masing:
-  const FW = [130, 110, 110, 160, 55];
+  // lebar masing-masing (responsive for mobile):
+  const FW = isMobile ? [100, 110, 110, 160, 55] : [130, 110, 110, 160, 55];
   const fixedTotalW = FW.reduce((a, b) => a + b, 0);
   const STICKY_RIGHT_TOTAL = 72;
   const STICKY_RIGHT_USAGE = 90;
   const COL_W   = mode === 'gabungan' ? 62 : 90;
-  const ROW_H   = 34;
-  const HEAD1_H = 32;
-  const HEAD2_H = mode === 'gabungan' ? 24 : 0;
-  const HEAD3_H = 28; // prod qty row
+  const ROW_H   = isMobile ? 28 : 34;
+  const HEAD1_H = isMobile ? 26 : 32;
+  const HEAD2_H = mode === 'gabungan' ? (isMobile ? 18 : 24) : 0;
+  const HEAD3_H = isMobile ? 24 : 28; // prod qty row
   const TOTAL_HEAD_H = HEAD1_H + HEAD2_H + HEAD3_H;
 
   // Virtual columns
@@ -129,9 +129,9 @@ function VirtualReportTable({
             const leftPos = isMobile ? 0 : FW.slice(0,i).reduce((a,b)=>a+b,0);
             return (
               <div key={label} style={{
-                width: FW[i], flexShrink: 0, padding: '0 10px',
+                width: FW[i], flexShrink: 0, padding: isMobile ? '0 4px' : '0 10px',
                 display: 'flex', alignItems: 'center',
-                color: '#cbd5e1', fontWeight: 600, fontSize: 10,
+                color: '#cbd5e1', fontWeight: 600, fontSize: isMobile ? 8 : 10,
                 borderRight: i === 4 ? '2px solid #475569' : '1px solid #334155',
                 position: 'sticky', left: leftPos, background: '#1e3a5f', zIndex: 21,
               }}>{label}</div>
@@ -240,7 +240,7 @@ function VirtualReportTable({
               onMouseOut={e =>  (e.currentTarget.style.background = rowBg)}
             >
               {/* Fixed cells - responsive for mobile/desktop */}
-              <div style={{ width: FW[0], flexShrink: 0, padding: '0 10px', fontFamily: 'monospace', fontSize: 11, color: '#1d4ed8', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', position: 'sticky', left: 0, background: fixedBg, zIndex: 2, borderRight: '1px solid #e2e8f0', height: ROW_H, display: 'flex', alignItems: 'center' }}>{part.part_no}</div>
+              <div style={{ width: FW[0], flexShrink: 0, padding: isMobile ? '0 4px' : '0 10px', fontFamily: 'monospace', fontSize: isMobile ? 9 : 11, color: '#1d4ed8', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', position: 'sticky', left: 0, background: fixedBg, zIndex: 2, borderRight: '1px solid #e2e8f0', height: ROW_H, display: 'flex', alignItems: 'center' }}>{part.part_no}</div>
               {!isMobile && (
                 <>
                   <div style={{ width: FW[1], flexShrink: 0, padding: '0 10px', fontFamily: 'monospace', fontSize: 10.5, color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', position: 'sticky', left: FW[0], background: fixedBg, zIndex: 2, borderRight: '1px solid #f1f5f9', height: ROW_H, display: 'flex', alignItems: 'center' }}>{part.part_no_as400 || '—'}</div>
@@ -271,10 +271,10 @@ function VirtualReportTable({
               </div>
 
               {/* Sticky right: Total, Total Usage */}
-              <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, padding: '0 8px', textAlign: 'right', fontWeight: 700, color: '#92400e', borderLeft: '2px solid #fde68a', background: isEven ? '#fffbeb' : '#fef9c3', fontSize: 11, position: 'sticky', right: STICKY_RIGHT_USAGE, height: ROW_H, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+              <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, padding: isMobile ? '0 4px' : '0 8px', textAlign: 'right', fontWeight: 700, color: '#92400e', borderLeft: '2px solid #fde68a', background: isEven ? '#fffbeb' : '#fef9c3', fontSize: isMobile ? 8 : 11, position: 'sticky', right: STICKY_RIGHT_USAGE, height: ROW_H, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
                 {totalQty > 0 ? totalQty.toLocaleString() : '—'}
               </div>
-              <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, padding: '0 8px', textAlign: 'right', fontWeight: 700, color: totalUsage > 0 ? '#15803d' : '#9ca3af', borderLeft: '2px solid #bbf7d0', background: isEven ? '#f0fdf4' : '#dcfce7', fontSize: 11, position: 'sticky', right: 0, height: ROW_H, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+              <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, padding: isMobile ? '0 4px' : '0 8px', textAlign: 'right', fontWeight: 700, color: totalUsage > 0 ? '#15803d' : '#9ca3af', borderLeft: '2px solid #bbf7d0', background: isEven ? '#f0fdf4' : '#dcfce7', fontSize: isMobile ? 8 : 11, position: 'sticky', right: 0, height: ROW_H, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
                 {totalUsage > 0 ? totalUsage.toLocaleString() : '—'}
               </div>
             </div>
