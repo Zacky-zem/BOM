@@ -71,12 +71,13 @@ function PageBtn({ children, onClick, disabled, active }: { children: React.Reac
 // Render hanya kolom yang visible — krusial untuk 500 ASSY × 12 periode
 function VirtualReportTable({
   rows, cols, mode, periodes,
-  footerColSums, footerTotalUsage,
+  footerColSums, footerTotalUsage, isMobile,
 }: {
   rows:             ComputedRow[];
   cols:             ColDef[];
   mode:             'single' | 'gabungan';
   periodes:         string[];
+  isMobile:         boolean;
   footerColSums:    number[];
   footerTotalUsage: number;
 }) {
@@ -766,6 +767,7 @@ function ReportContent() {
               periodes={periodes}
               footerColSums={footerColSums}
               footerTotalUsage={footerTotalUsage}
+              isMobile={isMobile}
             />
 
             {/* Pagination */}
