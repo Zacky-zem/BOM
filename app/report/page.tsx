@@ -349,6 +349,7 @@ function ReportContent() {
   const [selectedAssy,   setSelectedAssy]   = useState<Set<string>>(new Set());
   const [assySearch,     setAssySearch]     = useState('');
   const [showAssyPicker, setShowAssyPicker] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Export streaming state
   const [showExportModal, setShowExportModal] = useState(false);
@@ -366,6 +367,16 @@ function ReportContent() {
       setAvailPer(ps);
       if (ps.length > 0) { setPeriode(ps[0]); setDari(ps[ps.length-1]); setSampai(ps[0]); }
     });
+  }, []);
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   const loadAssyCodes = useCallback(async () => {
