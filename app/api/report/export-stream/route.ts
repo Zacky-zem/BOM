@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { pool } from '@/lib/db';
+import pool from '@/lib/db';
 import ExcelJS from 'exceljs';
-import { Readable } from 'stream';
 
 interface Row {
   part_no: string;
