@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { ExportProgressModal } from '@/components/ExportProgressModal';
 
 const font = "'DM Sans', system-ui, sans-serif";
 const MONTHS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -340,6 +341,14 @@ function ReportContent() {
   const [assySearch,     setAssySearch]     = useState('');
   const [showAssyPicker, setShowAssyPicker] = useState(false);
 
+  // Export progress modal state
+  const [exportProgress, setExportProgress] = useState(0);
+  const [exportStatus, setExportStatus] = useState('');
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportError, setExportError] = useState<string | undefined>();
+  const [downloadUrl, setDownloadUrl] = useState<string | undefined>();
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   const gabunganKey = `${dari}_${sampai}`;
 
   useEffect(() => {
@@ -493,17 +502,98 @@ function ReportContent() {
     !assySearch || a.toLowerCase().includes(assySearch.toLowerCase())
   );
 
-  const buildDownloadUrl = (s: string) => {
-    if (mode === 'gabungan') {
-      return `/api/report?dari=${dari}&sampai=${sampai}${selectedAssy.size > 0 ? `&assy_codes=${[...selectedAssy].join(',')}` : ''}&search=${encodeURIComponent(s)}&download=true`;
+  const handleExportStream = async () => {
+    // Reset state
+    setExportProgress(0);
+    setExportStatus('');
+    setExportError(undefined);
+    setDownloadUrl(undefined);
+    setShowExportModal(true);
+
+    // Create abort controller
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
+    try {
+      // Build stream URL
+      let streamUrl = '/api/report/export-stream?';
+      if (mode === 'gabungan') {
+        streamUrl += `dari=${dari}&sampai=${sampai}`;
+      } else {
+        streamUrl += `periode=${encodeURIComponent(periode)}`;
+      }
+      if (selectedAssy.size > 0) {
+        streamUrl += `&assy_codes=${[...selectedAssy].join(',')}`;
+      }
+      streamUrl += `&search=${encodeURIComponent(search)}`;
+
+      console.log('[Export] Starting stream:', streamUrl);
+
+      const response = await fetch(streamUrl, {
+        signal: abortController.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
+
+      // Handle SSE stream
+      const reader = response.body!.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const text = decoder.decode(value);
+        const lines = text.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const event = JSON.parse(line.slice(6));
+              console.log('[Export Event]', event);
+
+              setExportProgress(event.progress || 0);
+              setExportStatus(event.status || '');
+
+              if (event.error) {
+                setExportError(event.error);
+              }
+
+              if (event.downloadUrl) {
+                setDownloadUrl(event.downloadUrl);
+              }
+            } catch (e) {
+              console.warn('[Export] Failed to parse event:', line);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          setExportError('Export cancelled');
+        } else {
+          setExportError(error.message);
+        }
+      } else {
+        setExportError('Unknown error occurred');
+      }
+    } finally {
+      abortControllerRef.current = null;
     }
-    return `/api/report?periode=${encodeURIComponent(periode)}${selectedAssy.size > 0 ? `&assy_codes=${[...selectedAssy].join(',')}` : ''}&search=${encodeURIComponent(s)}&download=true`;
   };
 
-  const handleExport = () => {
-    const anchor = document.createElement('a');
-    anchor.href  = buildDownloadUrl(search);
-    anchor.click();
+  const handleCancelExport = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    setShowExportModal(false);
+    setExportProgress(0);
+    setExportStatus('');
+    setExportError(undefined);
+    setDownloadUrl(undefined);
   };
 
   return (
@@ -669,9 +759,9 @@ function ReportContent() {
                   onBlur={e =>  e.target.style.borderColor = '#e2e8f0'}
                 />
               </div>
-              <button onClick={handleExport} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#10b981', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: font }}>
-                ⬇️ Ekspor
-              </button>
+<button onClick={handleExportStream} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#10b981', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: font }}>
+  ⬇️ Ekspor
+</button>
               <span style={{ fontSize: 12.5, color: '#6b7280' }}>
                 <b style={{ color: '#111827' }}>{totalParts.toLocaleString()}</b> part ·
                 <b style={{ color: '#111827' }}> {assyCodes.length}</b> ASSY ·
@@ -719,6 +809,15 @@ function ReportContent() {
           </div>
         )}
       </main>
+
+      <ExportProgressModal
+        isOpen={showExportModal}
+        progress={exportProgress}
+        status={exportStatus}
+        onCancel={handleCancelExport}
+        downloadUrl={downloadUrl}
+        error={exportError}
+      />
     </div>
   );
 }
