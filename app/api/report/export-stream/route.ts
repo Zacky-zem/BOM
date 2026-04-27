@@ -293,7 +293,10 @@ export async function GET(request: Request) {
         fs.writeFileSync(filePath, buffer);
 
         // Verify row count
-        const actualRowCount = Object.keys(XLSX.utils.sheet_to_json(XLSX.utils.book_sheets(wb)[0])).length;
+        const sheetName = wb.SheetNames[0];
+        const worksheet = wb.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        const actualRowCount = jsonData.length;
         
         sendEvent({ progress: 95, status: 'Verifikasi data...' });
 
