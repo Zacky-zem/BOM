@@ -350,6 +350,7 @@ function ReportContent() {
   const [showAssyPicker, setShowAssyPicker] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
   // Detect mobile viewport
@@ -525,54 +526,112 @@ function ReportContent() {
   const handleExport = async () => {
     setIsDownloading(true);
     setDownloadProgress(0);
-    
-    // Animate progress bar quickly
-    const progressInterval = setInterval(() => {
-      setDownloadProgress(prev => {
-        if (prev >= 95) {
-          clearInterval(progressInterval);
-          return 95;
-        }
-        return prev + Math.random() * 40;
-      });
-    }, 100);
-    
+
+    // Buat AbortController baru setiap export
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
     try {
-      // Fetch file from server
-      const url = buildDownloadUrl(search);
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        clearInterval(progressInterval);
-        setIsDownloading(false);
-        throw new Error('Download failed');
+      const exportUrl = new URL('/api/report/export-stream', window.location.origin);
+      if (mode === 'gabungan') {
+        exportUrl.searchParams.set('dari', dari!);
+        exportUrl.searchParams.set('sampai', sampai!);
+      } else {
+        exportUrl.searchParams.set('periode', periode!);
       }
-      
-      // Complete progress bar to 100 when server responds
-      clearInterval(progressInterval);
+      exportUrl.searchParams.set('mode', mode);
+      if (selectedAssy.size > 0) {
+        selectedAssy.forEach(assy => exportUrl.searchParams.append('assy', assy));
+      }
+
+      const response = await fetch(exportUrl.toString(), {
+        signal: abortController.signal, // ← kirim signal ke fetch
+      });
+
+      if (!response.ok) throw new Error(`Export failed: ${response.status}`);
+
+      const totalParts = parseInt(response.headers.get('x-total-parts') || '0', 10);
+      const totalCols  = parseInt(response.headers.get('x-total-cols')  || '1',  10);
+      const estimatedBytes = totalParts > 0
+        ? totalParts * (5 + totalCols) * 15
+        : 0;
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No response body');
+
+      const chunks: Uint8Array[] = [];
+      let receivedBytes = 0;
+      let fakeProgress  = 0;
+      let firstChunk    = false;
+
+      const initTimer = setInterval(() => {
+        fakeProgress = Math.min(fakeProgress + 1, 10);
+        setDownloadProgress(fakeProgress);
+      }, 150);
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          if (!firstChunk) { clearInterval(initTimer); firstChunk = true; }
+
+          chunks.push(value);
+          receivedBytes += value.length;
+
+          const realProgress = estimatedBytes > 0
+            ? Math.floor(10 + Math.min(receivedBytes / estimatedBytes, 1) * 80)
+            : Math.min(10 + Math.floor(receivedBytes / 50000), 89);
+
+          setDownloadProgress(realProgress);
+        }
+      } catch (readErr: unknown) {
+        // Jika cancel, reader.read() throw AbortError
+        if (readErr instanceof Error && readErr.name === 'AbortError') {
+          clearInterval(initTimer);
+          reader.cancel();
+          return; // langsung return, tidak trigger download
+        }
+        throw readErr;
+      }
+
+      clearInterval(initTimer);
+
+      // Finalisasi progress
+      setDownloadProgress(90);
+      await new Promise(r => setTimeout(r, 200));
+      setDownloadProgress(95);
+      await new Promise(r => setTimeout(r, 200));
       setDownloadProgress(100);
-      
-      // Get blob and trigger download immediately
-      const blob = await response.blob();
+
+      const blob = new Blob(chunks, {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
       const downloadUrl = window.URL.createObjectURL(blob);
-      const anchor = document.createElement('a');
-      anchor.href = downloadUrl;
-      anchor.download = `report_${mode === 'gabungan' ? dari + '_' + sampai : periode}.xlsx`;
+      const anchor      = document.createElement('a');
+      anchor.href       = downloadUrl;
+      anchor.download   = `report_${mode === 'gabungan' ? `${dari}_${sampai}` : periode}.xlsx`;
       document.body.appendChild(anchor);
       anchor.click();
       document.body.removeChild(anchor);
       window.URL.revokeObjectURL(downloadUrl);
-      
-      // Hide progress bar after 500ms
+
       setTimeout(() => {
         setIsDownloading(false);
         setDownloadProgress(0);
-      }, 500);
-    } catch (error) {
-      console.error('Export error:', error);
-      clearInterval(progressInterval);
+        abortControllerRef.current = null;
+      }, 800);
+
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        // Cancel — tidak perlu alert
+      } else {
+        console.error('Export error:', error);
+        alert('Export failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      }
       setIsDownloading(false);
       setDownloadProgress(0);
+      abortControllerRef.current = null;
     }
   };
 
@@ -660,7 +719,7 @@ function ReportContent() {
                 {/* Filter ASSY picker */}
                 <div style={{ position: 'relative' }}>
                   <button onClick={() => setShowAssyPicker(v => !v)} style={{ padding: '7px 14px', borderRadius: 8, border: '1.5px solid #7c3aed', background: '#faf5ff', color: '#7c3aed', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: font }}>
-                    🔩 Filter ASSY {selectedAssy.size > 0 ? `(${selectedAssy.size} dipilih)` : '(semua)'}
+                    Filter ASSY {selectedAssy.size > 0 ? `(${selectedAssy.size} dipilih)` : '(semua)'}
                   </button>
                   {showAssyPicker && (
                     <div style={{ position: 'absolute', top: '110%', left: 0, zIndex: 50, background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,.12)', width: 320, maxHeight: 360, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -692,7 +751,7 @@ function ReportContent() {
             )}
 
             <button onClick={handleLoad} disabled={mode === 'gabungan' && isExceedsMax} style={{ padding: '8px 24px', borderRadius: 8, border: 'none', background: mode === 'gabungan' && isExceedsMax ? '#d1d5db' : 'linear-gradient(135deg,#1e3a8a,#2563eb)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: mode === 'gabungan' && isExceedsMax ? 'not-allowed' : 'pointer', fontFamily: font, boxShadow: mode === 'gabungan' && isExceedsMax ? 'none' : '0 3px 10px rgba(37,99,235,.3)' }}>
-              🔍 Tampilkan
+              Tampilkan
             </button>
             {mode === 'gabungan' && isExceedsMax && (
               <div style={{ padding: '10px 14px', borderRadius: 8, background: '#fef2f2', border: '1px solid #fecaca', fontSize: 13, color: '#991b1b', fontWeight: 500 }}>
@@ -741,7 +800,7 @@ function ReportContent() {
                 />
               </div>
               <button onClick={handleExport} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#10b981', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: font }}>
-                ⬇️ Ekspor
+                Ekspor
               </button>
               <span style={{ fontSize: 12.5, color: '#6b7280' }}>
                 <b style={{ color: '#111827' }}>{totalParts.toLocaleString()}</b> part ·
@@ -778,6 +837,28 @@ function ReportContent() {
                       }} />
                     </div>
                   </div>
+                  {/* ← Tombol cancel X */}
+                  <button
+                    onClick={() => {
+                      abortControllerRef.current?.abort();
+                      setIsDownloading(false);
+                      setDownloadProgress(0);
+                      abortControllerRef.current = null;
+                    }}
+                    title="Batalkan ekspor"
+                    style={{
+                      width: 28, height: 28, borderRadius: '50%',
+                      border: '1.5px solid #fca5a5',
+                      background: '#fef2f2', color: '#dc2626',
+                      fontSize: 14, fontWeight: 700,
+                      cursor: 'pointer', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center',
+                      flexShrink: 0, fontFamily: font,
+                      transition: 'all .15s',
+                    }}
+                    onMouseOver={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.borderColor = '#ef4444'; }}
+                    onMouseOut={e  => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fca5a5'; }}
+                  >×</button>
                 </div>
               </div>
             )}
