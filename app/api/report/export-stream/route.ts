@@ -202,15 +202,16 @@ export async function GET(request: NextRequest) {
               // Inner loop — akses array langsung, hindari object property lookup
               for (let ci = 0; ci < colCount; ci++) {
                 const col = cols[ci];
-                // Key format berbeda untuk mode gabungan vs single
-                const key = mode === 'gabungan'
-                  ? `${pno}|${col.assy}|${col.per}`
-                  : `${pno}|${col.assy}|${periode}`;
+                // Key selalu menggunakan format dengan periode karena qtyMap disimpan dengan periode
+                const key = `${pno}|${col.assy}|${col.per}`;
                 const qty = qtyMap.get(key) ?? 0;
                 row.push(qty);
                 totalBom   += qty;
                 totalUsage += qty * prodQtyArr[ci]; // array akses lebih cepat dari col.prodQty
-                colSums[ci] += qty; // Akumulasi untuk footer
+                // Footer: hanya akumulasi jika qty > 0 (sama dengan logika di halaman report)
+                if (qty > 0) {
+                  colSums[ci] += qty;
+                }
               }
 
               const usageRounded = Math.ceil(totalUsage);
