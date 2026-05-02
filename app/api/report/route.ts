@@ -164,6 +164,10 @@ export async function GET(request: Request) {
 
         // Rows 4+: Data part
         const data: (string | number)[][] = [row1, row2, row3];
+        // Track column sums for TOTAL PER ASSY row
+        const colSums: number[] = new Array(assyCodes.length * periodeList.length).fill(0);
+        let grandTotalUsage = 0;
+
         for (const part of partsRes.rows) {
           const row: (string | number)[] = [
             part.part_no,
@@ -175,18 +179,32 @@ export async function GET(request: Request) {
 
           let totalBom   = 0;
           let totalUsage = 0;
+          let colIdx = 0;
           for (const assy of assyCodes) {
             for (const per of periodeList) {
               const qty = lookup.get(`${part.part_no}|${assy}|${per}`) ?? 0;
               row.push(qty);
               totalBom   += qty;
-              totalUsage += qty * (prodMap[assy]?.[per] ?? 0);
+              const usage = qty * (prodMap[assy]?.[per] ?? 0);
+              totalUsage += usage;
+              colSums[colIdx] += usage; // Sum usage per column for footer
+              colIdx++;
             }
           }
           row.push(totalBom);
           row.push(Math.ceil(totalUsage));
+          grandTotalUsage += Math.ceil(totalUsage);
           data.push(row);
         }
+
+        // Add TOTAL PER ASSY row at the bottom
+        const totalPerAssyRow: (string | number)[] = ['∑ TOTAL PER ASSY', '', '', '', ''];
+        for (const colSum of colSums) {
+          totalPerAssyRow.push(colSum > 0 ? Math.ceil(colSum) : '');
+        }
+        totalPerAssyRow.push(''); // Total column (empty for footer)
+        totalPerAssyRow.push(grandTotalUsage); // Grand Total Usage
+        data.push(totalPerAssyRow);
 
         const ws = XLSX.utils.aoa_to_sheet(data);
 
@@ -232,10 +250,14 @@ export async function GET(request: Request) {
         flatProdMap[assy] = prodMap[assy]?.[periode!] ?? 0;
       }
 
-      const headers     = ['Part No', 'Part No AS400', 'Supplier', 'Part Name', 'Unit', ...assyCodes, 'Total BOM', 'Total Usage'];
+const headers     = ['Part No', 'Part No AS400', 'Supplier', 'Part Name', 'Unit', ...assyCodes, 'Total BOM', 'Total Usage'];
       const prodQtyRow  = ['PROD QTY →', '', '', '', '', ...assyCodes.map(a => flatProdMap[a] ?? 0), '', ''];
       const data: (string | number)[][] = [headers, prodQtyRow];
-
+      
+      // Track column sums for TOTAL PER ASSY row
+      const colSums: number[] = new Array(assyCodes.length).fill(0);
+      let grandTotalUsage = 0;
+      
       for (const part of partsRes.rows) {
         const row: (string | number)[] = [
           part.part_no,
@@ -243,15 +265,33 @@ export async function GET(request: Request) {
           part.supplier_name  || '',
           part.part_name      || '',
           part.unit           || '',
-          ...assyCodes.map(a => lookup.get(`${part.part_no}|${a}|${periode!}`) ?? 0),
         ];
+        
+        // Add qty per assy and track column sums
+        assyCodes.forEach((a, idx) => {
+          const qty = lookup.get(`${part.part_no}|${a}|${periode!}`) ?? 0;
+          row.push(qty);
+          const usage = qty * (flatProdMap[a] ?? 0);
+          colSums[idx] += usage;
+        });
+        
         const totalBom   = assyCodes.reduce((s, a) => s + (lookup.get(`${part.part_no}|${a}|${periode!}`) ?? 0), 0);
         const totalUsage = assyCodes.reduce((s, a) => s + ((lookup.get(`${part.part_no}|${a}|${periode!}`) ?? 0) * (flatProdMap[a] ?? 0)), 0);
         row.push(totalBom);
         row.push(Math.ceil(totalUsage));
+        grandTotalUsage += Math.ceil(totalUsage);
         data.push(row);
       }
-
+      
+      // Add TOTAL PER ASSY row at the bottom
+      const totalPerAssyRow: (string | number)[] = ['∑ TOTAL PER ASSY', '', '', '', ''];
+      for (const colSum of colSums) {
+        totalPerAssyRow.push(colSum > 0 ? Math.ceil(colSum) : '');
+      }
+      totalPerAssyRow.push(''); // Total BOM column (empty for footer)
+      totalPerAssyRow.push(grandTotalUsage); // Grand Total Usage
+      data.push(totalPerAssyRow);
+      
       const ws = XLSX.utils.aoa_to_sheet(data);
       ws['!cols'] = [
         { wch: 15 }, // Part No
