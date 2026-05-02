@@ -94,9 +94,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Build string-key Map untuk lookup cepat
+    // Format key berbeda untuk mode gabungan vs single (sama dengan halaman report)
     const qtyMap = new Map<string, number>();
-    for (const r of qtyRes.rows)
-      qtyMap.set(`${r.part_no}|${r.assy_code}|${r.periode}`, Number(r.qty_per_unit));
+    for (const r of qtyRes.rows) {
+      if (mode === 'gabungan') {
+        qtyMap.set(`${r.part_no}|${r.assy_code}|${r.periode}`, Number(r.qty_per_unit));
+      } else {
+        // Mode single: key tanpa periode, sama seperti di halaman report
+        qtyMap.set(`${r.part_no}|${r.assy_code}`, Number(r.qty_per_unit));
+      }
+    }
 
     // Pre-compute prodQty array untuk akses O(1) tanpa object lookup
     const prodQtyArr = new Float64Array(cols.length);
@@ -202,8 +209,10 @@ export async function GET(request: NextRequest) {
               // Inner loop — akses array langsung, hindari object property lookup
               for (let ci = 0; ci < colCount; ci++) {
                 const col = cols[ci];
-                // Key selalu menggunakan format dengan periode karena qtyMap disimpan dengan periode
-                const key = `${pno}|${col.assy}|${col.per}`;
+                // Key format berbeda untuk mode gabungan vs single (sama dengan halaman report)
+                const key = mode === 'gabungan'
+                  ? `${pno}|${col.assy}|${col.per}`
+                  : `${pno}|${col.assy}`;
                 const qty = qtyMap.get(key) ?? 0;
                 row.push(qty);
                 totalBom   += qty;
