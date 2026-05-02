@@ -104,6 +104,8 @@ export async function GET(request: NextRequest) {
         qtyMap.set(`${r.part_no}|${r.assy_code}`, Number(r.qty_per_unit));
       }
     }
+    
+
 
     // Pre-compute prodQty array untuk akses O(1) tanpa object lookup
     const prodQtyArr = new Float64Array(cols.length);
