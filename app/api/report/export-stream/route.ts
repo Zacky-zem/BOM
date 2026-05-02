@@ -173,6 +173,10 @@ export async function GET(request: NextRequest) {
           // ── Data rows — optimasi inner loop ──
           const colCount = cols.length;
 
+          // Array untuk menyimpan total per kolom (untuk footer TOTAL PER ASSY)
+          const colSums = new Float64Array(colCount);
+          let grandTotalUsage = 0;
+
           for (let i = 0; i < parts.length; i += BATCH_SIZE) {
             // Cek cancel setiap batch
             if (request.signal.aborted) break;
@@ -202,14 +206,27 @@ export async function GET(request: NextRequest) {
                 row.push(qty);
                 totalBom   += qty;
                 totalUsage += qty * prodQtyArr[ci]; // array akses lebih cepat dari col.prodQty
+                colSums[ci] += qty; // Akumulasi untuk footer
               }
 
-              row.push(totalBom, Math.ceil(totalUsage));
+              const usageRounded = Math.ceil(totalUsage);
+              row.push(totalBom, usageRounded);
+              grandTotalUsage += usageRounded;
               ws.addRow(row).commit();
             }
 
             // Yield ke event loop tiap batch agar tidak block & bisa detect cancel
             await new Promise(resolve => setImmediate(resolve));
+          }
+
+          // ── Footer row: TOTAL PER ASSY ──
+          if (!request.signal.aborted) {
+            const footerRow: (string | number)[] = ['∑ TOTAL PER ASSY', '', '', '', ''];
+            for (let ci = 0; ci < colCount; ci++) {
+              footerRow.push(colSums[ci] > 0 ? colSums[ci] : '');
+            }
+            footerRow.push('', grandTotalUsage > 0 ? grandTotalUsage : '');
+            ws.addRow(footerRow).commit();
           }
 
           if (!request.signal.aborted) {
