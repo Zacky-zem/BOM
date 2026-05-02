@@ -109,7 +109,7 @@ function UploadModal({ onClose, onSuccess, showToast }: {
         <div style={{ marginBottom: 20 }}>
           <p style={{ fontWeight: 600, fontSize: 13.5, color: '#111827', marginBottom: 10, fontFamily: font }}>👁 Preview Data ({preview.length} baris)</p>
           <div style={{ maxHeight: 260, overflowY: 'auto', borderRadius: 10, border: '1px solid #e2e8f0' }}>
-            <Table headers={[{label:'Assy Code'},{label:'No Urut'},{label:'Seq'},{label:'Carline'},{label:'Destinasi'},{label:'Komoditi'},{label:'Deskripsi'},{label:'Status'}]} rows={preview.map(r => [r.assy_code, r.assy_number, (r as any).sequence ?? '—', (r as any).carline || '—', (r as any).destinasi || '—', (r as any).komoditi || '—', r.description || '—', <Badge active={!!r.is_active} />])} />
+            <Table headers={[{label:'Assy Code'},{label:'Seq'},{label:'Komoditi'},{label:'Destinasi'},{label:'Carline'},{label:'Deskripsi'},{label:'Status'}]} rows={preview.map(r => [r.assy_code, (r as any).sequence ?? '—', (r as any).komoditi || '—', (r as any).destinasi || '—', (r as any).carline || '—', r.description || '—', <Badge active={!!r.is_active} />])} />
           </div>
         </div>
       )}
@@ -292,11 +292,10 @@ export default function MasterAssyPage({ showToast, role }: {
   const tableRows = paginated.map(r => [
     ...(showCheckbox ? [<input type="checkbox" checked={selected.has(r.id)} onChange={() => toggleSelect(r.id)} style={{ width: 15, height: 15, cursor: 'pointer', accentColor: canDelete ? '#dc2626' : '#16a34a' }} />] : []),
     <span style={{ fontWeight: 700, color: '#2563eb', fontFamily: 'monospace', fontSize: 12.5 }}>{r.assy_code}</span>,
-    <span style={{ color: '#64748b', fontSize: 13 }}>{r.assy_number}</span>,
     r.sequence != null ? <span style={{ background: '#eff6ff', color: '#2563eb', borderRadius: 5, padding: '2px 8px', fontSize: 11.5, fontWeight: 700 }}>{r.sequence}</span> : <span style={{ color: '#d1d5db' }}>—</span>,
-    r.carline   ? <span style={{ color: '#374151', fontSize: 13 }}>{r.carline}</span>   : <span style={{ color: '#d1d5db' }}>—</span>,
-    r.destinasi ? <span style={{ color: '#374151', fontSize: 13 }}>{r.destinasi}</span> : <span style={{ color: '#d1d5db' }}>—</span>,
     r.komoditi  ? <span style={{ color: '#374151', fontSize: 13 }}>{r.komoditi}</span>  : <span style={{ color: '#d1d5db' }}>—</span>,
+    r.destinasi ? <span style={{ color: '#374151', fontSize: 13 }}>{r.destinasi}</span> : <span style={{ color: '#d1d5db' }}>—</span>,
+    r.carline   ? <span style={{ color: '#374151', fontSize: 13 }}>{r.carline}</span>   : <span style={{ color: '#d1d5db' }}>—</span>,
     r.description ? <span style={{ color: '#4b5563', fontSize: 13 }}>{r.description}</span> : <span style={{ color: '#d1d5db' }}>—</span>,
     <Badge active={r.is_active} />,
     renderAksi(r),
@@ -313,19 +312,16 @@ export default function MasterAssyPage({ showToast, role }: {
   return (
     <div style={{ fontFamily: font }}>
       {/* Role banner */}
-      <div style={{ background: banner.bg, border: `1px solid ${banner.border}`, borderRadius: 10, padding: '10px 16px', marginBottom: 20, fontSize: 13, color: banner.color, display: 'flex', alignItems: 'center', gap: 10, boxShadow: '0 1px 3px rgba(0,0,0,.04)', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: banner.color, borderRadius: '3px 0 0 3px' }} />
-        <span style={{ fontSize: 15, flexShrink: 0, marginLeft: 6 }}>{banner.icon}</span>
-        <span dangerouslySetInnerHTML={{ __html: banner.text }} />
-      </div>
+      <div style={{ background: banner.bg, border: `1px solid ${banner.border}`, borderRadius: 10, padding: '10px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: banner.color }}
+        dangerouslySetInnerHTML={{ __html: `${banner.icon} ${banner.text}` }} />
 
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
         <div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: -0.5 }}>Master ASSY</h1>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', margin: 0 }}>Master ASSY</h1>
           <p style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>
             Daftar Assembly — <b style={{ color: '#0f172a' }}>{data.length.toLocaleString()}</b> total &nbsp;·&nbsp;
-            <b style={{ color: '#16a34a' }}>{data.filter(r => r.is_active).length}</b> aktif
+            <b style={{ color: '#16a34a' }}>{data.filter(r => r.is_active).length.toLocaleString()}</b> aktif
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -343,6 +339,12 @@ export default function MasterAssyPage({ showToast, role }: {
             </>
           )}
         </div>
+      </div>
+
+      {/* Stats */}
+      <div style={{ display: 'flex', gap: 14, marginBottom: 24, flexWrap: 'wrap' }}>
+        <StatCard label="Total ASSY" value={data.length} color="#1d4ed8" />
+        <StatCard label="Active" value={data.filter(r => r.is_active).length} color="#16a34a" />
       </div>
 
       {/* Table */}
@@ -381,7 +383,7 @@ export default function MasterAssyPage({ showToast, role }: {
         <>
           <Table headers={[
               ...(showCheckbox ? [{label: <input type="checkbox" checked={allChecked} onChange={toggleAll} style={{ width: 15, height: 15, cursor: 'pointer', accentColor: canDelete ? '#dc2626' : '#16a34a' }} /> as unknown as string}] : []),
-              {label:'Assy Code'},{label:'No Urut'},{label:'Seq'},{label:'Carline'},{label:'Destinasi'},{label:'Komoditi'},{label:'Deskripsi'},{label:'Status'},{label:'Aksi'}
+              {label:'Assy Code'},{label:'Seq'},{label:'Komoditi'},{label:'Destinasi'},{label:'Carline'},{label:'Deskripsi'},{label:'Status'},{label:'Aksi'}
             ]} rows={tableRows} />
           <Pagination total={filtered.length} page={page} perPage={perPage} onPage={setPage} onPerPage={setPerPage} />
         </>
