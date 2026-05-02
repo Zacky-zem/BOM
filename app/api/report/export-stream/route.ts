@@ -220,12 +220,15 @@ export async function GET(request: NextRequest) {
           }
 
           // ── Footer row: TOTAL PER ASSY ──
+          // colSums berisi jumlah qty komponen per kolom ASSY (tanpa melibatkan prod qty)
+          // grandTotalUsage adalah penjumlahan dari kolom TOTAL USAGE setiap baris
           if (!request.signal.aborted) {
             const footerRow: (string | number)[] = ['∑ TOTAL PER ASSY', '', '', '', ''];
             for (let ci = 0; ci < colCount; ci++) {
-              footerRow.push(colSums[ci] > 0 ? colSums[ci] : '');
+              footerRow.push(colSums[ci] > 0 ? colSums[ci] : '—');
             }
-            footerRow.push('', grandTotalUsage > 0 ? grandTotalUsage : '');
+            // Kolom Total BOM dikosongkan, kolom Total Usage diisi grandTotalUsage
+            footerRow.push('—', grandTotalUsage > 0 ? grandTotalUsage : '—');
             ws.addRow(footerRow).commit();
           }
 
