@@ -202,7 +202,11 @@ export async function GET(request: NextRequest) {
               // Inner loop — akses array langsung, hindari object property lookup
               for (let ci = 0; ci < colCount; ci++) {
                 const col = cols[ci];
-                const qty = qtyMap.get(`${pno}|${col.assy}|${col.per}`) ?? 0;
+                // Key format berbeda untuk mode gabungan vs single
+                const key = mode === 'gabungan'
+                  ? `${pno}|${col.assy}|${col.per}`
+                  : `${pno}|${col.assy}|${periode}`;
+                const qty = qtyMap.get(key) ?? 0;
                 row.push(qty);
                 totalBom   += qty;
                 totalUsage += qty * prodQtyArr[ci]; // array akses lebih cepat dari col.prodQty
