@@ -94,9 +94,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Build string-key Map untuk lookup cepat
+    // Format key berbeda untuk mode gabungan vs single (sama dengan halaman report)
     const qtyMap = new Map<string, number>();
-    for (const r of qtyRes.rows)
-      qtyMap.set(`${r.part_no}|${r.assy_code}|${r.periode}`, Number(r.qty_per_unit));
+    for (const r of qtyRes.rows) {
+      if (mode === 'gabungan') {
+        qtyMap.set(`${r.part_no}|${r.assy_code}|${r.periode}`, Number(r.qty_per_unit));
+      } else {
+        // Mode single: key tanpa periode, sama seperti di halaman report
+        qtyMap.set(`${r.part_no}|${r.assy_code}`, Number(r.qty_per_unit));
+      }
+    }
 
     // Pre-compute prodQty array untuk akses O(1) tanpa object lookup
     const prodQtyArr = new Float64Array(cols.length);
@@ -173,6 +180,10 @@ export async function GET(request: NextRequest) {
           // ── Data rows — optimasi inner loop ──
           const colCount = cols.length;
 
+          // Array untuk menyimpan total per kolom (untuk footer TOTAL PER ASSY)
+          const colSums = new Float64Array(colCount);
+          let grandTotalUsage = 0;
+
           for (let i = 0; i < parts.length; i += BATCH_SIZE) {
             // Cek cancel setiap batch
             if (request.signal.aborted) break;
@@ -198,18 +209,41 @@ export async function GET(request: NextRequest) {
               // Inner loop — akses array langsung, hindari object property lookup
               for (let ci = 0; ci < colCount; ci++) {
                 const col = cols[ci];
-                const qty = qtyMap.get(`${pno}|${col.assy}|${col.per}`) ?? 0;
+                // Key format berbeda untuk mode gabungan vs single (sama dengan halaman report)
+                const key = mode === 'gabungan'
+                  ? `${pno}|${col.assy}|${col.per}`
+                  : `${pno}|${col.assy}`;
+                const qty = qtyMap.get(key) ?? 0;
                 row.push(qty);
                 totalBom   += qty;
                 totalUsage += qty * prodQtyArr[ci]; // array akses lebih cepat dari col.prodQty
+                // Footer: hanya akumulasi jika qty > 0 (sama dengan logika di halaman report)
+                if (qty > 0) {
+                  colSums[ci] += qty;
+                }
               }
 
-              row.push(totalBom, Math.ceil(totalUsage));
+              const usageRounded = Math.ceil(totalUsage);
+              row.push(totalBom, usageRounded);
+              grandTotalUsage += usageRounded;
               ws.addRow(row).commit();
             }
 
             // Yield ke event loop tiap batch agar tidak block & bisa detect cancel
             await new Promise(resolve => setImmediate(resolve));
+          }
+
+          // ── Footer row: TOTAL PER ASSY ──
+          // colSums berisi jumlah qty komponen per kolom ASSY (tanpa melibatkan prod qty)
+          // grandTotalUsage adalah penjumlahan dari kolom TOTAL USAGE setiap baris
+          if (!request.signal.aborted) {
+            const footerRow: (string | number)[] = ['∑ TOTAL PER ASSY', '', '', '', ''];
+            for (let ci = 0; ci < colCount; ci++) {
+              footerRow.push(colSums[ci] > 0 ? colSums[ci] : '—');
+            }
+            // Kolom Total BOM dikosongkan, kolom Total Usage diisi grandTotalUsage
+            footerRow.push('—', grandTotalUsage > 0 ? grandTotalUsage : '—');
+            ws.addRow(footerRow).commit();
           }
 
           if (!request.signal.aborted) {
