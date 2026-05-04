@@ -106,20 +106,6 @@ export async function GET(request: Request) {
         lookup.set(`${r.part_no}|${r.assy_code}|${r.periode}`, Number(r.qty_per_unit));
       }
 
-      // Calculate column sums for ALL data
-      const colCount = assyCodes.length * periodeList.length;
-      const colSums = new Array(colCount).fill(0);
-      let totalUsage = 0;
-
-      let colIdx = 0;
-      for (const assy of assyCodes) {
-        for (const per of periodeList) {
-          // Untuk setiap kolom, hitung jumlah dari semua part
-          // Kita perlu query all parts juga, tapi cukup ambil qty-nya saja
-          colIdx++;
-        }
-      }
-
       // Get all parts (tanpa pagination)
       const { where: pw, extraParams: pe } = buildWhere(
         `periode >= $1 AND periode <= $2`, 3
@@ -132,8 +118,13 @@ export async function GET(request: Request) {
 
       const partNos: string[] = partsRes.rows.map((r: { part_no: string }) => r.part_no);
 
+      // Calculate column sums for ALL data
+      const colCount = assyCodes.length * periodeList.length;
+      const colSums = new Array(colCount).fill(0);
+      let totalUsage = 0;
+
       // Calculate sums
-      colIdx = 0;
+      let colIdx = 0;
       for (const assy of assyCodes) {
         for (const per of periodeList) {
           let sum = 0;
