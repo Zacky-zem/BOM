@@ -352,6 +352,8 @@ function ReportContent() {
   const [downloadProgress, setDownloadProgress] = useState(0);
   const abortControllerRef = useRef<AbortController | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [globalFooterColSums, setGlobalFooterColSums] = useState<number[]>([]);
+  const [globalFooterTotalUsage, setGlobalFooterTotalUsage] = useState(0);
 
   // Detect mobile viewport
   useEffect(() => {
@@ -413,6 +415,32 @@ function ReportContent() {
 
   const handlePageChange = (newPage: number) => { setPage(newPage); fetchData(newPage, search); };
   const handleSearch = (val: string) => { setSearch(val); setPage(1); fetchData(1, val); };
+
+  // Fetch global footer totals (tanpa pagination) ketika filter berubah
+  useEffect(() => {
+    const fetchGlobalTotals = async () => {
+      try {
+        let url = '';
+        if (mode === 'gabungan') {
+          url = `/api/report/totals?dari=${dari}&sampai=${sampai}${selectedAssy.size > 0 ? `&assy_codes=${[...selectedAssy].join(',')}` : ''}${search ? `&search=${encodeURIComponent(search)}` : ''}`;
+        } else {
+          url = `/api/report/totals?periode=${encodeURIComponent(periode)}${selectedAssy.size > 0 ? `&assy_codes=${[...selectedAssy].join(',')}` : ''}${search ? `&search=${encodeURIComponent(search)}` : ''}`;
+        }
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.colSums) {
+          setGlobalFooterColSums(data.colSums);
+          setGlobalFooterTotalUsage(data.totalUsage);
+        }
+      } catch (err) {
+        console.log('[v0] Error fetching global totals:', err);
+      }
+    };
+    
+    if (hasLoaded) {
+      fetchGlobalTotals();
+    }
+  }, [mode, periode, dari, sampai, selectedAssy, search, hasLoaded]);
 
   const jumlahBulan = (() => {
     if (mode !== 'gabungan' || !dari || !sampai) return 0;
@@ -869,8 +897,8 @@ function ReportContent() {
               cols={cols}
               mode={mode}
               periodes={periodes}
-              footerColSums={footerColSums}
-              footerTotalUsage={footerTotalUsage}
+              footerColSums={globalFooterColSums.length > 0 ? globalFooterColSums : footerColSums}
+              footerTotalUsage={globalFooterColSums.length > 0 ? globalFooterTotalUsage : footerTotalUsage}
               isMobile={isMobile}
             />
 
