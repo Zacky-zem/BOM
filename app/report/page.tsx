@@ -434,103 +434,7 @@ function ReportContent() {
   const totalParts = currentData?.total_parts  ?? 0;
   const totalPages = Math.ceil(totalParts / LIMIT) || 1;
   
-  // State untuk menyimpan accumulated footer totals dari semua pages yang sudah di-load
-  const [accumulatedTotals, setAccumulatedTotals] = useState<{ colSums: number[], totalUsage: number } | null>(null);
-  const [isComputingTotals, setIsComputingTotals] = useState(false);
-  
-  // Background effect: fetch all pages progressively to compute accurate totals
-  useEffect(() => {
-    if (!hasLoaded || totalPages <= 1 || isComputingTotals) return;
-    
-    setIsComputingTotals(true);
-    
-    const computeAllTotals = async () => {
-      try {
-        const allQtyMaps: typeof qtyMap[] = [qtyMap]; // Start with current page
-        
-        // Fetch remaining pages
-        for (let p = 2; p <= totalPages; p++) {
-          try {
-            const url = buildUrl(p, search);
-            const res = await fetch(url);
-            if (!res.ok) break;
-            const data = await res.json();
-            if (data.results) {
-              const dataKey = mode === 'gabungan' ? gabunganKey : (data.periodes?.[0] ?? Object.keys(data.results)[0]);
-              const pageQtyMap = data.results[dataKey]?.qty_map;
-              if (pageQtyMap) {
-                allQtyMaps.push(pageQtyMap);
-              }
-            }
-          } catch {
-            break; // Stop on error, use what we have so far
-          }
-        }
-        
-        // Calculate totals from all collected data
-        const colSums: number[] = [];
-        let totalUsage = 0;
-        
-        // Build column definitions
-        const cols: ColDef[] = [];
-        if (mode === 'gabungan') {
-          for (const assy of assyCodes) {
-            for (const per of periodes) {
-              const prodVal = prodQtyMap[assy];
-              const prodQty = prodVal && typeof prodVal === 'object'
-                ? Number((prodVal as Record<string,number>)[per] ?? 0)
-                : 0;
-              cols.push({ assy, periode: per, label: `${assy}|${per}`, prodQty });
-            }
-          }
-        } else {
-          for (const assy of assyCodes) {
-            const prodQty = Number((prodQtyMap[assy] as number) ?? 0);
-            cols.push({ assy, periode: null, label: assy, prodQty });
-          }
-        }
-        
-        // Initialize colSums
-        for (let i = 0; i < cols.length; i++) {
-          colSums.push(0);
-        }
-        
-        // Aggregate from all pages
-        for (const pageQtyMap of allQtyMaps) {
-          for (const [partNo, assyMap] of Object.entries(pageQtyMap)) {
-            for (let ci = 0; ci < cols.length; ci++) {
-              const col = cols[ci];
-              let qty = 0;
-              
-              if (mode === 'gabungan') {
-                const assyData = (assyMap as Record<string, Record<string, number>>)[col.assy];
-                if (assyData && typeof assyData === 'object') {
-                  qty = Number(assyData[col.periode!] ?? 0);
-                }
-              } else {
-                qty = Number((assyMap as Record<string, number>)[col.assy] ?? 0);
-              }
-              
-              colSums[ci] += qty;
-              totalUsage += qty * col.prodQty;
-            }
-          }
-        }
-        
-        setAccumulatedTotals({ colSums, totalUsage: Math.ceil(totalUsage) });
-      } catch (e) {
-        console.log('[v0] Error computing totals:', e);
-      } finally {
-        setIsComputingTotals(false);
-      }
-    };
-    
-    // Start computation after a short delay to not block initial render
-    const timer = setTimeout(computeAllTotals, 1000);
-    return () => clearTimeout(timer);
-  }, [hasLoaded, totalPages, qtyMap, assyCodes, periodes, prodQtyMap, mode, gabunganKey, search, buildUrl]);
-
-  // ── PRE-KALKULASI — dilakukan sekali saat data berubah ───��──
+  // ── PRE-KALKULASI — dilakukan sekali saat data berubah ─────────
   // Ini yang menggantikan getBomQty/getProdQty/calcTotalUsage/calcAssyColSum
   // yang sebelumnya dipanggil berulang kali saat render
 
@@ -558,7 +462,8 @@ function ReportContent() {
       }
     }
 
-    // 2. Build flat lookup for displayed rows (from qtyMap on current page)
+    // 2. Build flat lookup: "part_no|assy|periode" → qty
+    //    O(n) sekali, bukan O(n) per render
     const lookup = new Map<string, number>();
     for (const [partNo, assyMap] of Object.entries(qtyMap)) {
       for (const [assy, val] of Object.entries(assyMap as Record<string, unknown>)) {
@@ -572,10 +477,10 @@ function ReportContent() {
       }
     }
 
-    // 3. Pre-compute setiap baris (hanya untuk display page)
-    let footerColSums = new Array(cols.length).fill(0);
-    let footerTotalUsage = 0;
-    let hasProdQty = false;
+    // 3. Pre-compute setiap baris
+    const footerColSums = new Array(cols.length).fill(0);
+    let   footerTotalUsage = 0;
+    let   hasProdQty = false;
 
     const computedRows: ComputedRow[] = parts.map(part => {
       const cells: (number | null)[] = new Array(cols.length).fill(null);
@@ -594,23 +499,19 @@ function ReportContent() {
           totalQty += qty;
           const usage = qty * col.prodQty;
           totalUsage += usage;
+          footerColSums[ci] += qty;
           if (col.prodQty > 0) hasProdQty = true;
         }
       }
 
       const roundedUsage = Math.ceil(totalUsage);
+      footerTotalUsage += roundedUsage;
 
       return { part, cells, totalQty, totalUsage: roundedUsage };
     });
 
-    // 4. Use accumulated totals from all pages if available, otherwise calculate from current page
-    if (accumulatedTotals) {
-      footerColSums = accumulatedTotals.colSums;
-      footerTotalUsage = accumulatedTotals.totalUsage;
-    }
-
     return { cols, computedRows, footerColSums, footerTotalUsage, hasProdQty };
-  }, [currentData, parts, assyCodes, periodes, qtyMap, prodQtyMap, mode, accumulatedTotals]);
+  }, [currentData, parts, assyCodes, periodes, qtyMap, prodQtyMap, mode]);
 
   const filteredAssy = allAssyCodes.filter(a =>
     !assySearch || a.toLowerCase().includes(assySearch.toLowerCase())
