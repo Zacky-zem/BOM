@@ -350,8 +350,13 @@ function ReportContent() {
   const [showAssyPicker, setShowAssyPicker] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const abortControllerRef = useRef<AbortController | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Fetch ALL parts data for footer totals (not paginated)
+  const [allQtyMap, setAllQtyMap] = useState<Record<string, Record<string, Record<string, number> | Record<string, number>>> | Record<string, Record<string, number>>>({});
+  const [fullPartsList, setFullPartsList] = useState<Part[]>([]);
+  
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Detect mobile viewport
   useEffect(() => {
@@ -432,8 +437,35 @@ function ReportContent() {
   const qtyMap     = currentData?.qty_map      ?? {};
   const totalParts = currentData?.total_parts  ?? 0;
   const totalPages = Math.ceil(totalParts / LIMIT) || 1;
+  
+  useEffect(() => {
+    const fetchAllData = async () => {
+      try {
+        // Fetch all parts without pagination for footer calculation
+        const url = buildUrl(1, search);
+        const urlWithoutPagination = url.replace(`&page=1&limit=${LIMIT}`, '&page=1&limit=999999');
+        const res = await fetch(urlWithoutPagination);
+        const data = await res.json();
+        
+        if (data.results) {
+          const dataKey = mode === 'gabungan' ? gabunganKey : (data.periodes?.[0] ?? Object.keys(data.results)[0]);
+          const fullData = data.results[dataKey];
+          if (fullData) {
+            setAllQtyMap(fullData.qty_map ?? {});
+            setFullPartsList(fullData.parts ?? []);
+          }
+        }
+      } catch (e) {
+        console.log('[v0] Error fetching all data for footer:', e);
+      }
+    };
+    
+    if (hasLoaded) {
+      fetchAllData();
+    }
+  }, [hasLoaded, buildUrl, search]);
 
-  // ── PRE-KALKULASI — dilakukan sekali saat data berubah ──────
+  // ── PRE-KALKULASI — dilakukan sekali saat data berubah ───��──
   // Ini yang menggantikan getBomQty/getProdQty/calcTotalUsage/calcAssyColSum
   // yang sebelumnya dipanggil berulang kali saat render
 
@@ -461,8 +493,7 @@ function ReportContent() {
       }
     }
 
-    // 2. Build flat lookup: "part_no|assy|periode" → qty
-    //    O(n) sekali, bukan O(n) per render
+    // 2. Build flat lookup for displayed rows (from qtyMap on current page)
     const lookup = new Map<string, number>();
     for (const [partNo, assyMap] of Object.entries(qtyMap)) {
       for (const [assy, val] of Object.entries(assyMap as Record<string, unknown>)) {
@@ -476,7 +507,21 @@ function ReportContent() {
       }
     }
 
-    // 3. Pre-compute setiap baris
+    // 3. Build lookup for ALL data (from allQtyMap) for footer totals
+    const allLookup = new Map<string, number>();
+    for (const [partNo, assyMap] of Object.entries(allQtyMap)) {
+      for (const [assy, val] of Object.entries(assyMap as Record<string, unknown>)) {
+        if (mode === 'gabungan' && typeof val === 'object' && val !== null) {
+          for (const [per, qty] of Object.entries(val as Record<string, number>)) {
+            allLookup.set(`${partNo}|${assy}|${per}`, Number(qty));
+          }
+        } else {
+          allLookup.set(`${partNo}|${assy}`, Number(val));
+        }
+      }
+    }
+
+    // 4. Pre-compute setiap baris (hanya untuk display page)
     const footerColSums = new Array(cols.length).fill(0);
     let   footerTotalUsage = 0;
     let   hasProdQty = false;
@@ -498,19 +543,46 @@ function ReportContent() {
           totalQty += qty;
           const usage = qty * col.prodQty;
           totalUsage += usage;
-          footerColSums[ci] += qty;
           if (col.prodQty > 0) hasProdQty = true;
         }
       }
 
       const roundedUsage = Math.ceil(totalUsage);
-      footerTotalUsage += roundedUsage;
 
       return { part, cells, totalQty, totalUsage: roundedUsage };
     });
 
+    // 5. Calculate footer sums from ALL parts (using allLookup and fullPartsList)
+    if (fullPartsList.length > 0) {
+      for (let ci = 0; ci < cols.length; ci++) {
+        for (const part of fullPartsList) {
+          const col = cols[ci];
+          const key = mode === 'gabungan'
+            ? `${part.part_no}|${col.assy}|${col.periode}`
+            : `${part.part_no}|${col.assy}`;
+          const qty = allLookup.get(key) ?? 0;
+          footerColSums[ci] += qty;
+        }
+      }
+      
+      // Recalculate footerTotalUsage from ALL data
+      footerTotalUsage = 0;
+      for (const part of fullPartsList) {
+        let totalUsage = 0;
+        for (let ci = 0; ci < cols.length; ci++) {
+          const col = cols[ci];
+          const key = mode === 'gabungan'
+            ? `${part.part_no}|${col.assy}|${col.periode}`
+            : `${part.part_no}|${col.assy}`;
+          const qty = allLookup.get(key) ?? 0;
+          totalUsage += qty * col.prodQty;
+        }
+        footerTotalUsage += Math.ceil(totalUsage);
+      }
+    }
+
     return { cols, computedRows, footerColSums, footerTotalUsage, hasProdQty };
-  }, [currentData, parts, assyCodes, periodes, qtyMap, prodQtyMap, mode]);
+  }, [currentData, parts, assyCodes, periodes, qtyMap, prodQtyMap, mode, fullPartsList, allQtyMap]);
 
   const filteredAssy = allAssyCodes.filter(a =>
     !assySearch || a.toLowerCase().includes(assySearch.toLowerCase())
@@ -604,7 +676,7 @@ function ReportContent() {
       await new Promise(r => setTimeout(r, 200));
       setDownloadProgress(100);
 
-      const blob = new Blob(chunks, {
+      const blob = new Blob(chunks as BlobPart[], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
       const downloadUrl = window.URL.createObjectURL(blob);
