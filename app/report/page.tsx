@@ -352,10 +352,6 @@ function ReportContent() {
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   
-  // Fetch ALL parts data for footer totals (not paginated)
-  const [allQtyMap, setAllQtyMap] = useState<Record<string, Record<string, Record<string, number> | Record<string, number>>> | Record<string, Record<string, number>>>({});
-  const [fullPartsList, setFullPartsList] = useState<Part[]>([]);
-  
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // Detect mobile viewport
@@ -438,32 +434,101 @@ function ReportContent() {
   const totalParts = currentData?.total_parts  ?? 0;
   const totalPages = Math.ceil(totalParts / LIMIT) || 1;
   
+  // State untuk menyimpan accumulated footer totals dari semua pages yang sudah di-load
+  const [accumulatedTotals, setAccumulatedTotals] = useState<{ colSums: number[], totalUsage: number } | null>(null);
+  const [isComputingTotals, setIsComputingTotals] = useState(false);
+  
+  // Background effect: fetch all pages progressively to compute accurate totals
   useEffect(() => {
-    const fetchAllData = async () => {
+    if (!hasLoaded || totalPages <= 1 || isComputingTotals) return;
+    
+    setIsComputingTotals(true);
+    
+    const computeAllTotals = async () => {
       try {
-        // Fetch all parts without pagination for footer calculation
-        const url = buildUrl(1, search);
-        const urlWithoutPagination = url.replace(`&page=1&limit=${LIMIT}`, '&page=1&limit=999999');
-        const res = await fetch(urlWithoutPagination);
-        const data = await res.json();
+        const allQtyMaps: typeof qtyMap[] = [qtyMap]; // Start with current page
         
-        if (data.results) {
-          const dataKey = mode === 'gabungan' ? gabunganKey : (data.periodes?.[0] ?? Object.keys(data.results)[0]);
-          const fullData = data.results[dataKey];
-          if (fullData) {
-            setAllQtyMap(fullData.qty_map ?? {});
-            setFullPartsList(fullData.parts ?? []);
+        // Fetch remaining pages
+        for (let p = 2; p <= totalPages; p++) {
+          try {
+            const url = buildUrl(p, search);
+            const res = await fetch(url);
+            if (!res.ok) break;
+            const data = await res.json();
+            if (data.results) {
+              const dataKey = mode === 'gabungan' ? gabunganKey : (data.periodes?.[0] ?? Object.keys(data.results)[0]);
+              const pageQtyMap = data.results[dataKey]?.qty_map;
+              if (pageQtyMap) {
+                allQtyMaps.push(pageQtyMap);
+              }
+            }
+          } catch {
+            break; // Stop on error, use what we have so far
           }
         }
+        
+        // Calculate totals from all collected data
+        const colSums: number[] = [];
+        let totalUsage = 0;
+        
+        // Build column definitions
+        const cols: ColDef[] = [];
+        if (mode === 'gabungan') {
+          for (const assy of assyCodes) {
+            for (const per of periodes) {
+              const prodVal = prodQtyMap[assy];
+              const prodQty = prodVal && typeof prodVal === 'object'
+                ? Number((prodVal as Record<string,number>)[per] ?? 0)
+                : 0;
+              cols.push({ assy, periode: per, label: `${assy}|${per}`, prodQty });
+            }
+          }
+        } else {
+          for (const assy of assyCodes) {
+            const prodQty = Number((prodQtyMap[assy] as number) ?? 0);
+            cols.push({ assy, periode: null, label: assy, prodQty });
+          }
+        }
+        
+        // Initialize colSums
+        for (let i = 0; i < cols.length; i++) {
+          colSums.push(0);
+        }
+        
+        // Aggregate from all pages
+        for (const pageQtyMap of allQtyMaps) {
+          for (const [partNo, assyMap] of Object.entries(pageQtyMap)) {
+            for (let ci = 0; ci < cols.length; ci++) {
+              const col = cols[ci];
+              let qty = 0;
+              
+              if (mode === 'gabungan') {
+                const assyData = (assyMap as Record<string, Record<string, number>>)[col.assy];
+                if (assyData && typeof assyData === 'object') {
+                  qty = Number(assyData[col.periode!] ?? 0);
+                }
+              } else {
+                qty = Number((assyMap as Record<string, number>)[col.assy] ?? 0);
+              }
+              
+              colSums[ci] += qty;
+              totalUsage += qty * col.prodQty;
+            }
+          }
+        }
+        
+        setAccumulatedTotals({ colSums, totalUsage: Math.ceil(totalUsage) });
       } catch (e) {
-        console.log('[v0] Error fetching all data for footer:', e);
+        console.log('[v0] Error computing totals:', e);
+      } finally {
+        setIsComputingTotals(false);
       }
     };
     
-    if (hasLoaded) {
-      fetchAllData();
-    }
-  }, [hasLoaded, buildUrl, search]);
+    // Start computation after a short delay to not block initial render
+    const timer = setTimeout(computeAllTotals, 1000);
+    return () => clearTimeout(timer);
+  }, [hasLoaded, totalPages, qtyMap, assyCodes, periodes, prodQtyMap, mode, gabunganKey, search, buildUrl]);
 
   // ── PRE-KALKULASI — dilakukan sekali saat data berubah ───��──
   // Ini yang menggantikan getBomQty/getProdQty/calcTotalUsage/calcAssyColSum
@@ -507,24 +572,10 @@ function ReportContent() {
       }
     }
 
-    // 3. Build lookup for ALL data (from allQtyMap) for footer totals
-    const allLookup = new Map<string, number>();
-    for (const [partNo, assyMap] of Object.entries(allQtyMap)) {
-      for (const [assy, val] of Object.entries(assyMap as Record<string, unknown>)) {
-        if (mode === 'gabungan' && typeof val === 'object' && val !== null) {
-          for (const [per, qty] of Object.entries(val as Record<string, number>)) {
-            allLookup.set(`${partNo}|${assy}|${per}`, Number(qty));
-          }
-        } else {
-          allLookup.set(`${partNo}|${assy}`, Number(val));
-        }
-      }
-    }
-
-    // 4. Pre-compute setiap baris (hanya untuk display page)
-    const footerColSums = new Array(cols.length).fill(0);
-    let   footerTotalUsage = 0;
-    let   hasProdQty = false;
+    // 3. Pre-compute setiap baris (hanya untuk display page)
+    let footerColSums = new Array(cols.length).fill(0);
+    let footerTotalUsage = 0;
+    let hasProdQty = false;
 
     const computedRows: ComputedRow[] = parts.map(part => {
       const cells: (number | null)[] = new Array(cols.length).fill(null);
@@ -552,37 +603,14 @@ function ReportContent() {
       return { part, cells, totalQty, totalUsage: roundedUsage };
     });
 
-    // 5. Calculate footer sums from ALL parts (using allLookup and fullPartsList)
-    if (fullPartsList.length > 0) {
-      for (let ci = 0; ci < cols.length; ci++) {
-        for (const part of fullPartsList) {
-          const col = cols[ci];
-          const key = mode === 'gabungan'
-            ? `${part.part_no}|${col.assy}|${col.periode}`
-            : `${part.part_no}|${col.assy}`;
-          const qty = allLookup.get(key) ?? 0;
-          footerColSums[ci] += qty;
-        }
-      }
-      
-      // Recalculate footerTotalUsage from ALL data
-      footerTotalUsage = 0;
-      for (const part of fullPartsList) {
-        let totalUsage = 0;
-        for (let ci = 0; ci < cols.length; ci++) {
-          const col = cols[ci];
-          const key = mode === 'gabungan'
-            ? `${part.part_no}|${col.assy}|${col.periode}`
-            : `${part.part_no}|${col.assy}`;
-          const qty = allLookup.get(key) ?? 0;
-          totalUsage += qty * col.prodQty;
-        }
-        footerTotalUsage += Math.ceil(totalUsage);
-      }
+    // 4. Use accumulated totals from all pages if available, otherwise calculate from current page
+    if (accumulatedTotals) {
+      footerColSums = accumulatedTotals.colSums;
+      footerTotalUsage = accumulatedTotals.totalUsage;
     }
 
     return { cols, computedRows, footerColSums, footerTotalUsage, hasProdQty };
-  }, [currentData, parts, assyCodes, periodes, qtyMap, prodQtyMap, mode, fullPartsList, allQtyMap]);
+  }, [currentData, parts, assyCodes, periodes, qtyMap, prodQtyMap, mode, accumulatedTotals]);
 
   const filteredAssy = allAssyCodes.filter(a =>
     !assySearch || a.toLowerCase().includes(assySearch.toLowerCase())
