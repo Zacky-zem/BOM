@@ -712,85 +712,144 @@ function ReportContent() {
         @keyframes slideDown { from { opacity:0; transform:translateY(-12px) } to { opacity:1; transform:translateY(0) } }
       `}</style>
 
-      {/* Professional Glassmorphic Header - Unified with Home Page */}
-      <header style={{
-        background: 'rgba(248, 250, 252, 0.5)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(226, 232, 240, 0.3)',
-        padding: isMobile ? '12px 20px' : '12px 40px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        height: 56,
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 100,
-        transition: 'all 0.3s ease',
-      }}>
-        {/* Left: Breadcrumb navigation */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: isMobile ? 12 : 13 }}>
-          <button onClick={() => router.back?.()} style={{
-            background: 'rgba(255, 255, 255, 0.5)',
-            border: '1px solid rgba(226, 232, 240, 0.8)',
-            borderRadius: 8,
-            cursor: 'pointer',
-            color: '#64748b',
-            fontWeight: 500,
-            fontFamily: font,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '6px 10px',
-            transition: 'all 0.2s ease',
-          }}
-            onMouseOver={e => { 
-              e.currentTarget.style.background = 'rgba(241, 245, 249, 0.9)'; 
-              e.currentTarget.style.borderColor = '#cbd5e1';
-              e.currentTarget.style.color = '#0f172a'; 
-            }}
-            onMouseOut={e => { 
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.5)'; 
-              e.currentTarget.style.borderColor = 'rgba(226, 232, 240, 0.8)';
-              e.currentTarget.style.color = '#64748b'; 
-            }}
+      {/* Navbar */}
+      <nav style={{ background: '#fff', borderBottom: '1px solid #e8eaed', padding: isMobile ? '0 16px' : '0 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 58, boxShadow: '0 1px 0 #e8eaed, 0 2px 8px rgba(0,0,0,.04)', position: 'sticky', top: 0, zIndex: 100, transition: 'all 0.3s ease' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 34, height: 34, borderRadius: 9, background: 'linear-gradient(135deg,#1e3a8a,#2563eb)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, boxShadow: '0 2px 10px rgba(37,99,235,.28)', flexShrink: 0 }}>📊</div>
+          <div style={{ display: isMobile ? 'none' : 'block' }}>
+            <div style={{ fontWeight: 800, fontSize: 14, color: '#0f172a', letterSpacing: -0.3 }}>BOM Database</div>
+            <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 500 }}>Master Data System</div>
+          </div>
+        </div>
+        <div style={{ width: 1, height: 28, background: '#e8eaed', margin: '0 20px', display: isMobile ? 'none' : 'block' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#64748b' }}>
+          <button onClick={() => router.back?.()} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#64748b', fontWeight: 500, fontFamily: font, display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px', borderRadius: 6, transition: 'all 0.2s ease' }}
+            onMouseOver={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#0f172a'; }}
+            onMouseOut={e  => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#64748b'; }}
           >
-            <span style={{ fontSize: 16 }}>←</span> 
-            <span style={{ display: isMobile ? 'none' : 'inline' }}>Home</span>
+            <span style={{ fontSize: 14 }}>←</span> <span style={{ display: isMobile ? 'none' : 'inline' }}>Home</span>
           </button>
           <span style={{ color: '#cbd5e1', display: isMobile ? 'none' : 'inline' }}>/</span>
-          <span style={{ fontWeight: 600, color: '#0f172a', display: isMobile ? 'none' : 'inline' }}>Report</span>
-        </nav>
-
-        {/* Right: YAZAKI Logo */}
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <img
-            src="/yazaki-logo.jpeg"
-            alt="YAZAKI Logo"
-            style={{
-              height: isMobile ? 36 : 40,
-              width: 'auto',
-              objectFit: 'contain',
-              opacity: 1,
-              transition: 'opacity 0.3s ease',
-            }}
-          />
+          <span style={{ fontWeight: 700, color: '#0f172a', fontSize: 13 }}>Report</span>
         </div>
-      </header>
+      </nav>
 
-      {/* Top padding for fixed header */}
-      <div style={{ height: 56 }} />
-
-      <main style={{ padding: isMobile ? '40px 20px' : '40px 40px', maxWidth: 1600, margin: '0 auto', animation: 'fadeUp .3s ease' }}>
-        {/* Professional Page Header */}
-        <div style={{ marginBottom: 32 }}>
-          <h1 style={{ fontSize: isMobile ? 24 : 28, fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: -0.6, marginBottom: 8, animation: 'fadeUp .3s ease 0.1s both' }}>Report</h1>
-          <p style={{ fontSize: isMobile ? 13 : 14, color: '#64748b', margin: 0, animation: 'fadeUp .3s ease 0.2s both' }}>Kalkulasi kebutuhan part berdasarkan BOM × Prod Qty</p>
+      <main style={{ padding: isMobile ? '24px 16px' : '32px 40px', maxWidth: 1600, margin: '0 auto', animation: 'fadeUp .3s ease' }}>
+        <div style={{ marginBottom: isMobile ? 16 : 24 }}>
+          <h1 style={{ fontSize: isMobile ? 22 : 26, fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: -0.5 }}>Report</h1>
+          <p style={{ fontSize: isMobile ? 12.5 : 13.5, color: '#64748b', marginTop: 4 }}>Kalkulasi kebutuhan part berdasarkan BOM × Prod Qty</p>
         </div>
 
-        {/* Filter card - simplified for showing active filters when data is loaded */}
+        {/* Filter card */}
+        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e8eaed', padding: isMobile ? '16px 16px' : '24px 28px', marginBottom: 24, boxShadow: '0 1px 4px rgba(0,0,0,.05)', transition: 'all 0.2s ease' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+            <div style={{ width: 30, height: 30, borderRadius: 8, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>⚙️</div>
+            <p style={{ fontSize: isMobile ? 12 : 13, fontWeight: 700, color: '#0f172a' }}>Konfigurasi Report</p>
+          </div>
+
+          {/* Mode toggle */}
+          <div style={{ display: 'flex', gap: 6, marginBottom: 20, background: '#f8fafc', borderRadius: 10, padding: 4, width: 'fit-content', border: '1px solid #e2e8f0', transition: 'all 0.2s ease' }}>
+            {(['single','gabungan'] as const).map(m => (
+              <button key={m} onClick={() => { setMode(m); setHasLoaded(false); }} style={{
+                padding: isMobile ? '6px 14px' : '7px 20px', borderRadius: 8, border: 'none',
+                background: mode === m ? '#fff' : 'transparent',
+                color:      mode === m ? '#1d4ed8' : '#64748b',
+                fontWeight: mode === m ? 700 : 500,
+                fontSize: isMobile ? 12 : 13, cursor: 'pointer', fontFamily: font,
+                boxShadow: mode === m ? '0 1px 4px rgba(0,0,0,.08)' : 'none',
+                transition: 'all 0.2s ease',
+              }}>
+                {m === 'single' ? '📅 Single Periode' : '📆 Gabungan'}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            {mode === 'single' ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: isMobile ? 11.5 : 12.5, color: '#374151', fontWeight: 500 }}>Periode:</span>
+                <select value={periode} onChange={e => setPeriode(e.target.value)} style={{ padding: '7px 12px', borderRadius: 8, border: '1.5px solid #e2e8f0', fontSize: 13, fontFamily: font, background: '#fff', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  onFocus={e => {
+                    e.currentTarget.style.borderColor = '#1d4ed8';
+                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(29, 78, 216, 0.1)';
+                  }}
+                  onBlur={e => {
+                    e.currentTarget.style.borderColor = '#e2e8f0';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  {availPer.map(p => <option key={p} value={p}>{fmtPeriode(p)}</option>)}
+                </select>
+              </div>
+            ) : (
+              <>
+                {[{ label: 'Dari', val: dari, set: setDari }, { label: 'Sampai', val: sampai, set: setSampai }].map((item, idx) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {idx === 1 && <span style={{ color: '#9ca3af' }}>→</span>}
+                    <span style={{ fontSize: isMobile ? 11.5 : 12.5, color: '#374151', fontWeight: 500 }}>{item.label}:</span>
+                    <select value={item.val} onChange={e => item.set(e.target.value)} style={{ padding: '7px 12px', borderRadius: 8, border: `1.5px solid ${isExceedsMax ? '#ef4444' : '#e2e8f0'}`, fontSize: 13, fontFamily: font, background: '#fff', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                      onFocus={e => {
+                        if (!isExceedsMax) {
+                          e.currentTarget.style.borderColor = '#1d4ed8';
+                          e.currentTarget.style.boxShadow = '0 0 0 3px rgba(29, 78, 216, 0.1)';
+                        }
+                      }}
+                      onBlur={e => {
+                        e.currentTarget.style.boxShadow = 'none';
+                        if (!isExceedsMax) {
+                          e.currentTarget.style.borderColor = '#e2e8f0';
+                        }
+                      }}
+                    >
+                      {availPer.map(p => <option key={p} value={p}>{fmtPeriode(p)}</option>)}
+                    </select>
+                  </div>
+                ))}
+
+                {/* Filter ASSY picker */}
+                <div style={{ position: 'relative' }}>
+                  <button onClick={() => setShowAssyPicker(v => !v)} style={{ padding: '7px 14px', borderRadius: 8, border: '1.5px solid #7c3aed', background: '#faf5ff', color: '#7c3aed', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: font }}>
+                    Filter ASSY {selectedAssy.size > 0 ? `(${selectedAssy.size} dipilih)` : '(semua)'}
+                  </button>
+                  {showAssyPicker && (
+                    <div style={{ position: 'absolute', top: '110%', left: 0, zIndex: 50, background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,.12)', width: 320, maxHeight: 360, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ padding: '10px 12px', borderBottom: '1px solid #f1f5f9' }}>
+                        <input value={assySearch} onChange={e => setAssySearch(e.target.value)} placeholder="Cari ASSY..." style={{ width: '100%', padding: '6px 10px', borderRadius: 7, border: '1.5px solid #e2e8f0', fontSize: 12.5, fontFamily: font, outline: 'none' }} />
+                      </div>
+                      <div style={{ padding: '6px', display: 'flex', gap: 6, borderBottom: '1px solid #f1f5f9' }}>
+                        <button onClick={() => setSelectedAssy(new Set(allAssyCodes))} style={{ flex: 1, padding: '4px', fontSize: 11.5, border: 'none', background: '#eff6ff', color: '#1d4ed8', borderRadius: 5, cursor: 'pointer', fontWeight: 600 }}>Pilih Semua</button>
+                        <button onClick={() => setSelectedAssy(new Set())} style={{ flex: 1, padding: '4px', fontSize: 11.5, border: 'none', background: '#fef2f2', color: '#dc2626', borderRadius: 5, cursor: 'pointer', fontWeight: 600 }}>Reset</button>
+                      </div>
+                      <div style={{ overflowY: 'auto', flex: 1 }}>
+                        {filteredAssy.map(a => (
+                          <div key={a} onClick={() => setSelectedAssy(s => { const n = new Set(s); n.has(a) ? n.delete(a) : n.add(a); return n; })}
+                            style={{ padding: '8px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, background: selectedAssy.has(a) ? '#f0fdf4' : '#fff' }}>
+                            <span style={{ width: 14, height: 14, borderRadius: 3, border: '1.5px solid', borderColor: selectedAssy.has(a) ? '#16a34a' : '#d1d5db', background: selectedAssy.has(a) ? '#16a34a' : '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              {selectedAssy.has(a) && <span style={{ color: '#fff', fontSize: 9, fontWeight: 700 }}>✓</span>}
+                            </span>
+                            <span style={{ fontFamily: 'monospace', fontSize: 11.5 }}>{a}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ padding: '8px 12px', borderTop: '1px solid #f1f5f9' }}>
+                        <button onClick={() => setShowAssyPicker(false)} style={{ width: '100%', padding: '7px', borderRadius: 7, border: 'none', background: '#1d4ed8', color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: font }}>Terapkan</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+
+            <button onClick={handleLoad} disabled={mode === 'gabungan' && isExceedsMax} style={{ padding: '8px 24px', borderRadius: 8, border: 'none', background: mode === 'gabungan' && isExceedsMax ? '#d1d5db' : 'linear-gradient(135deg,#1e3a8a,#2563eb)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: mode === 'gabungan' && isExceedsMax ? 'not-allowed' : 'pointer', fontFamily: font, boxShadow: mode === 'gabungan' && isExceedsMax ? 'none' : '0 3px 10px rgba(37,99,235,.3)' }}>
+              Tampilkan
+            </button>
+            {mode === 'gabungan' && isExceedsMax && (
+              <div style={{ padding: '10px 14px', borderRadius: 8, background: '#fef2f2', border: '1px solid #fecaca', fontSize: 13, color: '#991b1b', fontWeight: 500 }}>
+                ⚠️ Maksimal 12 bulan. Anda memilih {jumlahBulan} bulan.
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Periode tabs (mode single) */}
         {hasLoaded && mode === 'single' && periodes.length > 1 && (
@@ -809,531 +868,19 @@ function ReportContent() {
 
         {/* Content */}
         {!hasLoaded ? (
-          <div style={{ 
-            background: '#fff', 
-            borderRadius: 16, 
-            border: '1px solid #e8eaed', 
-            padding: '0',
-            overflow: 'hidden',
-            boxShadow: '0 1px 3px rgba(0,0,0,.08)',
-            animation: 'fadeUp .3s ease',
-          }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: isMobile ? 'auto' : '520px',
-              flexDirection: 'column',
-              padding: isMobile ? '40px 20px' : '60px 40px',
-              textAlign: 'center',
-            }}>
-              {/* Icon - Modern Design */}
-              <div style={{
-                width: isMobile ? 64 : 80,
-                height: isMobile ? 64 : 80,
-                borderRadius: 16,
-                background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: isMobile ? 32 : 40,
-                marginBottom: 28,
-                boxShadow: '0 8px 16px rgba(37, 99, 235, 0.12)',
-                animation: 'fadeUp .4s ease 0.1s both',
-              }}>
-                📊
-              </div>
-
-              {/* Heading */}
-              <h2 style={{
-                fontSize: isMobile ? 20 : 24,
-                fontWeight: 800,
-                color: '#0f172a',
-                margin: '0 0 12px 0',
-                letterSpacing: -0.5,
-                animation: 'fadeUp .4s ease 0.2s both',
-              }}>
-                Start Generating Report
-              </h2>
-
-              {/* Description */}
-              <p style={{
-                fontSize: isMobile ? 13 : 14,
-                color: '#64748b',
-                margin: '0 0 36px 0',
-                maxWidth: 440,
-                lineHeight: 1.6,
-                animation: 'fadeUp .4s ease 0.3s both',
-              }}>
-                Choose a report type and select a time period to analyze component usage across your production records.
-              </p>
-
-              {/* Mode Selector - Compact & Responsive */}
-              <div style={{
-                display: 'flex',
-                gap: isMobile ? 10 : 12,
-                marginBottom: 36,
-                justifyContent: 'center',
-                flexWrap: isMobile ? 'wrap' : 'nowrap',
-                animation: 'fadeUp .4s ease 0.4s both',
-              }}>
-                {(['single', 'gabungan'] as const).map(m => (
-                  <button
-                    key={m}
-                    onClick={() => {
-                      setMode(m);
-                      setHasLoaded(false);
-                    }}
-                    style={{
-                      padding: isMobile ? '10px 20px' : '12px 28px',
-                      borderRadius: 10,
-                      border: '2px solid',
-                      borderColor: mode === m ? '#1d4ed8' : '#e2e8f0',
-                      background: mode === m ? '#1d4ed8' : '#fff',
-                      color: mode === m ? '#fff' : '#64748b',
-                      fontWeight: mode === m ? 700 : 600,
-                      fontSize: isMobile ? 13 : 14,
-                      cursor: 'pointer',
-                      fontFamily: font,
-                      transition: 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
-                      boxShadow: mode === m ? '0 4px 12px rgba(29, 78, 216, 0.25)' : 'none',
-                      whiteSpace: 'nowrap',
-                    }}
-                    onMouseOver={e => {
-                      if (mode !== m) {
-                        e.currentTarget.style.borderColor = '#1d4ed8';
-                        e.currentTarget.style.background = '#f0f9ff';
-                        e.currentTarget.style.transform = 'translateY(-1px)';
-                      }
-                    }}
-                    onMouseOut={e => {
-                      if (mode !== m) {
-                        e.currentTarget.style.borderColor = '#e2e8f0';
-                        e.currentTarget.style.background = '#fff';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                      }
-                    }}
-                  >
-                    {m === 'single' ? '📅 Single Period' : '📆 Combined Range'}
-                  </button>
-                ))}
-              </div>
-
-              {/* Input Section */}
-              <div style={{
-                background: '#f8fafc',
-                borderRadius: 12,
-                padding: isMobile ? '24px 20px' : '28px 32px',
-                marginBottom: 28,
-                border: '1px solid #e2e8f0',
-                maxWidth: 500,
-                width: '100%',
-                animation: 'fadeUp .4s ease 0.5s both',
-              }}>
-                {mode === 'single' ? (
-                  // Single Period Mode
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: '#64748b',
-                      marginBottom: 8,
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.5,
-                    }}>
-                      Select Period
-                    </label>
-                    <select
-                      value={periode}
-                      onChange={e => setPeriode(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '12px 14px',
-                        borderRadius: 8,
-                        border: '1.5px solid #cbd5e1',
-                        fontSize: 14,
-                        fontFamily: font,
-                        background: '#fff',
-                        cursor: 'pointer',
-                        color: '#0f172a',
-                        fontWeight: 500,
-                        transition: 'all 0.2s ease',
-                      }}
-                      onFocus={e => {
-                        e.currentTarget.style.borderColor = '#1d4ed8';
-                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(29, 78, 216, 0.1)';
-                      }}
-                      onBlur={e => {
-                        e.currentTarget.style.borderColor = '#cbd5e1';
-                        e.currentTarget.style.boxShadow = 'none';
-                      }}
-                    >
-                      {availPer.map(p => (
-                        <option key={p} value={p}>
-                          {fmtPeriode(p)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ) : (
-                  // Combined Period Mode
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: '#64748b',
-                      marginBottom: 8,
-                      textTransform: 'uppercase',
-                      letterSpacing: 0.5,
-                    }}>
-                      Period Range (Max 12 months)
-                    </label>
-                    <div style={{ display: 'flex', gap: isMobile ? 8 : 12, alignItems: 'flex-start', marginBottom: 16, flexDirection: isMobile ? 'column' : 'row' }}>
-                      <div style={{ flex: 1 }}>
-                        <select
-                          value={dari}
-                          onChange={e => setDari(e.target.value)}
-                          style={{
-                            width: '100%',
-                            padding: '12px 14px',
-                            borderRadius: 8,
-                            border: `1.5px solid ${isExceedsMax ? '#ef4444' : '#cbd5e1'}`,
-                            fontSize: 14,
-                            fontFamily: font,
-                            background: '#fff',
-                            cursor: 'pointer',
-                            color: '#0f172a',
-                            fontWeight: 500,
-                            transition: 'all 0.2s ease',
-                          }}
-                          onFocus={e => {
-                            if (!isExceedsMax) {
-                              e.currentTarget.style.borderColor = '#1d4ed8';
-                              e.currentTarget.style.boxShadow = '0 0 0 3px rgba(29, 78, 216, 0.1)';
-                            }
-                          }}
-                          onBlur={e => {
-                            e.currentTarget.style.boxShadow = 'none';
-                            if (!isExceedsMax) {
-                              e.currentTarget.style.borderColor = '#cbd5e1';
-                            }
-                          }}
-                        >
-                          {availPer.map(p => (
-                            <option key={p} value={p}>
-                              {fmtPeriode(p)}
-                            </option>
-                          ))}
-                        </select>
-                        <span style={{ fontSize: 11, color: '#94a3b8', marginTop: 4, display: 'block' }}>From</span>
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <select
-                          value={sampai}
-                          onChange={e => setSampai(e.target.value)}
-                          style={{
-                            width: '100%',
-                            padding: '12px 14px',
-                            borderRadius: 8,
-                            border: `1.5px solid ${isExceedsMax ? '#ef4444' : '#cbd5e1'}`,
-                            fontSize: 14,
-                            fontFamily: font,
-                            background: '#fff',
-                            cursor: 'pointer',
-                            color: '#0f172a',
-                            fontWeight: 500,
-                            transition: 'all 0.2s ease',
-                          }}
-                          onFocus={e => {
-                            if (!isExceedsMax) {
-                              e.currentTarget.style.borderColor = '#1d4ed8';
-                              e.currentTarget.style.boxShadow = '0 0 0 3px rgba(29, 78, 216, 0.1)';
-                            }
-                          }}
-                          onBlur={e => {
-                            e.currentTarget.style.boxShadow = 'none';
-                            if (!isExceedsMax) {
-                              e.currentTarget.style.borderColor = '#cbd5e1';
-                            }
-                          }}
-                        >
-                          {availPer.map(p => (
-                            <option key={p} value={p}>
-                              {fmtPeriode(p)}
-                            </option>
-                          ))}
-                        </select>
-                        <span style={{ fontSize: 11, color: '#94a3b8', marginTop: 4, display: 'block' }}>To</span>
-                      </div>
-                    </div>
-
-                    {/* Error message */}
-                    {isExceedsMax && (
-                      <div style={{
-                        padding: '10px 12px',
-                        borderRadius: 8,
-                        background: '#fef2f2',
-                        border: '1px solid #fecaca',
-                        fontSize: 12,
-                        color: '#991b1b',
-                        fontWeight: 500,
-                        marginBottom: 16,
-                      }}>
-                        ⚠️ Maximum 12 months allowed. You selected {jumlahBulan} months.
-                      </div>
-                    )}
-
-                    {/* ASSY Filter */}
-                    <div style={{ position: 'relative' }}>
-                      <button
-                        onClick={() => setShowAssyPicker(v => !v)}
-                        style={{
-                          width: '100%',
-                          padding: '12px 14px',
-                          borderRadius: 8,
-                          border: '1.5px solid #7c3aed',
-                          background: '#faf5ff',
-                          color: '#7c3aed',
-                          fontSize: 14,
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          fontFamily: font,
-                          transition: 'all 0.2s',
-                        }}
-                        onMouseOver={e => {
-                          e.currentTarget.style.background = '#f3e8ff';
-                          e.currentTarget.style.borderColor = '#c084fc';
-                        }}
-                        onMouseOut={e => {
-                          e.currentTarget.style.background = '#faf5ff';
-                          e.currentTarget.style.borderColor = '#7c3aed';
-                        }}
-                      >
-                        {selectedAssy.size > 0
-                          ? `🔍 Filter ASSY (${selectedAssy.size} selected)`
-                          : '🔍 Filter ASSY (All)'}
-                      </button>
-                      {showAssyPicker && (
-                        <div style={{
-                          position: 'absolute',
-                          top: '110%',
-                          left: 0,
-                          right: 0,
-                          zIndex: 50,
-                          background: '#fff',
-                          border: '1.5px solid #e2e8f0',
-                          borderRadius: 10,
-                          boxShadow: '0 8px 24px rgba(0,0,0,.12)',
-                          marginTop: 8,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          maxHeight: 360,
-                          overflow: 'hidden',
-                        }}>
-                          <div style={{ padding: '10px 12px', borderBottom: '1px solid #f1f5f9' }}>
-                            <input
-                              value={assySearch}
-                              onChange={e => setAssySearch(e.target.value)}
-                              placeholder="Search ASSY..."
-                              style={{
-                                width: '100%',
-                                padding: '8px 12px',
-                                borderRadius: 7,
-                                border: '1.5px solid #e2e8f0',
-                                fontSize: 13,
-                                fontFamily: font,
-                                outline: 'none',
-                              }}
-                            />
-                          </div>
-                          <div style={{
-                            padding: '8px',
-                            display: 'flex',
-                            gap: 6,
-                            borderBottom: '1px solid #f1f5f9',
-                          }}>
-                            <button
-                              onClick={() => setSelectedAssy(new Set(allAssyCodes))}
-                              style={{
-                                flex: 1,
-                                padding: '6px',
-                                fontSize: 12,
-                                border: 'none',
-                                background: '#eff6ff',
-                                color: '#1d4ed8',
-                                borderRadius: 6,
-                                cursor: 'pointer',
-                                fontWeight: 600,
-                                transition: 'all 0.2s',
-                              }}
-                            >
-                              Select All
-                            </button>
-                            <button
-                              onClick={() => setSelectedAssy(new Set())}
-                              style={{
-                                flex: 1,
-                                padding: '6px',
-                                fontSize: 12,
-                                border: 'none',
-                                background: '#fef2f2',
-                                color: '#dc2626',
-                                borderRadius: 6,
-                                cursor: 'pointer',
-                                fontWeight: 600,
-                                transition: 'all 0.2s',
-                              }}
-                            >
-                              Reset
-                            </button>
-                          </div>
-                          <div style={{ overflowY: 'auto', flex: 1 }}>
-                            {filteredAssy.map(a => (
-                              <div
-                                key={a}
-                                onClick={() =>
-                                  setSelectedAssy(s => {
-                                    const n = new Set(s);
-                                    n.has(a) ? n.delete(a) : n.add(a);
-                                    return n;
-                                  })
-                                }
-                                style={{
-                                  padding: '10px 12px',
-                                  cursor: 'pointer',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 10,
-                                  fontSize: 13,
-                                  background: selectedAssy.has(a) ? '#f0fdf4' : '#fff',
-                                  transition: 'background 0.15s',
-                                }}
-                                onMouseOver={e => {
-                                  if (!selectedAssy.has(a)) {
-                                    e.currentTarget.style.background = '#f8fafc';
-                                  }
-                                }}
-                                onMouseOut={e => {
-                                  e.currentTarget.style.background = selectedAssy.has(a)
-                                    ? '#f0fdf4'
-                                    : '#fff';
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    width: 16,
-                                    height: 16,
-                                    borderRadius: 4,
-                                    border: '1.5px solid',
-                                    borderColor: selectedAssy.has(a) ? '#16a34a' : '#d1d5db',
-                                    background: selectedAssy.has(a) ? '#16a34a' : '#fff',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    flexShrink: 0,
-                                  }}
-                                >
-                                  {selectedAssy.has(a) && (
-                                    <span style={{ color: '#fff', fontSize: 10, fontWeight: 700 }}>✓</span>
-                                  )}
-                                </span>
-                                <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{a}</span>
-                              </div>
-                            ))}
-                          </div>
-                          <div style={{ padding: '10px 12px', borderTop: '1px solid #f1f5f9' }}>
-                            <button
-                              onClick={() => setShowAssyPicker(false)}
-                              style={{
-                                width: '100%',
-                                padding: '8px',
-                                borderRadius: 8,
-                                border: 'none',
-                                background: '#1d4ed8',
-                                color: '#fff',
-                                fontWeight: 600,
-                                fontSize: 13,
-                                cursor: 'pointer',
-                                fontFamily: font,
-                                transition: 'all 0.2s',
-                              }}
-                              onMouseOver={e => {
-                                e.currentTarget.style.background = '#1e40af';
-                              }}
-                              onMouseOut={e => {
-                                e.currentTarget.style.background = '#1d4ed8';
-                              }}
-                            >
-                              Apply Filter
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Action Button */}
-              <button
-                onClick={handleLoad}
-                disabled={mode === 'gabungan' && isExceedsMax}
-                style={{
-                  padding: isMobile ? '12px 36px' : '14px 48px',
-                  borderRadius: 10,
-                  border: 'none',
-                  background:
-                    mode === 'gabungan' && isExceedsMax
-                      ? '#e5e7eb'
-                      : 'linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%)',
-                  color: mode === 'gabungan' && isExceedsMax ? '#9ca3af' : '#fff',
-                  fontSize: isMobile ? 14 : 15,
-                  fontWeight: 700,
-                  cursor:
-                    mode === 'gabungan' && isExceedsMax ? 'not-allowed' : 'pointer',
-                  fontFamily: font,
-                  boxShadow:
-                    mode === 'gabungan' && isExceedsMax
-                      ? 'none'
-                      : '0 8px 16px rgba(29, 78, 216, 0.3)',
-                  transition: 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
-                  animation: 'fadeUp .4s ease 0.6s both',
-                }}
-                onMouseOver={e => {
-                  if (!(mode === 'gabungan' && isExceedsMax)) {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow =
-                      '0 12px 24px rgba(29, 78, 216, 0.4)';
-                  }
-                }}
-                onMouseOut={e => {
-                  if (!(mode === 'gabungan' && isExceedsMax)) {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow =
-                      '0 8px 16px rgba(29, 78, 216, 0.3)';
-                  }
-                }}
-              >
-                ✓ Generate Report
-              </button>
-
-              {/* Formula info */}
-              <div style={{
-                marginTop: 28,
-                fontSize: 12,
-                color: '#94a3b8',
-                fontFamily: 'monospace',
-                background: '#f8fafc',
-                padding: '10px 16px',
-                borderRadius: 8,
-                border: '1px solid #e2e8f0',
-                maxWidth: '100%',
-              }}>
-                Formula: ROUNDUP(SUMPRODUCT(prod_qty × qty_per_unit), 0)
-              </div>
-            </div>
+          <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e8eaed', padding: isMobile ? '60px 24px' : '80px 0', textAlign: 'center', color: '#9ca3af', boxShadow: '0 1px 4px rgba(0,0,0,.05)', animation: 'fadeUp 0.4s ease' }}>
+            <div style={{ width: isMobile ? 80 : 100, height: isMobile ? 80 : 100, borderRadius: 20, background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? 48 : 52, marginBottom: 16, animation: 'fadeUp 0.4s ease 0.1s both', boxShadow: '0 8px 16px rgba(37, 99, 235, 0.12)', margin: '0 auto 16px' }}>📊</div>
+            <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: '#475569', marginBottom: 12, animation: 'fadeUp 0.4s ease 0.2s both' }}>Pilih periode lalu klik Tampilkan</div>
+            <div style={{ fontSize: isMobile ? 12 : 13, color: '#94a3b8', fontFamily: 'monospace', background: '#f8fafc', display: 'inline-block', padding: isMobile ? '6px 12px' : '8px 16px', borderRadius: 6, border: '1px solid #e2e8f0', animation: 'fadeUp 0.4s ease 0.3s both', transition: 'all 0.2s ease', cursor: 'default' }}
+              onMouseOver={e => {
+                e.currentTarget.style.borderColor = '#cbd5e1';
+                e.currentTarget.style.background = '#f1f5f9';
+              }}
+              onMouseOut={e => {
+                e.currentTarget.style.borderColor = '#e2e8f0';
+                e.currentTarget.style.background = '#f8fafc';
+              }}
+            >ROUNDUP(SUMPRODUCT(prod_qty × qty_per_unit), 0)</div>
           </div>
         ) : loading ? (
           <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e8eaed' }}><LoadingBox /></div>
@@ -1341,30 +888,12 @@ function ReportContent() {
           <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e8eaed', padding: '40px 0', textAlign: 'center', color: '#9ca3af' }}>Tidak ada data</div>
         ) : (
           <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e8eaed', overflow: 'hidden' }}>
-            {/* Toolbar - Responsive & Interactive */}
-            <div style={{ 
-              padding: isMobile ? '12px 16px' : '14px 20px',
-              borderBottom: '1px solid #e8eaed', 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: isMobile ? 8 : 12, 
-              flexWrap: 'wrap',
-              background: '#fafbfc',
-            }}>
+            {/* Toolbar */}
+            <div style={{ padding: isMobile ? '10px 14px' : '14px 20px', borderBottom: '1px solid #e8eaed', display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 12, flexWrap: 'wrap', background: '#fafbfc', transition: 'all 0.2s ease' }}>
               <div style={{ position: 'relative', flex: isMobile ? '1 1 100%' : 'auto', minWidth: isMobile ? '100%' : 260 }}>
                 <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: 13 }}>🔍</span>
                 <input value={search} onChange={e => handleSearch(e.target.value)} placeholder="Cari part no / part name..."
-                  style={{ 
-                    padding: '7px 12px 7px 32px', 
-                    borderRadius: 8, 
-                    border: '1.5px solid #e2e8f0', 
-                    fontSize: 13, 
-                    fontFamily: font, 
-                    outline: 'none', 
-                    width: '100%',
-                    transition: 'all 0.2s ease',
-                    background: '#fff',
-                  }}
+                  style={{ padding: '7px 12px 7px 32px', borderRadius: 8, border: '1.5px solid #e2e8f0', fontSize: isMobile ? 12 : 13, fontFamily: font, outline: 'none', width: '100%', transition: 'all 0.2s ease' }}
                   onFocus={e => {
                     e.currentTarget.style.borderColor = '#1d4ed8';
                     e.currentTarget.style.boxShadow = '0 0 0 3px rgba(29, 78, 216, 0.1)';
@@ -1375,21 +904,7 @@ function ReportContent() {
                   }}
                 />
               </div>
-              <button 
-                onClick={handleExport} 
-                style={{ 
-                  padding: isMobile ? '7px 12px' : '8px 16px', 
-                  borderRadius: 8, 
-                  border: 'none', 
-                  background: '#10b981', 
-                  color: '#fff', 
-                  fontSize: isMobile ? 12 : 13, 
-                  fontWeight: 700, 
-                  cursor: 'pointer', 
-                  fontFamily: font,
-                  transition: 'all 0.2s ease',
-                  whiteSpace: 'nowrap',
-                }}
+              <button onClick={handleExport} style={{ padding: isMobile ? '7px 12px' : '8px 16px', borderRadius: 8, border: 'none', background: '#10b981', color: '#fff', fontSize: isMobile ? 12 : 13, fontWeight: 700, cursor: 'pointer', fontFamily: font, transition: 'all 0.2s ease', whiteSpace: 'nowrap' }}
                 onMouseOver={e => {
                   e.currentTarget.style.background = '#059669';
                   e.currentTarget.style.transform = 'translateY(-1px)';
@@ -1401,7 +916,7 @@ function ReportContent() {
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               >
-                ↓ Ekspor
+                Ekspor
               </button>
               <span style={{ fontSize: isMobile ? 11 : 12.5, color: '#6b7280', display: isMobile ? 'none' : 'inline' }}>
                 <b style={{ color: '#111827' }}>{totalParts.toLocaleString()}</b> part ·
@@ -1413,7 +928,7 @@ function ReportContent() {
                 </b>
               </span>
               {!hasProdQty && (
-                <span style={{ background: '#fef9c3', color: '#854d0e', borderRadius: 6, padding: '4px 10px', fontSize: 11.5, fontWeight: 600 }}>
+                <span style={{ background: '#fef9c3', color: '#854d0e', borderRadius: 6, padding: '4px 10px', fontSize: isMobile ? 10.5 : 11.5, fontWeight: 600 }}>
                   ⚠ Prod Qty belum diisi Finance
                 </span>
               )}
