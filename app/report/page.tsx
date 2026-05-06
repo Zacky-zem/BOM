@@ -424,7 +424,11 @@ function ReportContent() {
     setAllAssyCodes(data.assy_codes ?? []);
   }, [dari, sampai]);
 
-  useEffect(() => { if (mode === 'gabungan') loadAssyCodes(); }, [mode, dari, sampai, loadAssyCodes]);
+  useEffect(() => { 
+    if (mode === 'gabungan' && dari && sampai) {
+      loadAssyCodes();
+    }
+  }, [mode, dari, sampai, loadAssyCodes]);
 
   const buildUrl = useCallback((p: number, s: string) => {
     const base = mode === 'single'
@@ -450,10 +454,11 @@ function ReportContent() {
     setLoading(false);
   }, [buildUrl, mode, gabunganKey]);
 
-  const handleLoad = () => {
+  const handleLoad = useCallback(() => {
+    if (loading) return; // Prevent multiple clicks while loading
     setPage(1); setSearch(''); setHasLoaded(true); setResults({}); setPeriodes([]); setActivePer('');
     fetchData(1, '');
-  };
+  }, [loading, fetchData]);
 
   const handlePageChange = (newPage: number) => { setPage(newPage); fetchData(newPage, search); };
   const handleSearch = (val: string) => { setSearch(val); setPage(1); fetchData(1, val); };
@@ -823,7 +828,7 @@ function ReportContent() {
           </div>
 
           {/* Mode toggle */}
-          <div style={{ display: 'flex', gap: 6, marginBottom: 20, background: '#f8fafc', borderRadius: 10, padding: 4, width: 'fit-content', border: '1px solid #e2e8f0', transition: 'all 0.2s ease' }}>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 20, background: '#f8fafc', borderRadius: 10, padding: 4, width: 'fit-content', border: '1px solid #e2e8f0', transition: 'all 0.2s ease', willChange: 'transform' }}>
             {(['single','gabungan'] as const).map(m => (
               <button key={m} onClick={() => { setMode(m); setHasLoaded(false); }} style={{
                 padding: isMobile ? '6px 14px' : '7px 20px', borderRadius: 8, border: 'none',
@@ -832,7 +837,8 @@ function ReportContent() {
                 fontWeight: mode === m ? 700 : 500,
                 fontSize: isMobile ? 12 : 13, cursor: 'pointer', fontFamily: font,
                 boxShadow: mode === m ? '0 1px 4px rgba(0,0,0,.08)' : 'none',
-                transition: 'all 0.2s ease',
+                transition: 'all 0.15s ease',
+                willChange: 'background,color'
               }}
                 onMouseOver={e => {
                   if (mode !== m) {
@@ -960,15 +966,15 @@ function ReportContent() {
               </>
             )}
 
-            <button onClick={handleLoad} disabled={mode === 'gabungan' && isExceedsMax} style={{ padding: '8px 24px', borderRadius: 8, border: 'none', background: mode === 'gabungan' && isExceedsMax ? '#d1d5db' : 'linear-gradient(135deg,#1e3a8a,#2563eb)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: mode === 'gabungan' && isExceedsMax ? 'not-allowed' : 'pointer', fontFamily: font, boxShadow: mode === 'gabungan' && isExceedsMax ? 'none' : '0 3px 10px rgba(37,99,235,.3)', transition: 'all 0.2s ease' }}
+            <button onClick={handleLoad} disabled={loading || (mode === 'gabungan' && isExceedsMax)} style={{ padding: '8px 24px', borderRadius: 8, border: 'none', background: loading || (mode === 'gabungan' && isExceedsMax) ? '#d1d5db' : 'linear-gradient(135deg,#1e3a8a,#2563eb)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: loading || (mode === 'gabungan' && isExceedsMax) ? 'not-allowed' : 'pointer', fontFamily: font, boxShadow: loading || (mode === 'gabungan' && isExceedsMax) ? 'none' : '0 3px 10px rgba(37,99,235,.3)', transition: 'all 0.2s ease' }}
               onMouseOver={e => {
-                if (!(mode === 'gabungan' && isExceedsMax)) {
+                if (!(loading || (mode === 'gabungan' && isExceedsMax))) {
                   e.currentTarget.style.background = 'linear-gradient(135deg,#1e40af,#3b82f6)';
                   e.currentTarget.style.boxShadow = '0 6px 20px rgba(37,99,235,.4)';
                 }
               }}
               onMouseOut={e => {
-                if (!(mode === 'gabungan' && isExceedsMax)) {
+                if (!(loading || (mode === 'gabungan' && isExceedsMax))) {
                   e.currentTarget.style.background = 'linear-gradient(135deg,#1e3a8a,#2563eb)';
                   e.currentTarget.style.boxShadow = '0 3px 10px rgba(37,99,235,.3)';
                 }
