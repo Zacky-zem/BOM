@@ -712,51 +712,100 @@ function ReportContent() {
         @keyframes slideDown { from { opacity:0; transform:translateY(-12px) } to { opacity:1; transform:translateY(0) } }
       `}</style>
 
-      {/* Navbar */}
-      <nav style={{ background: '#fff', borderBottom: '1px solid #e8eaed', padding: '0 40px', display: 'flex', alignItems: 'center', height: 58, boxShadow: '0 1px 0 #e8eaed, 0 2px 8px rgba(0,0,0,.04)', position: 'sticky', top: 0, zIndex: 100 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 34, height: 34, borderRadius: 9, background: 'linear-gradient(135deg,#1e3a8a,#2563eb)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, boxShadow: '0 2px 10px rgba(37,99,235,.28)', flexShrink: 0 }}>📊</div>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: 14, color: '#0f172a', letterSpacing: -0.3 }}>BOM Database</div>
-            <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 500 }}>Master Data System</div>
-          </div>
-        </div>
-        <div style={{ width: 1, height: 28, background: '#e8eaed', margin: '0 20px' }} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#64748b' }}>
-          <button onClick={() => router.back?.()} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#64748b', fontWeight: 500, fontFamily: font, display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px', borderRadius: 6 }}
-            onMouseOver={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#0f172a'; }}
-            onMouseOut={e  => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#64748b'; }}
+      {/* Professional Glassmorphic Header - Unified with Home Page */}
+      <header style={{
+        background: 'rgba(248, 250, 252, 0.5)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(226, 232, 240, 0.3)',
+        padding: isMobile ? '12px 20px' : '12px 40px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        height: 56,
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
+        transition: 'all 0.3s ease',
+      }}>
+        {/* Left: Breadcrumb navigation */}
+        <nav style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: isMobile ? 12 : 13 }}>
+          <button onClick={() => router.back?.()} style={{
+            background: 'rgba(255, 255, 255, 0.5)',
+            border: '1px solid rgba(226, 232, 240, 0.8)',
+            borderRadius: 8,
+            cursor: 'pointer',
+            color: '#64748b',
+            fontWeight: 500,
+            fontFamily: font,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '6px 10px',
+            transition: 'all 0.2s ease',
+          }}
+            onMouseOver={e => { 
+              e.currentTarget.style.background = 'rgba(241, 245, 249, 0.9)'; 
+              e.currentTarget.style.borderColor = '#cbd5e1';
+              e.currentTarget.style.color = '#0f172a'; 
+            }}
+            onMouseOut={e => { 
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.5)'; 
+              e.currentTarget.style.borderColor = 'rgba(226, 232, 240, 0.8)';
+              e.currentTarget.style.color = '#64748b'; 
+            }}
           >
-            <span style={{ fontSize: 14 }}>←</span> Home
+            <span style={{ fontSize: 16 }}>←</span> 
+            <span style={{ display: isMobile ? 'none' : 'inline' }}>Home</span>
           </button>
-          <span style={{ color: '#cbd5e1' }}>/</span>
-          <span style={{ fontWeight: 700, color: '#0f172a', fontSize: 13 }}>Report</span>
-        </div>
-      </nav>
+          <span style={{ color: '#cbd5e1', display: isMobile ? 'none' : 'inline' }}>/</span>
+          <span style={{ fontWeight: 600, color: '#0f172a', display: isMobile ? 'none' : 'inline' }}>Report</span>
+        </nav>
 
-      <main style={{ padding: '32px 40px', maxWidth: 1600, margin: '0 auto', animation: 'fadeUp .3s ease' }}>
-        <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 26, fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: -0.5 }}>Report</h1>
-          <p style={{ fontSize: 13.5, color: '#64748b', marginTop: 4 }}>Kalkulasi kebutuhan part berdasarkan BOM × Prod Qty</p>
+        {/* Right: YAZAKI Logo */}
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <img
+            src="/yazaki-logo.jpeg"
+            alt="YAZAKI Logo"
+            style={{
+              height: isMobile ? 36 : 40,
+              width: 'auto',
+              objectFit: 'contain',
+              opacity: 1,
+              transition: 'opacity 0.3s ease',
+            }}
+          />
+        </div>
+      </header>
+
+      {/* Top padding for fixed header */}
+      <div style={{ height: 56 }} />
+      <main style={{ padding: isMobile ? '24px 16px' : '32px 40px', maxWidth: 1600, margin: '0 auto', animation: 'fadeUp .3s ease' }}>
+        <div style={{ marginBottom: isMobile ? 16 : 24 }}>
+          <h1 style={{ fontSize: isMobile ? 22 : 26, fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: -0.5 }}>Report</h1>
+          <p style={{ fontSize: isMobile ? 12.5 : 13.5, color: '#64748b', marginTop: 4 }}>Kalkulasi kebutuhan part berdasarkan BOM × Prod Qty</p>
         </div>
 
         {/* Filter card */}
-        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e8eaed', padding: '24px 28px', marginBottom: 24, boxShadow: '0 1px 4px rgba(0,0,0,.05)' }}>
+        <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e8eaed', padding: isMobile ? '16px 16px' : '24px 28px', marginBottom: 24, boxShadow: '0 1px 4px rgba(0,0,0,.05)', transition: 'all 0.2s ease' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
             <div style={{ width: 30, height: 30, borderRadius: 8, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>⚙️</div>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>Konfigurasi Report</p>
+            <p style={{ fontSize: isMobile ? 12 : 13, fontWeight: 700, color: '#0f172a' }}>Konfigurasi Report</p>
           </div>
 
           {/* Mode toggle */}
-          <div style={{ display: 'flex', gap: 6, marginBottom: 20, background: '#f8fafc', borderRadius: 10, padding: 4, width: 'fit-content', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 20, background: '#f8fafc', borderRadius: 10, padding: 4, width: 'fit-content', border: '1px solid #e2e8f0', transition: 'all 0.2s ease' }}>
             {(['single','gabungan'] as const).map(m => (
               <button key={m} onClick={() => { setMode(m); setHasLoaded(false); }} style={{
-                padding: '7px 20px', borderRadius: 8, border: 'none',
+                padding: isMobile ? '6px 14px' : '7px 20px', borderRadius: 8, border: 'none',
                 background: mode === m ? '#fff' : 'transparent',
                 color:      mode === m ? '#1d4ed8' : '#64748b',
                 fontWeight: mode === m ? 700 : 500,
-                fontSize: 13, cursor: 'pointer', fontFamily: font,
+                fontSize: isMobile ? 12 : 13, cursor: 'pointer', fontFamily: font,
                 boxShadow: mode === m ? '0 1px 4px rgba(0,0,0,.08)' : 'none',
+                transition: 'all 0.2s ease',
               }}>
                 {m === 'single' ? '📅 Single Periode' : '📆 Gabungan'}
               </button>
@@ -766,8 +815,17 @@ function ReportContent() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             {mode === 'single' ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 12.5, color: '#374151', fontWeight: 500 }}>Periode:</span>
-                <select value={periode} onChange={e => setPeriode(e.target.value)} style={{ padding: '7px 12px', borderRadius: 8, border: '1.5px solid #e2e8f0', fontSize: 13, fontFamily: font, background: '#fff', cursor: 'pointer' }}>
+                <span style={{ fontSize: isMobile ? 11.5 : 12.5, color: '#374151', fontWeight: 500 }}>Periode:</span>
+                <select value={periode} onChange={e => setPeriode(e.target.value)} style={{ padding: '7px 12px', borderRadius: 8, border: '1.5px solid #e2e8f0', fontSize: 13, fontFamily: font, background: '#fff', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                  onFocus={e => {
+                    e.currentTarget.style.borderColor = '#1d4ed8';
+                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(29, 78, 216, 0.1)';
+                  }}
+                  onBlur={e => {
+                    e.currentTarget.style.borderColor = '#e2e8f0';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
                   {availPer.map(p => <option key={p} value={p}>{fmtPeriode(p)}</option>)}
                 </select>
               </div>
@@ -776,8 +834,21 @@ function ReportContent() {
                 {[{ label: 'Dari', val: dari, set: setDari }, { label: 'Sampai', val: sampai, set: setSampai }].map((item, idx) => (
                   <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     {idx === 1 && <span style={{ color: '#9ca3af' }}>→</span>}
-                    <span style={{ fontSize: 12.5, color: '#374151', fontWeight: 500 }}>{item.label}:</span>
-                    <select value={item.val} onChange={e => item.set(e.target.value)} style={{ padding: '7px 12px', borderRadius: 8, border: `1.5px solid ${isExceedsMax ? '#ef4444' : '#e2e8f0'}`, fontSize: 13, fontFamily: font, background: '#fff', cursor: 'pointer' }}>
+                    <span style={{ fontSize: isMobile ? 11.5 : 12.5, color: '#374151', fontWeight: 500 }}>{item.label}:</span>
+                    <select value={item.val} onChange={e => item.set(e.target.value)} style={{ padding: '7px 12px', borderRadius: 8, border: `1.5px solid ${isExceedsMax ? '#ef4444' : '#e2e8f0'}`, fontSize: 13, fontFamily: font, background: '#fff', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                      onFocus={e => {
+                        if (!isExceedsMax) {
+                          e.currentTarget.style.borderColor = '#1d4ed8';
+                          e.currentTarget.style.boxShadow = '0 0 0 3px rgba(29, 78, 216, 0.1)';
+                        }
+                      }}
+                      onBlur={e => {
+                        e.currentTarget.style.boxShadow = 'none';
+                        if (!isExceedsMax) {
+                          e.currentTarget.style.borderColor = '#e2e8f0';
+                        }
+                      }}
+                    >
                       {availPer.map(p => <option key={p} value={p}>{fmtPeriode(p)}</option>)}
                     </select>
                   </div>
@@ -845,10 +916,19 @@ function ReportContent() {
 
         {/* Content */}
         {!hasLoaded ? (
-          <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e8eaed', padding: '80px 0', textAlign: 'center', color: '#9ca3af' }}>
-            <div style={{ fontSize: 52, marginBottom: 16 }}>📊</div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: '#475569', marginBottom: 8 }}>Pilih periode lalu klik Tampilkan</div>
-            <div style={{ fontSize: 13, color: '#94a3b8', fontFamily: 'monospace', background: '#f8fafc', display: 'inline-block', padding: '4px 14px', borderRadius: 6, border: '1px solid #e2e8f0' }}>ROUNDUP(SUMPRODUCT(prod_qty × qty_per_unit), 0)</div>
+          <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e8eaed', padding: isMobile ? '60px 24px' : '80px 0', textAlign: 'center', color: '#9ca3af', boxShadow: '0 1px 4px rgba(0,0,0,.05)', animation: 'fadeUp 0.4s ease' }}>
+            <div style={{ width: isMobile ? 80 : 100, height: isMobile ? 80 : 100, borderRadius: 20, background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? 48 : 52, marginBottom: 16, animation: 'fadeUp 0.4s ease 0.1s both', boxShadow: '0 8px 16px rgba(37, 99, 235, 0.12)', margin: '0 auto 16px' }}>📊</div>
+            <div style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, color: '#475569', marginBottom: 12, animation: 'fadeUp 0.4s ease 0.2s both' }}>Pilih periode lalu klik Tampilkan</div>
+            <div style={{ fontSize: isMobile ? 12 : 13, color: '#94a3b8', fontFamily: 'monospace', background: '#f8fafc', display: 'inline-block', padding: isMobile ? '6px 12px' : '8px 16px', borderRadius: 6, border: '1px solid #e2e8f0', animation: 'fadeUp 0.4s ease 0.3s both', transition: 'all 0.2s ease', cursor: 'default' }}
+              onMouseOver={e => {
+                e.currentTarget.style.borderColor = '#cbd5e1';
+                e.currentTarget.style.background = '#f1f5f9';
+              }}
+              onMouseOut={e => {
+                e.currentTarget.style.borderColor = '#e2e8f0';
+                e.currentTarget.style.background = '#f8fafc';
+              }}
+            >ROUNDUP(SUMPRODUCT(prod_qty × qty_per_unit), 0)</div>
           </div>
         ) : loading ? (
           <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e8eaed' }}><LoadingBox /></div>
@@ -857,19 +937,36 @@ function ReportContent() {
         ) : (
           <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e8eaed', overflow: 'hidden' }}>
             {/* Toolbar */}
-            <div style={{ padding: '14px 20px', borderBottom: '1px solid #e8eaed', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-              <div style={{ position: 'relative' }}>
+            <div style={{ padding: isMobile ? '10px 14px' : '14px 20px', borderBottom: '1px solid #e8eaed', display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 12, flexWrap: 'wrap', background: '#fafbfc', transition: 'all 0.2s ease' }}>
+              <div style={{ position: 'relative', flex: isMobile ? '1 1 100%' : 'auto', minWidth: isMobile ? '100%' : 260 }}>
                 <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: 13 }}>🔍</span>
                 <input value={search} onChange={e => handleSearch(e.target.value)} placeholder="Cari part no / part name..."
-                  style={{ padding: '7px 12px 7px 32px', borderRadius: 8, border: '1.5px solid #e2e8f0', fontSize: 13, fontFamily: font, outline: 'none', width: 260 }}
-                  onFocus={e => e.target.style.borderColor = '#3b82f6'}
-                  onBlur={e =>  e.target.style.borderColor = '#e2e8f0'}
+                  style={{ padding: '7px 12px 7px 32px', borderRadius: 8, border: '1.5px solid #e2e8f0', fontSize: isMobile ? 12 : 13, fontFamily: font, outline: 'none', width: '100%', transition: 'all 0.2s ease' }}
+                  onFocus={e => {
+                    e.currentTarget.style.borderColor = '#1d4ed8';
+                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(29, 78, 216, 0.1)';
+                  }}
+                  onBlur={e => {
+                    e.currentTarget.style.borderColor = '#e2e8f0';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
                 />
               </div>
-              <button onClick={handleExport} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#10b981', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: font }}>
+              <button onClick={handleExport} style={{ padding: isMobile ? '7px 12px' : '8px 16px', borderRadius: 8, border: 'none', background: '#10b981', color: '#fff', fontSize: isMobile ? 12 : 13, fontWeight: 700, cursor: 'pointer', fontFamily: font, transition: 'all 0.2s ease', whiteSpace: 'nowrap' }}
+                onMouseOver={e => {
+                  e.currentTarget.style.background = '#059669';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.25)';
+                }}
+                onMouseOut={e => {
+                  e.currentTarget.style.background = '#10b981';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
                 Ekspor
               </button>
-              <span style={{ fontSize: 12.5, color: '#6b7280' }}>
+              <span style={{ fontSize: isMobile ? 11 : 12.5, color: '#6b7280', display: isMobile ? 'none' : 'inline' }}>
                 <b style={{ color: '#111827' }}>{totalParts.toLocaleString()}</b> part ·
                 <b style={{ color: '#111827' }}> {assyCodes.length}</b> ASSY ·
                 Periode: <b style={{ color: '#1d4ed8' }}>
@@ -879,7 +976,7 @@ function ReportContent() {
                 </b>
               </span>
               {!hasProdQty && (
-                <span style={{ background: '#fef9c3', color: '#854d0e', borderRadius: 6, padding: '4px 10px', fontSize: 11.5, fontWeight: 600 }}>
+                <span style={{ background: '#fef9c3', color: '#854d0e', borderRadius: 6, padding: '4px 10px', fontSize: isMobile ? 10.5 : 11.5, fontWeight: 600 }}>
                   ⚠ Prod Qty belum diisi Finance
                 </span>
               )}
