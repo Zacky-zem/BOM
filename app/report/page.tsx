@@ -188,17 +188,22 @@ function VirtualReportTable({
             })}
           </div>
           {/* Sticky right: Price, Total, Total Usage */}
-          <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#a78bfa', fontWeight: 700, fontSize: FONT_SIZE_HEADER, borderLeft: '2px solid #8b5cf6', background: '#1c2d1e', position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE }}>PRICE</div>
-          <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#fbbf24', fontWeight: 700, fontSize: FONT_SIZE_HEADER, borderLeft: '2px solid #f59e0b', background: '#1c2d1e', position: 'sticky', right: STICKY_RIGHT_USAGE }}>TOTAL</div>
-          <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#4ade80', fontWeight: 700, fontSize: FONT_SIZE_HEADER, borderLeft: '2px solid #16a34a', background: '#1c2d1e', position: 'sticky', right: 0 }}>TOTAL USAGE</div>
+          <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#a78bfa', fontWeight: 700, fontSize: FONT_SIZE_HEADER, borderLeft: '2px solid #8b5cf6', background: '#1c2d1e', position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, zIndex: 21 }}>PRICE</div>
+          <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#fbbf24', fontWeight: 700, fontSize: FONT_SIZE_HEADER, borderLeft: '2px solid #f59e0b', background: '#1c2d1e', position: 'sticky', right: STICKY_RIGHT_USAGE, zIndex: 21 }}>TOTAL</div>
+          <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#4ade80', fontWeight: 700, fontSize: FONT_SIZE_HEADER, borderLeft: '2px solid #16a34a', background: '#1c2d1e', position: 'sticky', right: 0, zIndex: 21 }}>TOTAL USAGE</div>
         </div>
 
         {/* Row 2: Sub-header periode (gabungan only) */}
         {mode === 'gabungan' && HEAD2_H > 0 && (
           <div style={{ display: 'flex', background: '#1a2f3f', height: HEAD2_H }}>
-            {FW.map((w, i) => (
-              <div key={i} style={{ width: w, flexShrink: 0, borderRight: i === 4 ? '2px solid #475569' : '1px solid #334155', position: 'sticky', left: FW.slice(0,i).reduce((a,b)=>a+b,0), background: '#1a2f3f', zIndex: 21 }} />
-            ))}
+            {FW.map((w, i) => {
+              // Only show fixed columns that are displayed (same logic as Row 1)
+              if (isMobile && i > 0) return null;
+              const leftPos = isMobile ? 0 : FW.slice(0,i).reduce((a,b)=>a+b,0);
+              return (
+                <div key={i} style={{ width: w, flexShrink: 0, borderRight: i === 4 ? '2px solid #475569' : '1px solid #334155', position: 'sticky', left: leftPos, background: '#1a2f3f', zIndex: 21 }} />
+              );
+            })}
             <div style={{ position: 'relative', width: dynW, flexShrink: 0, height: HEAD2_H }}>
               {colVirt.getVirtualItems().map(vcol => {
                 const col = cols[vcol.index];
@@ -214,9 +219,9 @@ function VirtualReportTable({
                 );
               })}
             </div>
-            <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, borderLeft: '2px solid #8b5cf6', background: '#1a2f3f', position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE }} />
-            <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, borderLeft: '2px solid #f59e0b', background: '#1a2f3f', position: 'sticky', right: STICKY_RIGHT_USAGE }} />
-            <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, borderLeft: '2px solid #16a34a', background: '#1a2f3f', position: 'sticky', right: 0 }} />
+            <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, borderLeft: '2px solid #8b5cf6', background: '#1a2f3f', position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, zIndex: 21 }} />
+            <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, borderLeft: '2px solid #f59e0b', background: '#1a2f3f', position: 'sticky', right: STICKY_RIGHT_USAGE, zIndex: 21 }} />
+            <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, borderLeft: '2px solid #16a34a', background: '#1a2f3f', position: 'sticky', right: 0, zIndex: 21 }} />
           </div>
         )}
 
@@ -242,9 +247,9 @@ function VirtualReportTable({
               );
             })}
           </div>
-          <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, borderLeft: '2px solid #8b5cf6', background: '#0f172a', position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE }} />
-          <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, borderLeft: '2px solid #f59e0b', background: '#0f172a', position: 'sticky', right: STICKY_RIGHT_USAGE }} />
-          <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, borderLeft: '2px solid #16a34a', background: '#0f172a', position: 'sticky', right: 0 }} />
+          <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, borderLeft: '2px solid #8b5cf6', background: '#0f172a', position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, zIndex: 21 }} />
+          <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, borderLeft: '2px solid #f59e0b', background: '#0f172a', position: 'sticky', right: STICKY_RIGHT_USAGE, zIndex: 21 }} />
+          <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, borderLeft: '2px solid #16a34a', background: '#0f172a', position: 'sticky', right: 0, zIndex: 21 }} />
         </div>
       </div>
 
@@ -297,13 +302,13 @@ function VirtualReportTable({
               </div>
 
               {/* Sticky right: Price, Total, Total Usage */}
-              <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, padding: isMobile ? '0 4px' : '0 8px', textAlign: 'right', fontWeight: 700, color: part.price != null ? '#7c3aed' : '#9ca3af', borderLeft: '2px solid #c4b5fd', background: isEven ? '#f5f3ff' : '#ede9fe', fontSize: FONT_SIZE_BODY, position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, height: ROW_H, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+              <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, padding: isMobile ? '0 4px' : '0 8px', textAlign: 'right', fontWeight: 700, color: part.price != null ? '#7c3aed' : '#9ca3af', borderLeft: '2px solid #c4b5fd', background: isEven ? '#f5f3ff' : '#ede9fe', fontSize: FONT_SIZE_BODY, position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, height: ROW_H, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', zIndex: 10 }}>
                 {part.price != null ? Number(part.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'}
               </div>
-              <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, padding: isMobile ? '0 4px' : '0 8px', textAlign: 'right', fontWeight: 700, color: '#92400e', borderLeft: '2px solid #fde68a', background: isEven ? '#fffbeb' : '#fef9c3', fontSize: FONT_SIZE_BODY, position: 'sticky', right: STICKY_RIGHT_USAGE, height: ROW_H, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+              <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, padding: isMobile ? '0 4px' : '0 8px', textAlign: 'right', fontWeight: 700, color: '#92400e', borderLeft: '2px solid #fde68a', background: isEven ? '#fffbeb' : '#fef9c3', fontSize: FONT_SIZE_BODY, position: 'sticky', right: STICKY_RIGHT_USAGE, height: ROW_H, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', zIndex: 10 }}>
                 {totalQty > 0 ? totalQty.toLocaleString() : '—'}
               </div>
-              <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, padding: isMobile ? '0 4px' : '0 8px', textAlign: 'right', fontWeight: 700, color: totalUsage > 0 ? '#15803d' : '#9ca3af', borderLeft: '2px solid #bbf7d0', background: isEven ? '#f0fdf4' : '#dcfce7', fontSize: FONT_SIZE_BODY, position: 'sticky', right: 0, height: ROW_H, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+              <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, padding: isMobile ? '0 4px' : '0 8px', textAlign: 'right', fontWeight: 700, color: totalUsage > 0 ? '#15803d' : '#9ca3af', borderLeft: '2px solid #bbf7d0', background: isEven ? '#f0fdf4' : '#dcfce7', fontSize: FONT_SIZE_BODY, position: 'sticky', right: 0, height: ROW_H, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', zIndex: 10 }}>
                 {totalUsage > 0 ? totalUsage.toLocaleString() : '—'}
               </div>
             </div>
@@ -333,9 +338,9 @@ function VirtualReportTable({
             </div>
           ))}
         </div>
-        <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, borderLeft: '2px solid #8b5cf6', background: '#1e3a5f', position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE }} />
-        <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, borderLeft: '2px solid #f59e0b', background: '#1e3a5f', position: 'sticky', right: STICKY_RIGHT_USAGE }} />
-        <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#4ade80', fontWeight: 700, fontSize: FONT_SIZE_BODY, borderLeft: '2px solid #16a34a', background: '#1e3a5f', position: 'sticky', right: 0 }}>
+        <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, borderLeft: '2px solid #8b5cf6', background: '#1e3a5f', position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, zIndex: 21 }} />
+        <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, borderLeft: '2px solid #f59e0b', background: '#1e3a5f', position: 'sticky', right: STICKY_RIGHT_USAGE, zIndex: 21 }} />
+        <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#4ade80', fontWeight: 700, fontSize: FONT_SIZE_BODY, borderLeft: '2px solid #16a34a', background: '#1e3a5f', position: 'sticky', right: 0, zIndex: 21 }}>
           {footerTotalUsage > 0 ? footerTotalUsage.toLocaleString() : '—'}
         </div>
       </div>
@@ -828,20 +833,17 @@ function ReportContent() {
                 fontSize: isMobile ? 12 : 13, cursor: 'pointer', fontFamily: font,
                 boxShadow: mode === m ? '0 1px 4px rgba(0,0,0,.08)' : 'none',
                 transition: 'all 0.2s ease',
-                transform: 'scale(1)',
               }}
                 onMouseOver={e => {
                   if (mode !== m) {
                     e.currentTarget.style.color = '#1d4ed8';
                     e.currentTarget.style.background = 'rgba(29, 78, 216, 0.05)';
-                    e.currentTarget.style.transform = 'scale(1.02)';
                   }
                 }}
                 onMouseOut={e => {
                   if (mode !== m) {
                     e.currentTarget.style.color = '#64748b';
                     e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.transform = 'scale(1)';
                   }
                 }}
               >
@@ -894,16 +896,14 @@ function ReportContent() {
 
                 {/* Filter ASSY picker */}
                 <div style={{ position: 'relative' }}>
-                  <button onClick={() => setShowAssyPicker(v => !v)} style={{ padding: '7px 14px', borderRadius: 8, border: '1.5px solid #7c3aed', background: '#faf5ff', color: '#7c3aed', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: font, transition: 'all 0.2s ease', transform: 'scale(1)' }}
+                  <button onClick={() => setShowAssyPicker(v => !v)} style={{ padding: '7px 14px', borderRadius: 8, border: '1.5px solid #7c3aed', background: '#faf5ff', color: '#7c3aed', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: font, transition: 'all 0.2s ease' }}
                     onMouseOver={e => {
                       e.currentTarget.style.background = '#f5e6ff';
                       e.currentTarget.style.borderColor = '#a855f7';
-                      e.currentTarget.style.transform = 'scale(1.02)';
                     }}
                     onMouseOut={e => {
                       e.currentTarget.style.background = '#faf5ff';
                       e.currentTarget.style.borderColor = '#7c3aed';
-                      e.currentTarget.style.transform = 'scale(1)';
                     }}
                   >
                     Filter ASSY {selectedAssy.size > 0 ? `(${selectedAssy.size} dipilih)` : '(semua)'}
@@ -914,24 +914,20 @@ function ReportContent() {
                         <input value={assySearch} onChange={e => setAssySearch(e.target.value)} placeholder="Cari ASSY..." style={{ width: '100%', padding: '6px 10px', borderRadius: 7, border: '1.5px solid #e2e8f0', fontSize: 12.5, fontFamily: font, outline: 'none' }} />
                       </div>
                       <div style={{ padding: '6px', display: 'flex', gap: 6, borderBottom: '1px solid #f1f5f9' }}>
-                        <button onClick={() => setSelectedAssy(new Set(allAssyCodes))} style={{ flex: 1, padding: '4px', fontSize: 11.5, border: 'none', background: '#eff6ff', color: '#1d4ed8', borderRadius: 5, cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s ease', transform: 'scale(1)' }}
+                        <button onClick={() => setSelectedAssy(new Set(allAssyCodes))} style={{ flex: 1, padding: '4px', fontSize: 11.5, border: 'none', background: '#eff6ff', color: '#1d4ed8', borderRadius: 5, cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s ease' }}
                           onMouseOver={e => {
                             e.currentTarget.style.background = '#dbeafe';
-                            e.currentTarget.style.transform = 'scale(1.05)';
                           }}
                           onMouseOut={e => {
                             e.currentTarget.style.background = '#eff6ff';
-                            e.currentTarget.style.transform = 'scale(1)';
                           }}
                         >Pilih Semua</button>
-                        <button onClick={() => setSelectedAssy(new Set())} style={{ flex: 1, padding: '4px', fontSize: 11.5, border: 'none', background: '#fef2f2', color: '#dc2626', borderRadius: 5, cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s ease', transform: 'scale(1)' }}
+                        <button onClick={() => setSelectedAssy(new Set())} style={{ flex: 1, padding: '4px', fontSize: 11.5, border: 'none', background: '#fef2f2', color: '#dc2626', borderRadius: 5, cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s ease' }}
                           onMouseOver={e => {
                             e.currentTarget.style.background = '#fee2e2';
-                            e.currentTarget.style.transform = 'scale(1.05)';
                           }}
                           onMouseOut={e => {
                             e.currentTarget.style.background = '#fef2f2';
-                            e.currentTarget.style.transform = 'scale(1)';
                           }}
                         >Reset</button>
                       </div>
@@ -947,15 +943,13 @@ function ReportContent() {
                         ))}
                       </div>
                       <div style={{ padding: '8px 12px', borderTop: '1px solid #f1f5f9' }}>
-                        <button onClick={() => setShowAssyPicker(false)} style={{ width: '100%', padding: '7px', borderRadius: 7, border: 'none', background: '#1d4ed8', color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: font, transition: 'all 0.2s ease', transform: 'translateY(0)' }}
+                        <button onClick={() => setShowAssyPicker(false)} style={{ width: '100%', padding: '7px', borderRadius: 7, border: 'none', background: '#1d4ed8', color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: font, transition: 'all 0.2s ease' }}
                           onMouseOver={e => {
                             e.currentTarget.style.background = '#1e40af';
-                            e.currentTarget.style.transform = 'translateY(-2px)';
                             e.currentTarget.style.boxShadow = '0 4px 12px rgba(29, 78, 216, 0.3)';
                           }}
                           onMouseOut={e => {
                             e.currentTarget.style.background = '#1d4ed8';
-                            e.currentTarget.style.transform = 'translateY(0)';
                             e.currentTarget.style.boxShadow = 'none';
                           }}
                         >Terapkan</button>
@@ -966,22 +960,17 @@ function ReportContent() {
               </>
             )}
 
-            <button onClick={handleLoad} disabled={mode === 'gabungan' && isExceedsMax} style={{ padding: '8px 24px', borderRadius: 8, border: 'none', background: mode === 'gabungan' && isExceedsMax ? '#d1d5db' : 'linear-gradient(135deg,#1e3a8a,#2563eb)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: mode === 'gabungan' && isExceedsMax ? 'not-allowed' : 'pointer', fontFamily: font, boxShadow: mode === 'gabungan' && isExceedsMax ? 'none' : '0 3px 10px rgba(37,99,235,.3)', transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)', transform: 'translateY(0)' }}
+            <button onClick={handleLoad} disabled={mode === 'gabungan' && isExceedsMax} style={{ padding: '8px 24px', borderRadius: 8, border: 'none', background: mode === 'gabungan' && isExceedsMax ? '#d1d5db' : 'linear-gradient(135deg,#1e3a8a,#2563eb)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: mode === 'gabungan' && isExceedsMax ? 'not-allowed' : 'pointer', fontFamily: font, boxShadow: mode === 'gabungan' && isExceedsMax ? 'none' : '0 3px 10px rgba(37,99,235,.3)', transition: 'all 0.2s ease' }}
               onMouseOver={e => {
                 if (!(mode === 'gabungan' && isExceedsMax)) {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.background = 'linear-gradient(135deg,#1e40af,#3b82f6)';
                   e.currentTarget.style.boxShadow = '0 6px 20px rgba(37,99,235,.4)';
                 }
               }}
               onMouseOut={e => {
                 if (!(mode === 'gabungan' && isExceedsMax)) {
-                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.background = 'linear-gradient(135deg,#1e3a8a,#2563eb)';
                   e.currentTarget.style.boxShadow = '0 3px 10px rgba(37,99,235,.3)';
-                }
-              }}
-              onMouseDown={e => {
-                if (!(mode === 'gabungan' && isExceedsMax)) {
-                  e.currentTarget.style.transform = 'translateY(0)';
                 }
               }}
             >
@@ -1070,12 +1059,10 @@ function ReportContent() {
               <button onClick={handleExport} style={{ padding: isMobile ? '7px 12px' : '8px 16px', borderRadius: 8, border: 'none', background: '#10b981', color: '#fff', fontSize: isMobile ? 12 : 13, fontWeight: 700, cursor: 'pointer', fontFamily: font, transition: 'all 0.2s ease', whiteSpace: 'nowrap' }}
                 onMouseOver={e => {
                   e.currentTarget.style.background = '#059669';
-                  e.currentTarget.style.transform = 'translateY(-1px)';
                   e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.25)';
                 }}
                 onMouseOut={e => {
                   e.currentTarget.style.background = '#10b981';
-                  e.currentTarget.style.transform = 'translateY(0)';
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               >
