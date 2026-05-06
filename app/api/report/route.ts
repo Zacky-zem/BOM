@@ -18,6 +18,7 @@ export async function GET(request: Request) {
     const limit      = parseInt(url.searchParams.get('limit') || '50');
     const search     = url.searchParams.get('search') || '';
     const offset     = (page - 1) * limit;
+    const isFooter   = url.searchParams.get('footer') === 'true';
 
     const isGabungan = !periode && !!dari && !!sampai;
 
@@ -53,6 +54,52 @@ export async function GET(request: Request) {
       }
       return { where: clauses.join(' AND '), extraParams: params, nextIdx: idx };
     }
+
+    // ── FOOTER MODE — agregasi ringan, tanpa kirim semua rows ──────
+    if (isFooter) {
+      const p1 = isGabungan ? dari! : periode!;
+      const p2 = isGabungan ? sampai! : periode!;
+
+      const params: unknown[] = [p1, p2];
+      let idx = 3;
+      const extraClauses: string[] = [];
+
+      if (assyParams.length > 0) {
+        extraClauses.push(`assy_code = ANY($${idx}::text[])`);
+        params.push(assyParams); idx++;
+      }
+      if (hasSearch) {
+        extraClauses.push(`(part_no ILIKE $${idx} OR part_name ILIKE $${idx})`);
+        params.push(`%${search.trim()}%`); idx++;
+      }
+
+      const whereExtra = extraClauses.length ? ` AND ${extraClauses.join(' AND ')}` : '';
+      const selectPeriode = isGabungan ? ', periode' : '';
+      const groupBy = isGabungan ? 'assy_code, periode' : 'assy_code';
+
+      // Satu query agregasi — jauh lebih ringan dari fetch semua rows
+      const result = await pool.query(
+        `SELECT assy_code${selectPeriode}, SUM(qty_per_unit)::numeric AS col_sum
+        FROM mv_bom_gabungan
+        WHERE periode >= $1 AND periode <= $2${whereExtra}
+        GROUP BY ${groupBy}
+        ORDER BY assy_code`,
+        params
+      );
+
+      // Prod qty untuk hitung total usage di footer
+      const prodResult = await pool.query(
+        `SELECT assy_code, periode, COALESCE(prod_qty, 0) AS prod_qty
+        FROM prod_plan WHERE periode >= $1 AND periode <= $2`,
+        [p1, p2]
+      );
+
+      return NextResponse.json({
+        col_sums: result.rows,
+        prod_map: prodResult.rows,
+      });
+    }
+
 
     // ─── DOWNLOAD MODE ────────────────────────────────────────────
     // Format: XLSX dengan merged cells (menggunakan struktur dari file teman)

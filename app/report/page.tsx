@@ -350,8 +350,17 @@ function ReportContent() {
   const [showAssyPicker, setShowAssyPicker] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const abortControllerRef = useRef<AbortController | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Fetch ALL parts data for footer totals (not paginated)
+  const [footerData, setFooterData] = useState<{
+    col_sums: { assy_code: string; periode?: string; col_sum: string }[];
+    prod_map: { assy_code: string; periode: string; prod_qty: string }[];
+  }>({ col_sums: [], prod_map: [] });
+
+  const footerAbortRef = useRef<AbortController | null>(null);
+  
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Detect mobile viewport
   useEffect(() => {
@@ -432,8 +441,38 @@ function ReportContent() {
   const qtyMap     = currentData?.qty_map      ?? {};
   const totalParts = currentData?.total_parts  ?? 0;
   const totalPages = Math.ceil(totalParts / LIMIT) || 1;
+    
+  // Footer: fetch agregasi ringan dari server, debounce 300ms
+  useEffect(() => {
+    if (!hasLoaded) return;
 
-  // ── PRE-KALKULASI — dilakukan sekali saat data berubah ──────
+    const timer = setTimeout(async () => {
+      footerAbortRef.current?.abort();
+      const ctrl = new AbortController();
+      footerAbortRef.current = ctrl;
+
+      try {
+        const base = mode === 'single'
+          ? `/api/report?periode=${encodeURIComponent(periode)}&footer=true`
+          : `/api/report?dari=${dari}&sampai=${sampai}${selectedAssy.size > 0 ? `&assy_codes=${[...selectedAssy].join(',')}` : ''}&footer=true`;
+        const url = `${base}${search ? `&search=${encodeURIComponent(search)}` : ''}`;
+
+        const res = await fetch(url, { signal: ctrl.signal });
+        if (!res.ok) return;
+        const data = await res.json();
+        setFooterData(data);
+      } catch (e) {
+        if ((e as Error).name !== 'AbortError') console.error('[Footer]', e);
+      }
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+      footerAbortRef.current?.abort();
+    };
+  }, [hasLoaded, mode, periode, dari, sampai, selectedAssy, search]);
+
+  // ── PRE-KALKULASI — dilakukan sekali saat data berubah ───��──
   // Ini yang menggantikan getBomQty/getProdQty/calcTotalUsage/calcAssyColSum
   // yang sebelumnya dipanggil berulang kali saat render
 
@@ -461,8 +500,7 @@ function ReportContent() {
       }
     }
 
-    // 2. Build flat lookup: "part_no|assy|periode" → qty
-    //    O(n) sekali, bukan O(n) per render
+    // 2. Build flat lookup for displayed rows (from qtyMap on current page)
     const lookup = new Map<string, number>();
     for (const [partNo, assyMap] of Object.entries(qtyMap)) {
       for (const [assy, val] of Object.entries(assyMap as Record<string, unknown>)) {
@@ -476,9 +514,7 @@ function ReportContent() {
       }
     }
 
-    // 3. Pre-compute setiap baris
-    const footerColSums = new Array(cols.length).fill(0);
-    let   footerTotalUsage = 0;
+    // 4. Pre-compute setiap baris (hanya untuk display page)
     let   hasProdQty = false;
 
     const computedRows: ComputedRow[] = parts.map(part => {
@@ -498,19 +534,42 @@ function ReportContent() {
           totalQty += qty;
           const usage = qty * col.prodQty;
           totalUsage += usage;
-          footerColSums[ci] += qty;
           if (col.prodQty > 0) hasProdQty = true;
         }
       }
 
       const roundedUsage = Math.ceil(totalUsage);
-      footerTotalUsage += roundedUsage;
 
       return { part, cells, totalQty, totalUsage: roundedUsage };
     });
 
+    // Build prod map dari footerData
+    const prodMapForFooter = new Map<string, number>();
+    for (const r of footerData.prod_map) {
+      prodMapForFooter.set(`${r.assy_code}|${r.periode}`, Number(r.prod_qty));
+    }
+
+    // Footer col sums dari server — O(cols) bukan O(parts × cols)
+    const footerColSums = cols.map(col => {
+      const row = footerData.col_sums.find(r =>
+        r.assy_code === col.assy &&
+        (mode !== 'gabungan' || r.periode === col.periode)
+      );
+      return Number(row?.col_sum ?? 0);
+    });
+
+    // Footer total usage
+    const footerTotalUsage = Math.ceil(
+      cols.reduce((acc, col, ci) => {
+        const prodQty = mode === 'gabungan'
+          ? (prodMapForFooter.get(`${col.assy}|${col.periode}`) ?? 0)
+          : col.prodQty;
+        return acc + footerColSums[ci] * prodQty;
+      }, 0)
+    );
+
     return { cols, computedRows, footerColSums, footerTotalUsage, hasProdQty };
-  }, [currentData, parts, assyCodes, periodes, qtyMap, prodQtyMap, mode]);
+  }, [currentData, parts, assyCodes, periodes, qtyMap, prodQtyMap, mode, footerData]);
 
   const filteredAssy = allAssyCodes.filter(a =>
     !assySearch || a.toLowerCase().includes(assySearch.toLowerCase())
@@ -604,7 +663,7 @@ function ReportContent() {
       await new Promise(r => setTimeout(r, 200));
       setDownloadProgress(100);
 
-      const blob = new Blob(chunks, {
+      const blob = new Blob(chunks as BlobPart[], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
       const downloadUrl = window.URL.createObjectURL(blob);
