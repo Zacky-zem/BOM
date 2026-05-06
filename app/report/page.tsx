@@ -63,23 +63,19 @@ function PageBtn({ children, onClick, disabled, active }: { children: React.Reac
       background:  active ? '#1d4ed8' : '#fff',
       color:       active ? '#fff'    : disabled ? '#d1d5db' : '#374151',
       fontWeight: 600, fontSize: 13, cursor: disabled ? 'not-allowed' : 'pointer', fontFamily: font,
-      transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-      transform: 'translateY(0)',
+      transition: 'background-color 0.15s ease, color 0.15s ease',
     }}
     onMouseOver={e => {
-      if (!disabled) {
-        e.currentTarget.style.transform = 'translateY(-2px)';
-        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-        if (!active) e.currentTarget.style.background = '#f0f9ff';
+      if (!disabled && !active) {
+        e.currentTarget.style.background = '#f0f9ff';
+        e.currentTarget.style.color = '#1d4ed8';
       }
     }}
     onMouseOut={e => {
-      e.currentTarget.style.transform = 'translateY(0)';
-      e.currentTarget.style.boxShadow = 'none';
-      if (!active) e.currentTarget.style.background = '#fff';
-    }}
-    onMouseDown={e => {
-      if (!disabled) e.currentTarget.style.transform = 'translateY(0)';
+      if (!active) {
+        e.currentTarget.style.background = '#fff';
+        e.currentTarget.style.color = '#374151';
+      }
     }}
     >{children}</button>
   );
@@ -818,7 +814,7 @@ function ReportContent() {
           </div>
 
           {/* Mode toggle */}
-          <div style={{ display: 'flex', gap: 6, marginBottom: 20, background: '#f8fafc', borderRadius: 10, padding: 4, width: 'fit-content', border: '1px solid #e2e8f0', transition: 'all 0.2s ease' }}>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 20, background: '#f8fafc', borderRadius: 10, padding: 4, width: 'fit-content', border: '1px solid #e2e8f0' }}>
             {(['single','gabungan'] as const).map(m => (
               <button key={m} onClick={() => { setMode(m); setHasLoaded(false); }} style={{
                 padding: isMobile ? '6px 14px' : '7px 20px', borderRadius: 8, border: 'none',
@@ -827,21 +823,18 @@ function ReportContent() {
                 fontWeight: mode === m ? 700 : 500,
                 fontSize: isMobile ? 12 : 13, cursor: 'pointer', fontFamily: font,
                 boxShadow: mode === m ? '0 1px 4px rgba(0,0,0,.08)' : 'none',
-                transition: 'all 0.2s ease',
-                transform: 'scale(1)',
+                transition: 'all 0.15s ease',
               }}
                 onMouseOver={e => {
                   if (mode !== m) {
                     e.currentTarget.style.color = '#1d4ed8';
                     e.currentTarget.style.background = 'rgba(29, 78, 216, 0.05)';
-                    e.currentTarget.style.transform = 'scale(1.02)';
                   }
                 }}
                 onMouseOut={e => {
                   if (mode !== m) {
                     e.currentTarget.style.color = '#64748b';
                     e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.transform = 'scale(1)';
                   }
                 }}
               >
@@ -894,16 +887,14 @@ function ReportContent() {
 
                 {/* Filter ASSY picker */}
                 <div style={{ position: 'relative' }}>
-                  <button onClick={() => setShowAssyPicker(v => !v)} style={{ padding: '7px 14px', borderRadius: 8, border: '1.5px solid #7c3aed', background: '#faf5ff', color: '#7c3aed', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: font, transition: 'all 0.2s ease', transform: 'scale(1)' }}
+                  <button onClick={() => setShowAssyPicker(v => !v)} style={{ padding: '7px 14px', borderRadius: 8, border: '1.5px solid #7c3aed', background: '#faf5ff', color: '#7c3aed', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: font, transition: 'all 0.15s ease' }}
                     onMouseOver={e => {
                       e.currentTarget.style.background = '#f5e6ff';
                       e.currentTarget.style.borderColor = '#a855f7';
-                      e.currentTarget.style.transform = 'scale(1.02)';
                     }}
                     onMouseOut={e => {
                       e.currentTarget.style.background = '#faf5ff';
                       e.currentTarget.style.borderColor = '#7c3aed';
-                      e.currentTarget.style.transform = 'scale(1)';
                     }}
                   >
                     Filter ASSY {selectedAssy.size > 0 ? `(${selectedAssy.size} dipilih)` : '(semua)'}
@@ -914,24 +905,20 @@ function ReportContent() {
                         <input value={assySearch} onChange={e => setAssySearch(e.target.value)} placeholder="Cari ASSY..." style={{ width: '100%', padding: '6px 10px', borderRadius: 7, border: '1.5px solid #e2e8f0', fontSize: 12.5, fontFamily: font, outline: 'none' }} />
                       </div>
                       <div style={{ padding: '6px', display: 'flex', gap: 6, borderBottom: '1px solid #f1f5f9' }}>
-                        <button onClick={() => setSelectedAssy(new Set(allAssyCodes))} style={{ flex: 1, padding: '4px', fontSize: 11.5, border: 'none', background: '#eff6ff', color: '#1d4ed8', borderRadius: 5, cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s ease', transform: 'scale(1)' }}
+                        <button onClick={() => setSelectedAssy(new Set(allAssyCodes))} style={{ flex: 1, padding: '4px', fontSize: 11.5, border: 'none', background: '#eff6ff', color: '#1d4ed8', borderRadius: 5, cursor: 'pointer', fontWeight: 600, transition: 'all 0.15s ease' }}
                           onMouseOver={e => {
                             e.currentTarget.style.background = '#dbeafe';
-                            e.currentTarget.style.transform = 'scale(1.05)';
                           }}
                           onMouseOut={e => {
                             e.currentTarget.style.background = '#eff6ff';
-                            e.currentTarget.style.transform = 'scale(1)';
                           }}
                         >Pilih Semua</button>
-                        <button onClick={() => setSelectedAssy(new Set())} style={{ flex: 1, padding: '4px', fontSize: 11.5, border: 'none', background: '#fef2f2', color: '#dc2626', borderRadius: 5, cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s ease', transform: 'scale(1)' }}
+                        <button onClick={() => setSelectedAssy(new Set())} style={{ flex: 1, padding: '4px', fontSize: 11.5, border: 'none', background: '#fef2f2', color: '#dc2626', borderRadius: 5, cursor: 'pointer', fontWeight: 600, transition: 'all 0.15s ease' }}
                           onMouseOver={e => {
                             e.currentTarget.style.background = '#fee2e2';
-                            e.currentTarget.style.transform = 'scale(1.05)';
                           }}
                           onMouseOut={e => {
                             e.currentTarget.style.background = '#fef2f2';
-                            e.currentTarget.style.transform = 'scale(1)';
                           }}
                         >Reset</button>
                       </div>
@@ -947,16 +934,12 @@ function ReportContent() {
                         ))}
                       </div>
                       <div style={{ padding: '8px 12px', borderTop: '1px solid #f1f5f9' }}>
-                        <button onClick={() => setShowAssyPicker(false)} style={{ width: '100%', padding: '7px', borderRadius: 7, border: 'none', background: '#1d4ed8', color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: font, transition: 'all 0.2s ease', transform: 'translateY(0)' }}
+                        <button onClick={() => setShowAssyPicker(false)} style={{ width: '100%', padding: '7px', borderRadius: 7, border: 'none', background: '#1d4ed8', color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: font, transition: 'background-color 0.15s ease' }}
                           onMouseOver={e => {
                             e.currentTarget.style.background = '#1e40af';
-                            e.currentTarget.style.transform = 'translateY(-2px)';
-                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(29, 78, 216, 0.3)';
                           }}
                           onMouseOut={e => {
                             e.currentTarget.style.background = '#1d4ed8';
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = 'none';
                           }}
                         >Terapkan</button>
                       </div>
@@ -966,22 +949,15 @@ function ReportContent() {
               </>
             )}
 
-            <button onClick={handleLoad} disabled={mode === 'gabungan' && isExceedsMax} style={{ padding: '8px 24px', borderRadius: 8, border: 'none', background: mode === 'gabungan' && isExceedsMax ? '#d1d5db' : 'linear-gradient(135deg,#1e3a8a,#2563eb)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: mode === 'gabungan' && isExceedsMax ? 'not-allowed' : 'pointer', fontFamily: font, boxShadow: mode === 'gabungan' && isExceedsMax ? 'none' : '0 3px 10px rgba(37,99,235,.3)', transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)', transform: 'translateY(0)' }}
+            <button onClick={handleLoad} disabled={mode === 'gabungan' && isExceedsMax} style={{ padding: '8px 24px', borderRadius: 8, border: 'none', background: mode === 'gabungan' && isExceedsMax ? '#d1d5db' : '#1d4ed8', color: '#fff', fontSize: 13, fontWeight: 700, cursor: mode === 'gabungan' && isExceedsMax ? 'not-allowed' : 'pointer', fontFamily: font, transition: 'background-color 0.15s ease', boxShadow: '0 2px 8px rgba(29, 78, 216, 0.25)' }}
               onMouseOver={e => {
                 if (!(mode === 'gabungan' && isExceedsMax)) {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(37,99,235,.4)';
+                  e.currentTarget.style.background = '#1e40af';
                 }
               }}
               onMouseOut={e => {
                 if (!(mode === 'gabungan' && isExceedsMax)) {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 3px 10px rgba(37,99,235,.3)';
-                }
-              }}
-              onMouseDown={e => {
-                if (!(mode === 'gabungan' && isExceedsMax)) {
-                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.background = '#1d4ed8';
                 }
               }}
             >
@@ -1005,15 +981,13 @@ function ReportContent() {
                 background:  activePer === p ? '#1d4ed8' : '#fff',
                 color:       activePer === p ? '#fff' : '#6b7280',
                 fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: font, whiteSpace: 'nowrap',
-                transition: 'all 0.2s ease',
-                transform: 'translateY(0)',
+                transition: 'all 0.15s ease',
               }}
                 onMouseOver={e => {
                   if (activePer !== p) {
                     e.currentTarget.style.borderColor = '#93c5fd';
                     e.currentTarget.style.background = '#eff6ff';
                     e.currentTarget.style.color = '#1d4ed8';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
                   }
                 }}
                 onMouseOut={e => {
@@ -1021,7 +995,6 @@ function ReportContent() {
                     e.currentTarget.style.borderColor = '#e2e8f0';
                     e.currentTarget.style.background = '#fff';
                     e.currentTarget.style.color = '#6b7280';
-                    e.currentTarget.style.transform = 'translateY(0)';
                   }
                 }}
               >{fmtPeriode(p)}</button>
