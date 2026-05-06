@@ -424,12 +424,6 @@ function ReportContent() {
     setAllAssyCodes(data.assy_codes ?? []);
   }, [dari, sampai]);
 
-  useEffect(() => { 
-    if (mode === 'gabungan' && dari && sampai) {
-      loadAssyCodes();
-    }
-  }, [mode, dari, sampai, loadAssyCodes]);
-
   const buildUrl = useCallback((p: number, s: string) => {
     const base = mode === 'single'
       ? `/api/report?periode=${encodeURIComponent(periode)}`
@@ -454,11 +448,15 @@ function ReportContent() {
     setLoading(false);
   }, [buildUrl, mode, gabunganKey]);
 
-  const handleLoad = useCallback(() => {
+  const handleLoad = useCallback(async () => {
     if (loading) return; // Prevent multiple clicks while loading
     setPage(1); setSearch(''); setHasLoaded(true); setResults({}); setPeriodes([]); setActivePer('');
+    // Load ASSY codes first if gabungan mode
+    if (mode === 'gabungan') {
+      await loadAssyCodes();
+    }
     fetchData(1, '');
-  }, [loading, fetchData]);
+  }, [loading, mode, fetchData, loadAssyCodes]);
 
   const handlePageChange = (newPage: number) => { setPage(newPage); fetchData(newPage, search); };
   const handleSearch = (val: string) => { setSearch(val); setPage(1); fetchData(1, val); };
