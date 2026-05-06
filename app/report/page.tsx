@@ -17,7 +17,7 @@ function fmtPeriodeShort(p: string) {
   return `${['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'][Number(m)-1]} ${y}`;
 }
 
-interface Part { part_no: string; part_no_as400: string; part_name: string; unit: string; supplier_name: string; }
+interface Part { part_no: string; part_no_as400: string; part_name: string; unit: string; supplier_name: string; price: number | null; }
 
 interface PeriodeData {
   assy_codes:   string[];
@@ -87,6 +87,7 @@ function VirtualReportTable({
   // lebar masing-masing (responsive for mobile):
   const FW = isMobile ? [100, 110, 110, 160, 55] : [130, 110, 110, 160, 55];
   const fixedTotalW = FW.reduce((a, b) => a + b, 0);
+  const STICKY_RIGHT_PRICE = 80;
   const STICKY_RIGHT_TOTAL = 72;
   const STICKY_RIGHT_USAGE = 90;
   const COL_W   = mode === 'gabungan' ? 62 : 90;
@@ -119,7 +120,7 @@ function VirtualReportTable({
     <div ref={scrollRef} style={{ overflow: 'auto', maxHeight: 'calc(100vh - 260px)', position: 'relative', fontSize: 11.5, whiteSpace: 'nowrap' }}>
 
       {/* ── STICKY HEADER ── */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 20, display: 'flex', flexDirection: 'column', width: fixedTotalW + dynW + STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, minWidth: '100%' }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 20, display: 'flex', flexDirection: 'column', width: fixedTotalW + dynW + STICKY_RIGHT_PRICE + STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, minWidth: '100%' }}>
 
         {/* Row 1: Column labels */}
         <div style={{ display: 'flex', background: '#1e3a5f', height: HEAD1_H }}>
@@ -164,7 +165,8 @@ function VirtualReportTable({
               );
             })}
           </div>
-          {/* Sticky right: Total, Total Usage */}
+          {/* Sticky right: Price, Total, Total Usage */}
+          <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#a78bfa', fontWeight: 700, fontSize: 10, borderLeft: '2px solid #8b5cf6', background: '#1c2d1e', position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE }}>PRICE</div>
           <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#fbbf24', fontWeight: 700, fontSize: 10, borderLeft: '2px solid #f59e0b', background: '#1c2d1e', position: 'sticky', right: STICKY_RIGHT_USAGE }}>TOTAL</div>
           <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#4ade80', fontWeight: 700, fontSize: 10, borderLeft: '2px solid #16a34a', background: '#1c2d1e', position: 'sticky', right: 0 }}>TOTAL USAGE</div>
         </div>
@@ -190,6 +192,7 @@ function VirtualReportTable({
                 );
               })}
             </div>
+            <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, borderLeft: '2px solid #8b5cf6', background: '#1a2f3f', position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE }} />
             <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, borderLeft: '2px solid #f59e0b', background: '#1a2f3f', position: 'sticky', right: STICKY_RIGHT_USAGE }} />
             <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, borderLeft: '2px solid #16a34a', background: '#1a2f3f', position: 'sticky', right: 0 }} />
           </div>
@@ -217,13 +220,14 @@ function VirtualReportTable({
               );
             })}
           </div>
+          <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, borderLeft: '2px solid #8b5cf6', background: '#0f172a', position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE }} />
           <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, borderLeft: '2px solid #f59e0b', background: '#0f172a', position: 'sticky', right: STICKY_RIGHT_USAGE }} />
           <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, borderLeft: '2px solid #16a34a', background: '#0f172a', position: 'sticky', right: 0 }} />
         </div>
       </div>
 
       {/* ── VIRTUAL ROWS ── */}
-      <div style={{ position: 'relative', height: rowVirt.getTotalSize(), width: fixedTotalW + dynW + STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, minWidth: '100%' }}>
+      <div style={{ position: 'relative', height: rowVirt.getTotalSize(), width: fixedTotalW + dynW + STICKY_RIGHT_PRICE + STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, minWidth: '100%' }}>
         {rowVirt.getVirtualItems().map(vrow => {
           const { part, cells, totalQty, totalUsage } = rows[vrow.index];
           const isEven = vrow.index % 2 === 0;
@@ -270,7 +274,10 @@ function VirtualReportTable({
                 })}
               </div>
 
-              {/* Sticky right: Total, Total Usage */}
+              {/* Sticky right: Price, Total, Total Usage */}
+              <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, padding: isMobile ? '0 4px' : '0 8px', textAlign: 'right', fontWeight: 700, color: part.price != null ? '#7c3aed' : '#9ca3af', borderLeft: '2px solid #c4b5fd', background: isEven ? '#f5f3ff' : '#ede9fe', fontSize: isMobile ? 8 : 11, position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, height: ROW_H, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                {part.price != null ? Number(part.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'}
+              </div>
               <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, padding: isMobile ? '0 4px' : '0 8px', textAlign: 'right', fontWeight: 700, color: '#92400e', borderLeft: '2px solid #fde68a', background: isEven ? '#fffbeb' : '#fef9c3', fontSize: isMobile ? 8 : 11, position: 'sticky', right: STICKY_RIGHT_USAGE, height: ROW_H, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
                 {totalQty > 0 ? totalQty.toLocaleString() : '—'}
               </div>
@@ -286,7 +293,7 @@ function VirtualReportTable({
       <div style={{
         position: 'sticky', bottom: 0, zIndex: 20,
         display: 'flex', background: '#1e3a5f', height: ROW_H,
-        width: fixedTotalW + dynW + STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, minWidth: '100%',
+        width: fixedTotalW + dynW + STICKY_RIGHT_PRICE + STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, minWidth: '100%',
       }}>
         <div style={{ width: FW[0], flexShrink: 0, padding: '0 10px', display: 'flex', alignItems: 'center', color: '#fbbf24', fontWeight: 700, fontSize: 10.5, borderRight: '1px solid #334155', position: 'sticky', left: 0, background: '#1e3a5f', zIndex: 21 }}>∑ TOTAL PER ASSY</div>
         {!isMobile && FW.slice(1).map((w, i) => (
@@ -304,6 +311,7 @@ function VirtualReportTable({
             </div>
           ))}
         </div>
+        <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, borderLeft: '2px solid #8b5cf6', background: '#1e3a5f', position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE }} />
         <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, borderLeft: '2px solid #f59e0b', background: '#1e3a5f', position: 'sticky', right: STICKY_RIGHT_USAGE }} />
         <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#4ade80', fontWeight: 700, fontSize: 11, borderLeft: '2px solid #16a34a', background: '#1e3a5f', position: 'sticky', right: 0 }}>
           {footerTotalUsage > 0 ? footerTotalUsage.toLocaleString() : '—'}

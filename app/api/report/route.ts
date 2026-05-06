@@ -150,8 +150,12 @@ export async function GET(request: Request) {
       
       const [partsRes, qtyRes] = await Promise.all([
         pool.query(
-          `SELECT DISTINCT part_no, part_no_as400, part_name, unit, supplier_name
-           FROM mv_bom_gabungan WHERE ${pw} ORDER BY part_no`,
+          `SELECT DISTINCT m.part_no, m.part_no_as400, m.part_name, m.unit, m.supplier_name,
+                  (SELECT pp.price FROM part_price pp 
+                   WHERE pp.part_no = m.part_no AND pp.periode >= $1 AND pp.periode <= $2 
+                   ORDER BY pp.periode DESC LIMIT 1) AS price
+           FROM mv_bom_gabungan m
+           WHERE ${pw.replace(/part_no/g, 'm.part_no').replace(/part_name/g, 'm.part_name').replace(/periode/g, 'm.periode').replace(/assy_code/g, 'm.assy_code')} ORDER BY m.part_no`,
           [p1, p2, ...pe]
         ),
         pool.query(
@@ -183,13 +187,14 @@ export async function GET(request: Request) {
         const baseColCount  = baseHeaders.length;
         const periodesPerAssy = periodeList.length;
 
-        // Row 1: ASSY names (di-repeat sebanyak jumlah periode), lalu Total & Total Usage
+        // Row 1: ASSY names (di-repeat sebanyak jumlah periode), lalu Price, Total & Total Usage
         const row1: string[] = [...baseHeaders];
         for (const assy of assyCodes) {
           for (let i = 0; i < periodesPerAssy; i++) {
             row1.push(assy);
           }
         }
+        row1.push('Price');
         row1.push('Total');
         row1.push('Total Usage');
 
@@ -202,8 +207,9 @@ export async function GET(request: Request) {
             row2.push(`${month} ${y}`);
           }
         }
-        row2.push('');
-        row2.push('');
+        row2.push(''); // Price
+        row2.push(''); // Total
+        row2.push(''); // Total Usage
 
         // Row 3: PROD QTY row
         const row3: (string | number)[] = ['PROD QTY →', '', '', '', ''];
@@ -212,8 +218,9 @@ export async function GET(request: Request) {
             row3.push(prodMap[assy]?.[per] ?? 0);
           }
         }
-        row3.push('');
-        row3.push('');
+        row3.push(''); // Price
+        row3.push(''); // Total
+        row3.push(''); // Total Usage
 
         // Rows 4+: Data part
         const data: (string | number)[][] = [row1, row2, row3];
@@ -236,6 +243,7 @@ export async function GET(request: Request) {
               totalUsage += qty * (prodMap[assy]?.[per] ?? 0);
             }
           }
+          row.push(part.price != null ? Number(part.price) : '');
           row.push(totalBom);
           row.push(Math.ceil(totalUsage));
           data.push(row);
@@ -263,6 +271,7 @@ export async function GET(request: Request) {
           { wch: 30 }, // Part Name
           { wch: 10 }, // Unit
           ...assyCodes.flatMap(() => periodeList.map(() => ({ wch: 12 }))),
+          { wch: 12 }, // Price
           { wch: 12 }, // Total
           { wch: 12 }, // Total Usage
         ];
@@ -285,8 +294,8 @@ export async function GET(request: Request) {
         flatProdMap[assy] = prodMap[assy]?.[periode!] ?? 0;
       }
 
-      const headers     = ['Part No', 'Part No AS400', 'Supplier', 'Part Name', 'Unit', ...assyCodes, 'Total BOM', 'Total Usage'];
-      const prodQtyRow  = ['PROD QTY →', '', '', '', '', ...assyCodes.map(a => flatProdMap[a] ?? 0), '', ''];
+      const headers     = ['Part No', 'Part No AS400', 'Supplier', 'Part Name', 'Unit', ...assyCodes, 'Price', 'Total BOM', 'Total Usage'];
+      const prodQtyRow  = ['PROD QTY →', '', '', '', '', ...assyCodes.map(a => flatProdMap[a] ?? 0), '', '', ''];
       const data: (string | number)[][] = [headers, prodQtyRow];
 
       for (const part of partsRes.rows) {
@@ -300,6 +309,7 @@ export async function GET(request: Request) {
         ];
         const totalBom   = assyCodes.reduce((s, a) => s + (lookup.get(`${part.part_no}|${a}|${periode!}`) ?? 0), 0);
         const totalUsage = assyCodes.reduce((s, a) => s + ((lookup.get(`${part.part_no}|${a}|${periode!}`) ?? 0) * (flatProdMap[a] ?? 0)), 0);
+        row.push(part.price != null ? Number(part.price) : '');
         row.push(totalBom);
         row.push(Math.ceil(totalUsage));
         data.push(row);
@@ -313,6 +323,7 @@ export async function GET(request: Request) {
         { wch: 30 }, // Part Name
         { wch: 10 }, // Unit
         ...assyCodes.map(() => ({ wch: 12 })),
+        { wch: 12 }, // Price
         { wch: 12 }, // Total BOM
         { wch: 12 }, // Total Usage
       ];
@@ -371,9 +382,13 @@ export async function GET(request: Request) {
         'periode >= $1 AND periode <= $2', 3
       );
       const partsResult = await pool.query(
-        `SELECT DISTINCT part_no, part_no_as400, part_name, unit, supplier_name
-         FROM mv_bom_gabungan WHERE ${partsWhere}
-         ORDER BY part_no LIMIT $${nextIdx} OFFSET $${nextIdx + 1}`,
+        `SELECT DISTINCT m.part_no, m.part_no_as400, m.part_name, m.unit, m.supplier_name,
+                (SELECT pp.price FROM part_price pp 
+                 WHERE pp.part_no = m.part_no AND pp.periode >= $1 AND pp.periode <= $2 
+                 ORDER BY pp.periode DESC LIMIT 1) AS price
+         FROM mv_bom_gabungan m
+         WHERE ${partsWhere.replace(/part_no/g, 'm.part_no').replace(/part_name/g, 'm.part_name').replace(/periode/g, 'm.periode').replace(/assy_code/g, 'm.assy_code')}
+         ORDER BY m.part_no LIMIT $${nextIdx} OFFSET $${nextIdx + 1}`,
         [dari, sampai, ...partsExtra, limit, offset]
       );
       const partNos: string[] = partsResult.rows.map((r: { part_no: string }) => r.part_no);
@@ -452,9 +467,11 @@ export async function GET(request: Request) {
       hasAssyFilter ? 3 : 2
     );
     const partsResult = await pool.query(
-      `SELECT DISTINCT part_no, part_no_as400, part_name, unit, supplier_name
-       FROM mv_bom_gabungan WHERE ${pw}
-       ORDER BY part_no LIMIT $${pni} OFFSET $${pni + 1}`,
+      `SELECT DISTINCT m.part_no, m.part_no_as400, m.part_name, m.unit, m.supplier_name,
+              (SELECT pp.price FROM part_price pp WHERE pp.part_no = m.part_no AND pp.periode = $1 LIMIT 1) AS price
+       FROM mv_bom_gabungan m
+       WHERE ${pw.replace(/part_no/g, 'm.part_no').replace(/part_name/g, 'm.part_name').replace(/periode/g, 'm.periode').replace(/assy_code/g, 'm.assy_code')}
+       ORDER BY m.part_no LIMIT $${pni} OFFSET $${pni + 1}`,
       [...countBase, ...pe, limit, offset]
     );
     const partNos: string[] = partsResult.rows.map((r: { part_no: string }) => r.part_no);

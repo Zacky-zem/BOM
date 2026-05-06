@@ -45,14 +45,20 @@ export async function GET(request: NextRequest) {
 
       pool.query(
         hasAssyFilter
-          ? `SELECT DISTINCT part_no, part_no_as400, supplier_name, part_name, unit
-             FROM mv_bom_gabungan
-             WHERE periode >= $1 AND periode <= $2 AND assy_code = ANY($3::text[])
-             ORDER BY part_no`
-          : `SELECT DISTINCT part_no, part_no_as400, supplier_name, part_name, unit
-             FROM mv_bom_gabungan
-             WHERE periode >= $1 AND periode <= $2
-             ORDER BY part_no`,
+          ? `SELECT DISTINCT m.part_no, m.part_no_as400, m.supplier_name, m.part_name, m.unit,
+                    (SELECT pp.price FROM part_price pp 
+                     WHERE pp.part_no = m.part_no AND pp.periode >= $1 AND pp.periode <= $2 
+                     ORDER BY pp.periode DESC LIMIT 1) AS price
+             FROM mv_bom_gabungan m
+             WHERE m.periode >= $1 AND m.periode <= $2 AND m.assy_code = ANY($3::text[])
+             ORDER BY m.part_no`
+          : `SELECT DISTINCT m.part_no, m.part_no_as400, m.supplier_name, m.part_name, m.unit,
+                    (SELECT pp.price FROM part_price pp 
+                     WHERE pp.part_no = m.part_no AND pp.periode >= $1 AND pp.periode <= $2 
+                     ORDER BY pp.periode DESC LIMIT 1) AS price
+             FROM mv_bom_gabungan m
+             WHERE m.periode >= $1 AND m.periode <= $2
+             ORDER BY m.part_no`,
         hasAssyFilter ? [p1, p2, assyFilter] : [p1, p2]
       ),
 
@@ -150,7 +156,7 @@ export async function GET(request: NextRequest) {
             const row1: (string | number)[] = [...baseHeaders];
             for (const assy of assyCodes)
               for (let i = 0; i < periodeList.length; i++) row1.push(assy);
-            row1.push('Total', 'Total Usage');
+            row1.push('Price', 'Total', 'Total Usage');
             ws.addRow(row1).commit();
 
             // Row 2: periode sub-headers
@@ -160,20 +166,20 @@ export async function GET(request: NextRequest) {
                 const [y, m] = per.split('-').map(Number);
                 row2.push(`${MONTHS[m - 1]} ${y}`);
               }
-            row2.push('', '');
+            row2.push('', '', '');
             ws.addRow(row2).commit();
 
             // Row 3: prod qty
             const row3: (string | number)[] = ['PROD QTY →', '', '', '', ''];
             for (let i = 0; i < cols.length; i++) row3.push(prodQtyArr[i]);
-            row3.push('', '');
+            row3.push('', '', '');
             ws.addRow(row3).commit();
 
           } else {
-            ws.addRow([...baseHeaders, ...assyCodes, 'Total', 'Total Usage']).commit();
+            ws.addRow([...baseHeaders, ...assyCodes, 'Price', 'Total', 'Total Usage']).commit();
             const prodRow: (string | number)[] = ['PROD QTY →', '', '', '', ''];
             for (let i = 0; i < cols.length; i++) prodRow.push(prodQtyArr[i]);
-            prodRow.push('', '');
+            prodRow.push('', '', '');
             ws.addRow(prodRow).commit();
           }
 
@@ -224,6 +230,7 @@ export async function GET(request: NextRequest) {
               }
 
               const usageRounded = Math.ceil(totalUsage);
+              row.push(part.price != null ? Number(part.price) : '');
               row.push(totalBom, usageRounded);
               grandTotalUsage += usageRounded;
               ws.addRow(row).commit();
@@ -241,8 +248,8 @@ export async function GET(request: NextRequest) {
             for (let ci = 0; ci < colCount; ci++) {
               footerRow.push(colSums[ci] > 0 ? colSums[ci] : '—');
             }
-            // Kolom Total BOM dikosongkan, kolom Total Usage diisi grandTotalUsage
-            footerRow.push('—', grandTotalUsage > 0 ? grandTotalUsage : '—');
+            // Kolom Price dikosongkan, Total BOM dikosongkan, kolom Total Usage diisi grandTotalUsage
+            footerRow.push('—', '—', grandTotalUsage > 0 ? grandTotalUsage : '—');
             ws.addRow(footerRow).commit();
           }
 
