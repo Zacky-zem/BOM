@@ -818,7 +818,7 @@ function ReportContent() {
           </div>
 
           {/* Mode toggle */}
-          <div style={{ display: 'flex', gap: 6, marginBottom: 20, background: '#f8fafc', borderRadius: 10, padding: 4, width: 'fit-content', border: '1px solid #e2e8f0', transition: 'all 0.2s ease' }}>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 20, background: '#f8fafc', borderRadius: 10, padding: 4, width: 'fit-content', border: '1px solid #e2e8f0' }}>
             {(['single','gabungan'] as const).map(m => (
               <button key={m} onClick={() => { setMode(m); setHasLoaded(false); }} style={{
                 padding: isMobile ? '6px 14px' : '7px 20px', borderRadius: 8, border: 'none',
@@ -827,21 +827,18 @@ function ReportContent() {
                 fontWeight: mode === m ? 700 : 500,
                 fontSize: isMobile ? 12 : 13, cursor: 'pointer', fontFamily: font,
                 boxShadow: mode === m ? '0 1px 4px rgba(0,0,0,.08)' : 'none',
-                transition: 'all 0.2s ease',
-                transform: 'scale(1)',
+                transition: 'background 0.15s ease, color 0.15s ease',
               }}
                 onMouseOver={e => {
                   if (mode !== m) {
                     e.currentTarget.style.color = '#1d4ed8';
-                    e.currentTarget.style.background = 'rgba(29, 78, 216, 0.05)';
-                    e.currentTarget.style.transform = 'scale(1.02)';
+                    e.currentTarget.style.background = 'rgba(29, 78, 216, 0.08)';
                   }
                 }}
                 onMouseOut={e => {
                   if (mode !== m) {
                     e.currentTarget.style.color = '#64748b';
                     e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.transform = 'scale(1)';
                   }
                 }}
               >
@@ -894,16 +891,14 @@ function ReportContent() {
 
                 {/* Filter ASSY picker */}
                 <div style={{ position: 'relative' }}>
-                  <button onClick={() => setShowAssyPicker(v => !v)} style={{ padding: '7px 14px', borderRadius: 8, border: '1.5px solid #7c3aed', background: '#faf5ff', color: '#7c3aed', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: font, transition: 'all 0.2s ease', transform: 'scale(1)' }}
+                  <button onClick={() => setShowAssyPicker(v => !v)} style={{ padding: '7px 14px', borderRadius: 8, border: '1.5px solid #7c3aed', background: '#faf5ff', color: '#7c3aed', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: font, transition: 'background 0.15s ease, border-color 0.15s ease' }}
                     onMouseOver={e => {
-                      e.currentTarget.style.background = '#f5e6ff';
+                      e.currentTarget.style.background = '#f3e8ff';
                       e.currentTarget.style.borderColor = '#a855f7';
-                      e.currentTarget.style.transform = 'scale(1.02)';
                     }}
                     onMouseOut={e => {
                       e.currentTarget.style.background = '#faf5ff';
                       e.currentTarget.style.borderColor = '#7c3aed';
-                      e.currentTarget.style.transform = 'scale(1)';
                     }}
                   >
                     Filter ASSY {selectedAssy.size > 0 ? `(${selectedAssy.size} dipilih)` : '(semua)'}
