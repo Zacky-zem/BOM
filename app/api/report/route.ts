@@ -150,9 +150,11 @@ export async function GET(request: Request) {
       
       const [partsRes, qtyRes] = await Promise.all([
         pool.query(
-          `SELECT DISTINCT m.part_no, m.part_no_as400, m.part_name, m.unit, m.supplier_name, pp.price
+          `SELECT DISTINCT m.part_no, m.part_no_as400, m.part_name, m.unit, m.supplier_name,
+                  (SELECT pp.price FROM part_price pp 
+                   WHERE pp.part_no = m.part_no AND pp.periode >= $1 AND pp.periode <= $2 
+                   ORDER BY pp.periode DESC LIMIT 1) AS price
            FROM mv_bom_gabungan m
-           LEFT JOIN part_price pp ON pp.part_no = m.part_no AND pp.periode = $1
            WHERE ${pw.replace(/part_no/g, 'm.part_no').replace(/part_name/g, 'm.part_name').replace(/periode/g, 'm.periode').replace(/assy_code/g, 'm.assy_code')} ORDER BY m.part_no`,
           [p1, p2, ...pe]
         ),
@@ -380,9 +382,11 @@ export async function GET(request: Request) {
         'periode >= $1 AND periode <= $2', 3
       );
       const partsResult = await pool.query(
-        `SELECT DISTINCT m.part_no, m.part_no_as400, m.part_name, m.unit, m.supplier_name, pp.price
+        `SELECT DISTINCT m.part_no, m.part_no_as400, m.part_name, m.unit, m.supplier_name,
+                (SELECT pp.price FROM part_price pp 
+                 WHERE pp.part_no = m.part_no AND pp.periode >= $1 AND pp.periode <= $2 
+                 ORDER BY pp.periode DESC LIMIT 1) AS price
          FROM mv_bom_gabungan m
-         LEFT JOIN part_price pp ON pp.part_no = m.part_no AND pp.periode = $1
          WHERE ${partsWhere.replace(/part_no/g, 'm.part_no').replace(/part_name/g, 'm.part_name').replace(/periode/g, 'm.periode').replace(/assy_code/g, 'm.assy_code')}
          ORDER BY m.part_no LIMIT $${nextIdx} OFFSET $${nextIdx + 1}`,
         [dari, sampai, ...partsExtra, limit, offset]
@@ -463,9 +467,9 @@ export async function GET(request: Request) {
       hasAssyFilter ? 3 : 2
     );
     const partsResult = await pool.query(
-      `SELECT DISTINCT m.part_no, m.part_no_as400, m.part_name, m.unit, m.supplier_name, pp.price
+      `SELECT DISTINCT m.part_no, m.part_no_as400, m.part_name, m.unit, m.supplier_name,
+              (SELECT pp.price FROM part_price pp WHERE pp.part_no = m.part_no AND pp.periode = $1 LIMIT 1) AS price
        FROM mv_bom_gabungan m
-       LEFT JOIN part_price pp ON pp.part_no = m.part_no AND pp.periode = $1
        WHERE ${pw.replace(/part_no/g, 'm.part_no').replace(/part_name/g, 'm.part_name').replace(/periode/g, 'm.periode').replace(/assy_code/g, 'm.assy_code')}
        ORDER BY m.part_no LIMIT $${pni} OFFSET $${pni + 1}`,
       [...countBase, ...pe, limit, offset]
