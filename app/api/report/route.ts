@@ -153,7 +153,7 @@ export async function GET(request: Request) {
           `SELECT DISTINCT m.part_no, m.part_no_as400, m.part_name, m.unit, m.supplier_name, pp.price
            FROM mv_bom_gabungan m
            LEFT JOIN part_price pp ON pp.part_no = m.part_no AND pp.periode = $1
-           WHERE ${pw.replace(/part_no/g, 'm.part_no').replace(/part_name/g, 'm.part_name')} ORDER BY m.part_no`,
+           WHERE ${pw.replace(/part_no/g, 'm.part_no').replace(/part_name/g, 'm.part_name').replace(/periode/g, 'm.periode').replace(/assy_code/g, 'm.assy_code')} ORDER BY m.part_no`,
           [p1, p2, ...pe]
         ),
         pool.query(
@@ -383,7 +383,7 @@ export async function GET(request: Request) {
         `SELECT DISTINCT m.part_no, m.part_no_as400, m.part_name, m.unit, m.supplier_name, pp.price
          FROM mv_bom_gabungan m
          LEFT JOIN part_price pp ON pp.part_no = m.part_no AND pp.periode = $1
-         WHERE ${partsWhere.replace(/part_no/g, 'm.part_no').replace(/part_name/g, 'm.part_name')}
+         WHERE ${partsWhere.replace(/part_no/g, 'm.part_no').replace(/part_name/g, 'm.part_name').replace(/periode/g, 'm.periode').replace(/assy_code/g, 'm.assy_code')}
          ORDER BY m.part_no LIMIT $${nextIdx} OFFSET $${nextIdx + 1}`,
         [dari, sampai, ...partsExtra, limit, offset]
       );
@@ -466,7 +466,7 @@ export async function GET(request: Request) {
       `SELECT DISTINCT m.part_no, m.part_no_as400, m.part_name, m.unit, m.supplier_name, pp.price
        FROM mv_bom_gabungan m
        LEFT JOIN part_price pp ON pp.part_no = m.part_no AND pp.periode = $1
-       WHERE ${pw.replace(/part_no/g, 'm.part_no').replace(/part_name/g, 'm.part_name')}
+       WHERE ${pw.replace(/part_no/g, 'm.part_no').replace(/part_name/g, 'm.part_name').replace(/periode/g, 'm.periode').replace(/assy_code/g, 'm.assy_code')}
        ORDER BY m.part_no LIMIT $${pni} OFFSET $${pni + 1}`,
       [...countBase, ...pe, limit, offset]
     );
