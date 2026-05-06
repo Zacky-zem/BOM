@@ -712,13 +712,13 @@ function ReportContent() {
         @keyframes slideDown { from { opacity:0; transform:translateY(-12px) } to { opacity:1; transform:translateY(0) } }
       `}</style>
 
-      {/* Professional Glassmorphic Header */}
+      {/* Professional Glassmorphic Header - Unified with Home Page */}
       <header style={{
         background: 'rgba(248, 250, 252, 0.5)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(226, 232, 240, 0.5)',
-        padding: '12px 40px',
+        borderBottom: '1px solid rgba(226, 232, 240, 0.3)',
+        padding: isMobile ? '12px 20px' : '12px 40px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -728,12 +728,14 @@ function ReportContent() {
         left: 0,
         right: 0,
         zIndex: 100,
+        transition: 'all 0.3s ease',
       }}>
         {/* Left: Breadcrumb navigation */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 13 }}>
+        <nav style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: isMobile ? 12 : 13 }}>
           <button onClick={() => router.back?.()} style={{
-            background: 'none',
-            border: 'none',
+            background: 'rgba(255, 255, 255, 0.5)',
+            border: '1px solid rgba(226, 232, 240, 0.8)',
+            borderRadius: 8,
             cursor: 'pointer',
             color: '#64748b',
             fontWeight: 500,
@@ -742,16 +744,24 @@ function ReportContent() {
             alignItems: 'center',
             gap: 6,
             padding: '6px 10px',
-            borderRadius: 8,
-            transition: 'all 0.2s',
+            transition: 'all 0.2s ease',
           }}
-            onMouseOver={e => { e.currentTarget.style.background = 'rgba(241, 245, 249, 0.7)'; e.currentTarget.style.color = '#0f172a'; }}
-            onMouseOut={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#64748b'; }}
+            onMouseOver={e => { 
+              e.currentTarget.style.background = 'rgba(241, 245, 249, 0.9)'; 
+              e.currentTarget.style.borderColor = '#cbd5e1';
+              e.currentTarget.style.color = '#0f172a'; 
+            }}
+            onMouseOut={e => { 
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.5)'; 
+              e.currentTarget.style.borderColor = 'rgba(226, 232, 240, 0.8)';
+              e.currentTarget.style.color = '#64748b'; 
+            }}
           >
-            <span style={{ fontSize: 16 }}>←</span> Home
+            <span style={{ fontSize: 16 }}>←</span> 
+            <span style={{ display: isMobile ? 'none' : 'inline' }}>Home</span>
           </button>
-          <span style={{ color: '#cbd5e1' }}>/</span>
-          <span style={{ fontWeight: 600, color: '#0f172a' }}>Report</span>
+          <span style={{ color: '#cbd5e1', display: isMobile ? 'none' : 'inline' }}>/</span>
+          <span style={{ fontWeight: 600, color: '#0f172a', display: isMobile ? 'none' : 'inline' }}>Report</span>
         </nav>
 
         {/* Right: YAZAKI Logo */}
@@ -760,7 +770,7 @@ function ReportContent() {
             src="/yazaki-logo.jpeg"
             alt="YAZAKI Logo"
             style={{
-              height: 40,
+              height: isMobile ? 36 : 40,
               width: 'auto',
               objectFit: 'contain',
               opacity: 1,
@@ -773,11 +783,11 @@ function ReportContent() {
       {/* Top padding for fixed header */}
       <div style={{ height: 56 }} />
 
-      <main style={{ padding: '40px 40px', maxWidth: 1600, margin: '0 auto', animation: 'fadeUp .3s ease' }}>
+      <main style={{ padding: isMobile ? '40px 20px' : '40px 40px', maxWidth: 1600, margin: '0 auto', animation: 'fadeUp .3s ease' }}>
         {/* Professional Page Header */}
         <div style={{ marginBottom: 32 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: -0.6, marginBottom: 8 }}>Report</h1>
-          <p style={{ fontSize: 14, color: '#64748b', margin: 0 }}>Kalkulasi kebutuhan part berdasarkan BOM × Prod Qty</p>
+          <h1 style={{ fontSize: isMobile ? 24 : 28, fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: -0.6, marginBottom: 8, animation: 'fadeUp .3s ease 0.1s both' }}>Report</h1>
+          <p style={{ fontSize: isMobile ? 13 : 14, color: '#64748b', margin: 0, animation: 'fadeUp .3s ease 0.2s both' }}>Kalkulasi kebutuhan part berdasarkan BOM × Prod Qty</p>
         </div>
 
         {/* Filter card - simplified for showing active filters when data is loaded */}
@@ -806,60 +816,66 @@ function ReportContent() {
             padding: '0',
             overflow: 'hidden',
             boxShadow: '0 1px 3px rgba(0,0,0,.08)',
+            animation: 'fadeUp .3s ease',
           }}>
             <div style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              minHeight: '520px',
+              minHeight: isMobile ? 'auto' : '520px',
               flexDirection: 'column',
-              padding: '60px 40px',
+              padding: isMobile ? '40px 20px' : '60px 40px',
               textAlign: 'center',
             }}>
-              {/* Icon */}
+              {/* Icon - Modern Design */}
               <div style={{
-                width: 80,
-                height: 80,
+                width: isMobile ? 64 : 80,
+                height: isMobile ? 64 : 80,
                 borderRadius: 16,
-                background: 'linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%)',
+                background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: 40,
+                fontSize: isMobile ? 32 : 40,
                 marginBottom: 28,
-                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.15)',
+                boxShadow: '0 8px 16px rgba(37, 99, 235, 0.12)',
+                animation: 'fadeUp .4s ease 0.1s both',
               }}>
                 📊
               </div>
 
               {/* Heading */}
               <h2 style={{
-                fontSize: 22,
-                fontWeight: 700,
+                fontSize: isMobile ? 20 : 24,
+                fontWeight: 800,
                 color: '#0f172a',
                 margin: '0 0 12px 0',
-                letterSpacing: -0.3,
+                letterSpacing: -0.5,
+                animation: 'fadeUp .4s ease 0.2s both',
               }}>
-                Generate Report Data
+                Start Generating Report
               </h2>
 
               {/* Description */}
               <p style={{
-                fontSize: 14,
+                fontSize: isMobile ? 13 : 14,
                 color: '#64748b',
-                margin: '0 0 32px 0',
-                maxWidth: 420,
-                lineHeight: 1.5,
+                margin: '0 0 36px 0',
+                maxWidth: 440,
+                lineHeight: 1.6,
+                animation: 'fadeUp .4s ease 0.3s both',
               }}>
-                Select your preferred period and configure the report parameters to generate detailed component usage analysis.
+                Choose a report type and select a time period to analyze component usage across your production records.
               </p>
 
-              {/* Mode Selector */}
+              {/* Mode Selector - Compact & Responsive */}
               <div style={{
                 display: 'flex',
-                gap: 12,
-                marginBottom: 32,
+                gap: isMobile ? 10 : 12,
+                marginBottom: 36,
                 justifyContent: 'center',
+                flexWrap: isMobile ? 'wrap' : 'nowrap',
+                animation: 'fadeUp .4s ease 0.4s both',
               }}>
                 {(['single', 'gabungan'] as const).map(m => (
                   <button
@@ -869,33 +885,36 @@ function ReportContent() {
                       setHasLoaded(false);
                     }}
                     style={{
-                      padding: '12px 28px',
+                      padding: isMobile ? '10px 20px' : '12px 28px',
                       borderRadius: 10,
                       border: '2px solid',
                       borderColor: mode === m ? '#1d4ed8' : '#e2e8f0',
                       background: mode === m ? '#1d4ed8' : '#fff',
                       color: mode === m ? '#fff' : '#64748b',
                       fontWeight: mode === m ? 700 : 600,
-                      fontSize: 14,
+                      fontSize: isMobile ? 13 : 14,
                       cursor: 'pointer',
                       fontFamily: font,
-                      transition: 'all 0.3s ease',
-                      boxShadow: mode === m ? '0 4px 12px rgba(29, 78, 216, 0.3)' : 'none',
+                      transition: 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
+                      boxShadow: mode === m ? '0 4px 12px rgba(29, 78, 216, 0.25)' : 'none',
+                      whiteSpace: 'nowrap',
                     }}
                     onMouseOver={e => {
                       if (mode !== m) {
-                        e.currentTarget.style.borderColor = '#cbd5e1';
-                        e.currentTarget.style.background = '#f8fafc';
+                        e.currentTarget.style.borderColor = '#1d4ed8';
+                        e.currentTarget.style.background = '#f0f9ff';
+                        e.currentTarget.style.transform = 'translateY(-1px)';
                       }
                     }}
                     onMouseOut={e => {
                       if (mode !== m) {
                         e.currentTarget.style.borderColor = '#e2e8f0';
                         e.currentTarget.style.background = '#fff';
+                        e.currentTarget.style.transform = 'translateY(0)';
                       }
                     }}
                   >
-                    {m === 'single' ? '📅 Single Period' : '📆 Combined'}
+                    {m === 'single' ? '📅 Single Period' : '📆 Combined Range'}
                   </button>
                 ))}
               </div>
@@ -904,11 +923,12 @@ function ReportContent() {
               <div style={{
                 background: '#f8fafc',
                 borderRadius: 12,
-                padding: '28px 32px',
+                padding: isMobile ? '24px 20px' : '28px 32px',
                 marginBottom: 28,
                 border: '1px solid #e2e8f0',
                 maxWidth: 500,
                 width: '100%',
+                animation: 'fadeUp .4s ease 0.5s both',
               }}>
                 {mode === 'single' ? (
                   // Single Period Mode
@@ -938,7 +958,7 @@ function ReportContent() {
                         cursor: 'pointer',
                         color: '#0f172a',
                         fontWeight: 500,
-                        transition: 'all 0.2s',
+                        transition: 'all 0.2s ease',
                       }}
                       onFocus={e => {
                         e.currentTarget.style.borderColor = '#1d4ed8';
@@ -970,7 +990,7 @@ function ReportContent() {
                     }}>
                       Period Range (Max 12 months)
                     </label>
-                    <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 16 }}>
+                    <div style={{ display: 'flex', gap: isMobile ? 8 : 12, alignItems: 'flex-start', marginBottom: 16, flexDirection: isMobile ? 'column' : 'row' }}>
                       <div style={{ flex: 1 }}>
                         <select
                           value={dari}
@@ -986,7 +1006,7 @@ function ReportContent() {
                             cursor: 'pointer',
                             color: '#0f172a',
                             fontWeight: 500,
-                            transition: 'all 0.2s',
+                            transition: 'all 0.2s ease',
                           }}
                           onFocus={e => {
                             if (!isExceedsMax) {
@@ -1024,7 +1044,7 @@ function ReportContent() {
                             cursor: 'pointer',
                             color: '#0f172a',
                             fontWeight: 500,
-                            transition: 'all 0.2s',
+                            transition: 'all 0.2s ease',
                           }}
                           onFocus={e => {
                             if (!isExceedsMax) {
@@ -1261,15 +1281,15 @@ function ReportContent() {
                 onClick={handleLoad}
                 disabled={mode === 'gabungan' && isExceedsMax}
                 style={{
-                  padding: '14px 48px',
+                  padding: isMobile ? '12px 36px' : '14px 48px',
                   borderRadius: 10,
                   border: 'none',
                   background:
                     mode === 'gabungan' && isExceedsMax
                       ? '#e5e7eb'
-                      : 'linear-gradient(135deg, #1e3a8a, #2563eb)',
+                      : 'linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%)',
                   color: mode === 'gabungan' && isExceedsMax ? '#9ca3af' : '#fff',
-                  fontSize: 15,
+                  fontSize: isMobile ? 14 : 15,
                   fontWeight: 700,
                   cursor:
                     mode === 'gabungan' && isExceedsMax ? 'not-allowed' : 'pointer',
@@ -1277,25 +1297,26 @@ function ReportContent() {
                   boxShadow:
                     mode === 'gabungan' && isExceedsMax
                       ? 'none'
-                      : '0 6px 20px rgba(37, 99, 235, 0.35)',
-                  transition: 'all 0.3s ease',
+                      : '0 8px 16px rgba(29, 78, 216, 0.3)',
+                  transition: 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
+                  animation: 'fadeUp .4s ease 0.6s both',
                 }}
                 onMouseOver={e => {
                   if (!(mode === 'gabungan' && isExceedsMax)) {
                     e.currentTarget.style.transform = 'translateY(-2px)';
                     e.currentTarget.style.boxShadow =
-                      '0 8px 28px rgba(37, 99, 235, 0.45)';
+                      '0 12px 24px rgba(29, 78, 216, 0.4)';
                   }
                 }}
                 onMouseOut={e => {
                   if (!(mode === 'gabungan' && isExceedsMax)) {
                     e.currentTarget.style.transform = 'translateY(0)';
                     e.currentTarget.style.boxShadow =
-                      '0 6px 20px rgba(37, 99, 235, 0.35)';
+                      '0 8px 16px rgba(29, 78, 216, 0.3)';
                   }
                 }}
               >
-                Generate Report
+                ✓ Generate Report
               </button>
 
               {/* Formula info */}
@@ -1320,20 +1341,69 @@ function ReportContent() {
           <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e8eaed', padding: '40px 0', textAlign: 'center', color: '#9ca3af' }}>Tidak ada data</div>
         ) : (
           <div style={{ background: '#fff', borderRadius: 14, border: '1px solid #e8eaed', overflow: 'hidden' }}>
-            {/* Toolbar */}
-            <div style={{ padding: '14px 20px', borderBottom: '1px solid #e8eaed', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-              <div style={{ position: 'relative' }}>
+            {/* Toolbar - Responsive & Interactive */}
+            <div style={{ 
+              padding: isMobile ? '12px 16px' : '14px 20px',
+              borderBottom: '1px solid #e8eaed', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: isMobile ? 8 : 12, 
+              flexWrap: 'wrap',
+              background: '#fafbfc',
+            }}>
+              <div style={{ position: 'relative', flex: isMobile ? '1 1 100%' : 'auto', minWidth: isMobile ? '100%' : 260 }}>
                 <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', fontSize: 13 }}>🔍</span>
                 <input value={search} onChange={e => handleSearch(e.target.value)} placeholder="Cari part no / part name..."
-                  style={{ padding: '7px 12px 7px 32px', borderRadius: 8, border: '1.5px solid #e2e8f0', fontSize: 13, fontFamily: font, outline: 'none', width: 260 }}
-                  onFocus={e => e.target.style.borderColor = '#3b82f6'}
-                  onBlur={e =>  e.target.style.borderColor = '#e2e8f0'}
+                  style={{ 
+                    padding: '7px 12px 7px 32px', 
+                    borderRadius: 8, 
+                    border: '1.5px solid #e2e8f0', 
+                    fontSize: 13, 
+                    fontFamily: font, 
+                    outline: 'none', 
+                    width: '100%',
+                    transition: 'all 0.2s ease',
+                    background: '#fff',
+                  }}
+                  onFocus={e => {
+                    e.currentTarget.style.borderColor = '#1d4ed8';
+                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(29, 78, 216, 0.1)';
+                  }}
+                  onBlur={e => {
+                    e.currentTarget.style.borderColor = '#e2e8f0';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
                 />
               </div>
-              <button onClick={handleExport} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#10b981', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: font }}>
-                Ekspor
+              <button 
+                onClick={handleExport} 
+                style={{ 
+                  padding: isMobile ? '7px 12px' : '8px 16px', 
+                  borderRadius: 8, 
+                  border: 'none', 
+                  background: '#10b981', 
+                  color: '#fff', 
+                  fontSize: isMobile ? 12 : 13, 
+                  fontWeight: 700, 
+                  cursor: 'pointer', 
+                  fontFamily: font,
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseOver={e => {
+                  e.currentTarget.style.background = '#059669';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.25)';
+                }}
+                onMouseOut={e => {
+                  e.currentTarget.style.background = '#10b981';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                ↓ Ekspor
               </button>
-              <span style={{ fontSize: 12.5, color: '#6b7280' }}>
+              <span style={{ fontSize: isMobile ? 11 : 12.5, color: '#6b7280', display: isMobile ? 'none' : 'inline' }}>
                 <b style={{ color: '#111827' }}>{totalParts.toLocaleString()}</b> part ·
                 <b style={{ color: '#111827' }}> {assyCodes.length}</b> ASSY ·
                 Periode: <b style={{ color: '#1d4ed8' }}>
