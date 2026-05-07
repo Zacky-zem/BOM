@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo, useTransition } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useVirtualizer } from '@tanstack/react-virtual';
@@ -85,8 +85,7 @@ function PageBtn({ children, onClick, disabled, active }: { children: React.Reac
   );
 }
 
-// ── Virtual Report Table ────────────────────────────────────────
-// Render hanya kolom yang visible — krusial untuk 500 ASSY × 12 periode
+// ── Virtual Report Table (FIXED MOBILE) ────────────────────────
 function VirtualReportTable({
   rows, cols, mode, periodes,
   footerColSums, footerTotalUsage, isMobile,
@@ -100,26 +99,25 @@ function VirtualReportTable({
   footerTotalUsage: number;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const FW = isMobile ? [155, 110, 110, 160, 55] : [130, 110, 110, 160, 55];
+  const fixedTotalW = isMobile
+    ? FW[0]                            // 155
+    : FW.reduce((a, b) => a + b, 0);  // 130+110+110+160+55 = 565
 
-  // Fixed columns: Part No, AS400, Supplier, Part Name, Unit = 5 cols
-  // lebar masing-masing (responsive for mobile):
-  const FW = isMobile ? [100, 110, 110, 160, 55] : [130, 110, 110, 160, 55];
-  const fixedTotalW = FW.reduce((a, b) => a + b, 0);
-  const STICKY_RIGHT_PRICE = 80;
-  const STICKY_RIGHT_TOTAL = 72;
-  const STICKY_RIGHT_USAGE = 90;
-  const COL_W   = mode === 'gabungan' ? 62 : 90;
-  const ROW_H   = 36; // Consistent row height
-  const HEAD1_H = 34;
-  const HEAD2_H = mode === 'gabungan' ? 26 : 0;
-  const HEAD3_H = 30; // prod qty row
-  const TOTAL_HEAD_H = HEAD1_H + HEAD2_H + HEAD3_H;
-  // Consistent font sizes across all breakpoints
-  const FONT_SIZE_HEADER = 11;
-  const FONT_SIZE_BODY = 12;
-  const FONT_SIZE_SMALL = 10;
+  const STICKY_RIGHT_PRICE = isMobile ? 68 : 80;
+  const STICKY_RIGHT_TOTAL = isMobile ? 58 : 72;
+  const STICKY_RIGHT_USAGE = isMobile ? 72 : 90;
+  const STICKY_RIGHT_TOTAL_W = STICKY_RIGHT_PRICE + STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE;
 
-  // Virtual columns
+  const COL_W   = mode === 'gabungan' ? (isMobile ? 52 : 62) : (isMobile ? 72 : 90);
+  const ROW_H   = isMobile ? 34 : 36;
+  const HEAD1_H = isMobile ? 30 : 34;
+  const HEAD2_H = mode === 'gabungan' ? (isMobile ? 22 : 26) : 0;
+  const HEAD3_H = isMobile ? 26 : 30;
+  const FS_HEADER = isMobile ? 10 : 11;
+  const FS_BODY   = isMobile ? 11 : 12;
+  const FS_SMALL  = isMobile ? 9  : 10;
+
   const colVirt = useVirtualizer({
     horizontal:       true,
     count:            cols.length,
@@ -128,7 +126,6 @@ function VirtualReportTable({
     overscan:         8,
   });
 
-  // Virtual rows
   const rowVirt = useVirtualizer({
     count:            rows.length,
     getScrollElement: () => scrollRef.current,
@@ -136,45 +133,124 @@ function VirtualReportTable({
     overscan:         12,
   });
 
-  const dynW = colVirt.getTotalSize();
+  const dynW   = colVirt.getTotalSize();
+  // totalW dipakai KONSISTEN di semua baris — jangan pakai 'minWidth:100%' saja
+  const totalW = fixedTotalW + dynW + STICKY_RIGHT_TOTAL_W;
+
+  // ── Helper: sticky fixed cell style ──────────────────────────
+  const stickyCell = (
+    left: number,
+    width: number,
+    bg: string,
+    extra: React.CSSProperties = {}
+  ): React.CSSProperties => ({
+    position: 'sticky',
+    left,
+    width,
+    flexShrink: 0,
+    background: bg,
+    zIndex: 21,
+    height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    ...extra,
+  });
+
+  // ── Helper: sticky right cell style ──────────────────────────
+  const stickyRight = (
+    right: number,
+    width: number,
+    bg: string,
+    extra: React.CSSProperties = {}
+  ): React.CSSProperties => ({
+    position: 'sticky',
+    right,
+    width,
+    flexShrink: 0,
+    background: bg,
+    zIndex: 10,
+    height: ROW_H,
+    display: 'flex',
+    alignItems: 'center',
+    ...extra,
+  });
 
   return (
-    <div ref={scrollRef} style={{ overflow: 'auto', maxHeight: 'calc(100vh - 260px)', position: 'relative', fontSize: 11.5, whiteSpace: 'nowrap' }}>
+    <div
+      ref={scrollRef}
+      style={{
+        overflow: 'auto',
+        maxHeight: 'calc(100vh - 260px)',
+        position: 'relative',
+        fontSize: FS_BODY,
+        whiteSpace: 'nowrap',
+        // Pastikan container tidak clip sticky elements
+        WebkitOverflowScrolling: 'touch',
+      }}
+    >
 
-      {/* ── STICKY HEADER ── */}
-      <div style={{ position: 'sticky', top: 0, zIndex: 20, display: 'flex', flexDirection: 'column', width: fixedTotalW + dynW + STICKY_RIGHT_PRICE + STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, minWidth: '100%' }}>
+      {/* ══════════════════════════════════════════
+          STICKY HEADER
+          width: totalW — konsisten dengan semua baris
+          ══════════════════════════════════════════ */}
+      <div style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 20,
+        display: 'flex',
+        flexDirection: 'column',
+        // KUNCI: width eksplisit, bukan minWidth:'100%'
+        width: totalW,
+        minWidth: '100%',
+      }}>
 
-        {/* Row 1: Column labels */}
-        <div style={{ display: 'flex', background: '#1e3a5f', height: HEAD1_H }}>
-          {/* Fixed headers - responsive for mobile/desktop */}
-          {(['PART NO','PART NO AS400','SUPPLIER','PART NAME','UNIT'] as const).map((label, i) => {
-            if (isMobile && i > 0) return null; // Only show PART NO on mobile
-            const leftPos = isMobile ? 0 : FW.slice(0,i).reduce((a,b)=>a+b,0);
-            return (
-              <div key={label} style={{
-                width: FW[i], flexShrink: 0, padding: isMobile ? '0 4px' : '0 10px',
-                display: 'flex', alignItems: 'center',
-                color: '#cbd5e1', fontWeight: 600, fontSize: FONT_SIZE_HEADER,
-                borderRight: i === 4 ? '2px solid #475569' : '1px solid #334155',
-                position: 'sticky', left: leftPos, background: '#1e3a5f', zIndex: 21,
-              }}>{label}</div>
-            );
-          })}
+        {/* ── Header Row 1: Column labels ── */}
+        <div style={{ display: 'flex', background: '#1e3a5f', height: HEAD1_H, alignItems: 'center' }}>
+
+          {/* Fixed col: PART NO — selalu ada */}
+          <div style={stickyCell(0, FW[0], '#1e3a5f', {
+            padding: isMobile ? '0 6px' : '0 10px',
+            color: '#cbd5e1',
+            fontWeight: 700,
+            fontSize: FS_HEADER,
+            // Border tebal di mobile karena ini border terakhir fixed area
+            borderRight: isMobile ? '2px solid #475569' : '1px solid #334155',
+          })}>
+            PART NO
+          </div>
+
+          {/* Fixed cols desktop only */}
+          {!isMobile && (
+            <>
+              <div style={stickyCell(FW[0], FW[1], '#1e3a5f', { padding: '0 10px', color: '#cbd5e1', fontWeight: 700, fontSize: FS_HEADER, borderRight: '1px solid #334155' })}>
+                PART NO AS400
+              </div>
+              <div style={stickyCell(FW[0]+FW[1], FW[2], '#1e3a5f', { padding: '0 10px', color: '#cbd5e1', fontWeight: 700, fontSize: FS_HEADER, borderRight: '1px solid #334155' })}>
+                SUPPLIER
+              </div>
+              <div style={stickyCell(FW[0]+FW[1]+FW[2], FW[3], '#1e3a5f', { padding: '0 10px', color: '#cbd5e1', fontWeight: 700, fontSize: FS_HEADER, borderRight: '1px solid #334155' })}>
+                PART NAME
+              </div>
+              <div style={stickyCell(FW[0]+FW[1]+FW[2]+FW[3], FW[4], '#1e3a5f', { padding: '0 10px', color: '#cbd5e1', fontWeight: 700, fontSize: FS_HEADER, borderRight: '2px solid #475569' })}>
+                UNIT
+              </div>
+            </>
+          )}
+
           {/* Dynamic ASSY headers */}
           <div style={{ position: 'relative', width: dynW, flexShrink: 0, height: HEAD1_H }}>
             {colVirt.getVirtualItems().map(vcol => {
               const col = cols[vcol.index];
-              // Untuk gabungan: render label assy hanya di kolom pertama per assy
-              const isFirstOfAssy = mode !== 'gabungan' || vcol.index === 0 ||
-                cols[vcol.index - 1].assy !== col.assy;
-              const assySpanCount = mode === 'gabungan'
-                ? periodes.length : 1;
+              const isFirstOfAssy = mode !== 'gabungan' || vcol.index === 0 || cols[vcol.index - 1].assy !== col.assy;
+              const assySpanCount = mode === 'gabungan' ? periodes.length : 1;
               return (
                 <div key={vcol.key} style={{
-                  position: 'absolute', left: vcol.start, width: mode === 'gabungan' && isFirstOfAssy ? COL_W * assySpanCount : vcol.size,
+                  position: 'absolute',
+                  left: vcol.start,
+                  width: mode === 'gabungan' && isFirstOfAssy ? COL_W * assySpanCount : vcol.size,
                   height: HEAD1_H,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#93c5fd', fontWeight: 600, fontSize: FONT_SIZE_HEADER,
+                  color: '#93c5fd', fontWeight: 600, fontSize: FS_HEADER,
                   borderRight: '1px solid #334155',
                   overflow: 'hidden',
                   pointerEvents: isFirstOfAssy ? 'auto' : 'none',
@@ -187,18 +263,43 @@ function VirtualReportTable({
               );
             })}
           </div>
-          {/* Sticky right: Price, Total, Total Usage */}
-          <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#a78bfa', fontWeight: 700, fontSize: FONT_SIZE_HEADER, borderLeft: '2px solid #8b5cf6', background: '#1c2d1e', position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE }}>PRICE</div>
-          <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#fbbf24', fontWeight: 700, fontSize: FONT_SIZE_HEADER, borderLeft: '2px solid #f59e0b', background: '#1c2d1e', position: 'sticky', right: STICKY_RIGHT_USAGE }}>TOTAL</div>
-          <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#4ade80', fontWeight: 700, fontSize: FONT_SIZE_HEADER, borderLeft: '2px solid #16a34a', background: '#1c2d1e', position: 'sticky', right: 0 }}>TOTAL USAGE</div>
+
+          {/* Sticky right headers */}
+          <div style={stickyRight(STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, STICKY_RIGHT_PRICE, '#1c2d1e', {
+            padding: isMobile ? '0 4px' : '0 8px',
+            justifyContent: 'flex-end',
+            color: '#a78bfa', fontWeight: 700, fontSize: FS_HEADER,
+            borderLeft: '2px solid #8b5cf6',
+            zIndex: 21,
+          })}>
+            PRICE
+          </div>
+          <div style={stickyRight(STICKY_RIGHT_USAGE, STICKY_RIGHT_TOTAL, '#1c2d1e', {
+            padding: isMobile ? '0 4px' : '0 8px',
+            justifyContent: 'flex-end',
+            color: '#fbbf24', fontWeight: 700, fontSize: FS_HEADER,
+            borderLeft: '2px solid #f59e0b',
+            zIndex: 21,
+          })}>
+            TOT
+          </div>
+          <div style={stickyRight(0, STICKY_RIGHT_USAGE, '#1c2d1e', {
+            padding: isMobile ? '0 4px' : '0 8px',
+            justifyContent: 'flex-end',
+            color: '#4ade80', fontWeight: 700, fontSize: FS_HEADER,
+            borderLeft: '2px solid #16a34a',
+            zIndex: 21,
+          })}>
+            {isMobile ? 'USAGE' : 'TOTAL USAGE'}
+          </div>
         </div>
 
-        {/* Row 2: Sub-header periode (gabungan only) */}
+        {/* ── Header Row 2: Sub-header periode (gabungan only) ── */}
         {mode === 'gabungan' && HEAD2_H > 0 && (
-          <div style={{ display: 'flex', background: '#1a2f3f', height: HEAD2_H }}>
-            {FW.map((w, i) => (
-              <div key={i} style={{ width: w, flexShrink: 0, borderRight: i === 4 ? '2px solid #475569' : '1px solid #334155', position: 'sticky', left: FW.slice(0,i).reduce((a,b)=>a+b,0), background: '#1a2f3f', zIndex: 21 }} />
-            ))}
+          <div style={{ display: 'flex', background: '#1a2f3f', height: HEAD2_H, alignItems: 'center' }}>
+            {/* Satu div fixed dengan lebar fixedTotalW PERSIS */}
+            <div style={stickyCell(0, fixedTotalW, '#1a2f3f', { borderRight: '2px solid #475569' })} />
+
             <div style={{ position: 'relative', width: dynW, flexShrink: 0, height: HEAD2_H }}>
               {colVirt.getVirtualItems().map(vcol => {
                 const col = cols[vcol.index];
@@ -206,7 +307,7 @@ function VirtualReportTable({
                   <div key={vcol.key} style={{
                     position: 'absolute', left: vcol.start, width: vcol.size, height: HEAD2_H,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#94a3b8', fontSize: FONT_SIZE_SMALL, fontWeight: 500,
+                    color: '#94a3b8', fontSize: FS_SMALL, fontWeight: 500,
                     borderRight: '1px solid #334155', background: '#1a2f3f',
                   }}>
                     {col.periode ? fmtPeriodeShort(col.periode) : ''}
@@ -214,18 +315,24 @@ function VirtualReportTable({
                 );
               })}
             </div>
-            <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, borderLeft: '2px solid #8b5cf6', background: '#1a2f3f', position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE }} />
-            <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, borderLeft: '2px solid #f59e0b', background: '#1a2f3f', position: 'sticky', right: STICKY_RIGHT_USAGE }} />
-            <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, borderLeft: '2px solid #16a34a', background: '#1a2f3f', position: 'sticky', right: 0 }} />
+
+            <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, height: HEAD2_H, background: '#1a2f3f', borderLeft: '2px solid #8b5cf6', position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, zIndex: 21 }} />
+            <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, height: HEAD2_H, background: '#1a2f3f', borderLeft: '2px solid #f59e0b', position: 'sticky', right: STICKY_RIGHT_USAGE, zIndex: 21 }} />
+            <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, height: HEAD2_H, background: '#1a2f3f', borderLeft: '2px solid #16a34a', position: 'sticky', right: 0, zIndex: 21 }} />
           </div>
         )}
 
-        {/* Row 3: Prod Qty */}
-        <div style={{ display: 'flex', background: '#0f172a', height: HEAD3_H }}>
-          <div style={{ width: FW[0], flexShrink: 0, padding: '0 10px', display: 'flex', alignItems: 'center', color: '#f59e0b', fontWeight: 700, fontSize: FONT_SIZE_BODY, borderRight: '1px solid #1e293b', position: 'sticky', left: 0, background: '#0f172a', zIndex: 21 }}>PROD QTY →</div>
-          {!isMobile && FW.slice(1).map((w, i) => (
-            <div key={i} style={{ width: w, flexShrink: 0, borderRight: i === 3 ? '2px solid #475569' : '1px solid #1e293b', position: 'sticky', left: FW[0] + FW.slice(1, i+1).reduce((a,b)=>a+b,0), background: '#0f172a', zIndex: 21 }} />
-          ))}
+        {/* ── Header Row 3: PROD QTY ── */}
+        <div style={{ display: 'flex', background: '#0f172a', height: HEAD3_H, alignItems: 'center' }}>
+          {/* Satu div fixed dengan lebar fixedTotalW PERSIS — sama dengan row lain */}
+          <div style={stickyCell(0, fixedTotalW, '#0f172a', {
+            padding: '0 10px',
+            color: '#f59e0b', fontWeight: 700, fontSize: isMobile ? 11 : 12,
+            borderRight: '2px solid #475569',
+          })}>
+            PROD QTY →
+          </div>
+
           <div style={{ position: 'relative', width: dynW, flexShrink: 0, height: HEAD3_H }}>
             {colVirt.getVirtualItems().map(vcol => {
               const col = cols[vcol.index];
@@ -234,7 +341,7 @@ function VirtualReportTable({
                   position: 'absolute', left: vcol.start, width: vcol.size, height: HEAD3_H,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: col.prodQty > 0 ? '#fbbf24' : '#475569',
-                  fontWeight: 700, fontSize: FONT_SIZE_BODY,
+                  fontWeight: 700, fontSize: isMobile ? 11 : 12,
                   borderRight: '1px solid #1e293b',
                 }}>
                   {col.prodQty > 0 ? col.prodQty.toLocaleString() : '—'}
@@ -242,38 +349,74 @@ function VirtualReportTable({
               );
             })}
           </div>
-          <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, borderLeft: '2px solid #8b5cf6', background: '#0f172a', position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE }} />
-          <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, borderLeft: '2px solid #f59e0b', background: '#0f172a', position: 'sticky', right: STICKY_RIGHT_USAGE }} />
-          <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, borderLeft: '2px solid #16a34a', background: '#0f172a', position: 'sticky', right: 0 }} />
+
+          <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, height: HEAD3_H, background: '#0f172a', borderLeft: '2px solid #8b5cf6', position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, zIndex: 21 }} />
+          <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, height: HEAD3_H, background: '#0f172a', borderLeft: '2px solid #f59e0b', position: 'sticky', right: STICKY_RIGHT_USAGE, zIndex: 21 }} />
+          <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, height: HEAD3_H, background: '#0f172a', borderLeft: '2px solid #16a34a', position: 'sticky', right: 0, zIndex: 21 }} />
         </div>
       </div>
+      {/* ── END STICKY HEADER ── */}
 
-      {/* ── VIRTUAL ROWS ── */}
-      <div style={{ position: 'relative', height: rowVirt.getTotalSize(), width: fixedTotalW + dynW + STICKY_RIGHT_PRICE + STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, minWidth: '100%' }}>
+
+      {/* ══════════════════════════════════════════
+          VIRTUAL ROWS
+          width: totalW eksplisit — BUKAN '100%'
+          Ini yang bikin footer tidak overlay
+          ══════════════════════════════════════════ */}
+      <div style={{ position: 'relative', height: rowVirt.getTotalSize(), width: totalW, minWidth: '100%' }}>
         {rowVirt.getVirtualItems().map(vrow => {
           const { part, cells, totalQty, totalUsage } = rows[vrow.index];
           const isEven = vrow.index % 2 === 0;
           const rowBg  = isEven ? '#fff' : '#f8fafc';
-          const fixedBg = rowBg;
 
           return (
-            <div key={vrow.key} style={{
-              position: 'absolute', top: vrow.start, height: ROW_H, width: '100%',
-              display: 'flex', alignItems: 'center',
-              borderBottom: '1px solid #f1f5f9', background: rowBg,
-            }}
+            <div
+              key={vrow.key}
+              style={{
+                position: 'absolute',
+                top: vrow.start,
+                // KUNCI: width totalW eksplisit agar footer tidak overlay
+                width: totalW,
+                height: ROW_H,
+                display: 'flex',
+                alignItems: 'center',
+                borderBottom: '1px solid #f1f5f9',
+                background: rowBg,
+              }}
               onMouseOver={e => (e.currentTarget.style.background = '#eff6ff')}
-              onMouseOut={e =>  (e.currentTarget.style.background = rowBg)}
+              onMouseOut={e  => (e.currentTarget.style.background = rowBg)}
             >
-              {/* Fixed cells - responsive for mobile/desktop */}
-              <div style={{ width: FW[0], flexShrink: 0, padding: isMobile ? '0 4px' : '0 10px', fontFamily: 'monospace', fontSize: FONT_SIZE_BODY, color: '#1d4ed8', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', position: 'sticky', left: 0, background: fixedBg, zIndex: 2, borderRight: '1px solid #e2e8f0', height: ROW_H, display: 'flex', alignItems: 'center' }}>{part.part_no}</div>
+              {/* Fixed cell: PART NO — selalu ada */}
+              <div style={{
+                width: FW[0], flexShrink: 0,
+                padding: isMobile ? '0 6px' : '0 10px',
+                fontFamily: 'monospace', fontSize: FS_BODY,
+                color: '#1d4ed8', fontWeight: 700,
+                overflow: 'hidden', textOverflow: 'ellipsis',
+                position: 'sticky', left: 0,
+                background: rowBg, zIndex: 2,
+                borderRight: isMobile ? '2px solid #e2e8f0' : '1px solid #e2e8f0',
+                height: ROW_H, display: 'flex', alignItems: 'center',
+              }}>
+                {part.part_no}
+              </div>
+
+              {/* Fixed cells desktop only */}
               {!isMobile && (
                 <>
-                  <div style={{ width: FW[1], flexShrink: 0, padding: '0 10px', fontFamily: 'monospace', fontSize: FONT_SIZE_SMALL, color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', position: 'sticky', left: FW[0], background: fixedBg, zIndex: 2, borderRight: '1px solid #f1f5f9', height: ROW_H, display: 'flex', alignItems: 'center' }}>{part.part_no_as400 || '—'}</div>
-                  <div style={{ width: FW[2], flexShrink: 0, padding: '0 10px', fontSize: FONT_SIZE_SMALL, color: '#4b5563', overflow: 'hidden', textOverflow: 'ellipsis', position: 'sticky', left: FW[0] + FW[1], background: fixedBg, zIndex: 2, borderRight: '1px solid #f1f5f9', height: ROW_H, display: 'flex', alignItems: 'center' }}>{part.supplier_name || '—'}</div>
-                  <div style={{ width: FW[3], flexShrink: 0, padding: '0 10px', fontSize: FONT_SIZE_SMALL, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', position: 'sticky', left: FW[0] + FW[1] + FW[2], background: fixedBg, zIndex: 2, borderRight: '1px solid #f1f5f9', height: ROW_H, display: 'flex', alignItems: 'center' }}>{part.part_name || '—'}</div>
-                  <div style={{ width: FW[4], flexShrink: 0, padding: '0 6px', textAlign: 'center', position: 'sticky', left: FW[0] + FW[1] + FW[2] + FW[3], background: fixedBg, zIndex: 2, borderRight: '2px solid #e2e8f0', height: ROW_H, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ background: '#eff6ff', color: '#1d4ed8', borderRadius: 4, padding: '1px 5px', fontSize: FONT_SIZE_SMALL, fontWeight: 700 }}>{part.unit || '—'}</span>
+                  <div style={{ width: FW[1], flexShrink: 0, padding: '0 10px', fontFamily: 'monospace', fontSize: FS_SMALL, color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', position: 'sticky', left: FW[0], background: rowBg, zIndex: 2, borderRight: '1px solid #f1f5f9', height: ROW_H, display: 'flex', alignItems: 'center' }}>
+                    {part.part_no_as400 || '—'}
+                  </div>
+                  <div style={{ width: FW[2], flexShrink: 0, padding: '0 10px', fontSize: FS_SMALL, color: '#4b5563', overflow: 'hidden', textOverflow: 'ellipsis', position: 'sticky', left: FW[0]+FW[1], background: rowBg, zIndex: 2, borderRight: '1px solid #f1f5f9', height: ROW_H, display: 'flex', alignItems: 'center' }}>
+                    {part.supplier_name || '—'}
+                  </div>
+                  <div style={{ width: FW[3], flexShrink: 0, padding: '0 10px', fontSize: FS_SMALL, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', position: 'sticky', left: FW[0]+FW[1]+FW[2], background: rowBg, zIndex: 2, borderRight: '1px solid #f1f5f9', height: ROW_H, display: 'flex', alignItems: 'center' }}>
+                    {part.part_name || '—'}
+                  </div>
+                  <div style={{ width: FW[4], flexShrink: 0, padding: '0 6px', position: 'sticky', left: FW[0]+FW[1]+FW[2]+FW[3], background: rowBg, zIndex: 2, borderRight: '2px solid #e2e8f0', height: ROW_H, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ background: '#eff6ff', color: '#1d4ed8', borderRadius: 4, padding: '1px 5px', fontSize: FS_SMALL, fontWeight: 700 }}>
+                      {part.unit || '—'}
+                    </span>
                   </div>
                 </>
               )}
@@ -288,7 +431,7 @@ function VirtualReportTable({
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       color:      qty ? '#111827' : '#e5e7eb',
                       fontWeight: qty ? 600 : 400,
-                      borderRight: '1px solid #f1f5f9', fontSize: FONT_SIZE_BODY,
+                      borderRight: '1px solid #f1f5f9', fontSize: FS_BODY,
                     }}>
                       {qty != null && qty > 0 ? Number(qty).toLocaleString() : '·'}
                     </div>
@@ -296,49 +439,108 @@ function VirtualReportTable({
                 })}
               </div>
 
-              {/* Sticky right: Price, Total, Total Usage */}
-              <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, padding: isMobile ? '0 4px' : '0 8px', textAlign: 'right', fontWeight: 700, color: part.price != null ? '#7c3aed' : '#9ca3af', borderLeft: '2px solid #c4b5fd', background: isEven ? '#f5f3ff' : '#ede9fe', fontSize: FONT_SIZE_BODY, position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, height: ROW_H, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                {part.price != null ? Number(part.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'}
+              {/* Sticky right: PRICE */}
+              <div style={stickyRight(STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, STICKY_RIGHT_PRICE, isEven ? '#f5f3ff' : '#ede9fe', {
+                padding: isMobile ? '0 4px' : '0 8px',
+                justifyContent: 'flex-end',
+                fontWeight: 700,
+                color: part.price != null ? '#7c3aed' : '#9ca3af',
+                borderLeft: '2px solid #c4b5fd',
+                fontSize: FS_BODY,
+                zIndex: 10,
+              })}>
+                {part.price != null
+                  ? Number(part.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                  : '—'}
               </div>
-              <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, padding: isMobile ? '0 4px' : '0 8px', textAlign: 'right', fontWeight: 700, color: '#92400e', borderLeft: '2px solid #fde68a', background: isEven ? '#fffbeb' : '#fef9c3', fontSize: FONT_SIZE_BODY, position: 'sticky', right: STICKY_RIGHT_USAGE, height: ROW_H, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+
+              {/* Sticky right: TOTAL */}
+              <div style={stickyRight(STICKY_RIGHT_USAGE, STICKY_RIGHT_TOTAL, isEven ? '#fffbeb' : '#fef9c3', {
+                padding: isMobile ? '0 4px' : '0 8px',
+                justifyContent: 'flex-end',
+                fontWeight: 700,
+                color: '#92400e',
+                borderLeft: '2px solid #fde68a',
+                fontSize: FS_BODY,
+                zIndex: 10,
+              })}>
                 {totalQty > 0 ? totalQty.toLocaleString() : '—'}
               </div>
-              <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, padding: isMobile ? '0 4px' : '0 8px', textAlign: 'right', fontWeight: 700, color: totalUsage > 0 ? '#15803d' : '#9ca3af', borderLeft: '2px solid #bbf7d0', background: isEven ? '#f0fdf4' : '#dcfce7', fontSize: FONT_SIZE_BODY, position: 'sticky', right: 0, height: ROW_H, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+
+              {/* Sticky right: TOTAL USAGE */}
+              <div style={stickyRight(0, STICKY_RIGHT_USAGE, isEven ? '#f0fdf4' : '#dcfce7', {
+                padding: isMobile ? '0 4px' : '0 8px',
+                justifyContent: 'flex-end',
+                fontWeight: 700,
+                color: totalUsage > 0 ? '#15803d' : '#9ca3af',
+                borderLeft: '2px solid #bbf7d0',
+                fontSize: FS_BODY,
+                zIndex: 10,
+              })}>
                 {totalUsage > 0 ? totalUsage.toLocaleString() : '—'}
               </div>
             </div>
           );
         })}
       </div>
+      {/* ── END VIRTUAL ROWS ── */}
 
-      {/* ── FOOTER ── */}
+
+      {/* ══════════════════════════════════════════
+          STICKY FOOTER
+          width: totalW eksplisit — sama dengan rows
+          ══════════════════════════════════════════ */}
       <div style={{
-        position: 'sticky', bottom: 0, zIndex: 20,
-        display: 'flex', background: '#1e3a5f', height: ROW_H,
-        width: fixedTotalW + dynW + STICKY_RIGHT_PRICE + STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, minWidth: '100%',
+        position: 'sticky',
+        bottom: 0,
+        zIndex: 20,
+        display: 'flex',
+        alignItems: 'center',
+        background: '#1e3a5f',
+        height: ROW_H,
+        // KUNCI: width totalW eksplisit — bukan '100%'
+        width: totalW,
+        minWidth: '100%',
       }}>
-        <div style={{ width: FW[0], flexShrink: 0, padding: '0 10px', display: 'flex', alignItems: 'center', color: '#fbbf24', fontWeight: 700, fontSize: FONT_SIZE_BODY, borderRight: '1px solid #334155', position: 'sticky', left: 0, background: '#1e3a5f', zIndex: 21 }}>∑ TOTAL PER ASSY</div>
-        {!isMobile && FW.slice(1).map((w, i) => (
-          <div key={i} style={{ width: w, flexShrink: 0, borderRight: i === 3 ? '2px solid #475569' : '1px solid #334155', position: 'sticky', left: FW[0] + FW.slice(1, i+1).reduce((a,b)=>a+b,0), background: '#1e3a5f', zIndex: 21 }} />
-        ))}
+        {/* Fixed area footer — lebar fixedTotalW PERSIS */}
+        <div style={stickyCell(0, fixedTotalW, '#1e3a5f', {
+          padding: '0 10px',
+          color: '#fbbf24', fontWeight: 700, fontSize: isMobile ? 11 : 12,
+          borderRight: '2px solid #475569',
+        })}>
+          ∑ TOTAL PER ASSY
+        </div>
+
+        {/* Dynamic footer col sums */}
         <div style={{ position: 'relative', width: dynW, flexShrink: 0, height: ROW_H }}>
           {colVirt.getVirtualItems().map(vcol => (
             <div key={vcol.key} style={{
               position: 'absolute', left: vcol.start, width: vcol.size, height: ROW_H,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fbbf24', fontWeight: 700, fontSize: FONT_SIZE_BODY,
+              color: '#fbbf24', fontWeight: 700, fontSize: isMobile ? 11 : 12,
               borderRight: '1px solid #334155',
             }}>
               {footerColSums[vcol.index] > 0 ? footerColSums[vcol.index].toLocaleString() : '—'}
             </div>
           ))}
         </div>
-        <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, borderLeft: '2px solid #8b5cf6', background: '#1e3a5f', position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE }} />
-        <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, borderLeft: '2px solid #f59e0b', background: '#1e3a5f', position: 'sticky', right: STICKY_RIGHT_USAGE }} />
-        <div style={{ width: STICKY_RIGHT_USAGE, flexShrink: 0, padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#4ade80', fontWeight: 700, fontSize: FONT_SIZE_BODY, borderLeft: '2px solid #16a34a', background: '#1e3a5f', position: 'sticky', right: 0 }}>
+
+        <div style={{ width: STICKY_RIGHT_PRICE, flexShrink: 0, height: ROW_H, borderLeft: '2px solid #8b5cf6', background: '#1e3a5f', position: 'sticky', right: STICKY_RIGHT_TOTAL + STICKY_RIGHT_USAGE, zIndex: 21 }} />
+        <div style={{ width: STICKY_RIGHT_TOTAL, flexShrink: 0, height: ROW_H, borderLeft: '2px solid #f59e0b', background: '#1e3a5f', position: 'sticky', right: STICKY_RIGHT_USAGE, zIndex: 21 }} />
+        <div style={{
+          width: STICKY_RIGHT_USAGE, flexShrink: 0,
+          padding: isMobile ? '0 4px' : '0 8px',
+          height: ROW_H,
+          display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+          color: '#4ade80', fontWeight: 700, fontSize: isMobile ? 11 : 12,
+          borderLeft: '2px solid #16a34a', background: '#1e3a5f',
+          position: 'sticky', right: 0, zIndex: 21,
+        }}>
           {footerTotalUsage > 0 ? footerTotalUsage.toLocaleString() : '—'}
         </div>
       </div>
+      {/* ── END STICKY FOOTER ── */}
+
     </div>
   );
 }
@@ -381,6 +583,7 @@ function ReportContent() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [isPending, startTransition] = useTransition();
   
   // Fetch ALL parts data for footer totals (not paginated)
   const [footerData, setFooterData] = useState<{
@@ -419,7 +622,16 @@ function ReportContent() {
     setAllAssyCodes(data.assy_codes ?? []);
   }, [dari, sampai]);
 
-  useEffect(() => { if (mode === 'gabungan') loadAssyCodes(); }, [mode, dari, sampai, loadAssyCodes]);
+  useEffect(() => { 
+    if (mode !== 'gabungan' || !dari || !sampai) return;
+    
+    // Delay fetch agar browser selesai paint dulu (visual toggle kelar)
+    const id = setTimeout(() => {
+      loadAssyCodes();
+    }, 80);
+    
+    return () => clearTimeout(id);
+  }, [mode, dari, sampai, loadAssyCodes]);
 
   const buildUrl = useCallback((p: number, s: string) => {
     const base = mode === 'single'
@@ -445,10 +657,11 @@ function ReportContent() {
     setLoading(false);
   }, [buildUrl, mode, gabunganKey]);
 
-  const handleLoad = () => {
+  const handleLoad = useCallback(() => {
+    if (loading) return; // Prevent multiple clicks while loading
     setPage(1); setSearch(''); setHasLoaded(true); setResults({}); setPeriodes([]); setActivePer('');
     fetchData(1, '');
-  };
+  }, [loading, fetchData]);
 
   const handlePageChange = (newPage: number) => { setPage(newPage); fetchData(newPage, search); };
   const handleSearch = (val: string) => { setSearch(val); setPage(1); fetchData(1, val); };
@@ -818,30 +1031,38 @@ function ReportContent() {
           </div>
 
           {/* Mode toggle */}
-          <div style={{ display: 'flex', gap: 6, marginBottom: 20, background: '#f8fafc', borderRadius: 10, padding: 4, width: 'fit-content', border: '1px solid #e2e8f0', transition: 'all 0.2s ease' }}>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 20, background: '#f8fafc', borderRadius: 10, padding: 4, width: 'fit-content', border: '1px solid #e2e8f0', transition: 'all 0.2s ease', willChange: 'transform' }}>
             {(['single','gabungan'] as const).map(m => (
-              <button key={m} onClick={() => { setMode(m); setHasLoaded(false); }} style={{
+              <button key={m} 
+              onClick={() => {
+                if (mode === m) return; // skip kalau sudah aktif
+                setMode(m);
+                setHasLoaded(false);
+                setResults({});
+                setPeriodes([]);
+              }}
+              
+              style={{
                 padding: isMobile ? '6px 14px' : '7px 20px', borderRadius: 8, border: 'none',
                 background: mode === m ? '#fff' : 'transparent',
                 color:      mode === m ? '#1d4ed8' : '#64748b',
                 fontWeight: mode === m ? 700 : 500,
                 fontSize: isMobile ? 12 : 13, cursor: 'pointer', fontFamily: font,
                 boxShadow: mode === m ? '0 1px 4px rgba(0,0,0,.08)' : 'none',
-                transition: 'all 0.2s ease',
-                transform: 'scale(1)',
+                transition: 'background 0.1s, color 0.1s',
+                transform: 'translateZ(0)', 
+                willChange: 'background,color'
               }}
                 onMouseOver={e => {
                   if (mode !== m) {
                     e.currentTarget.style.color = '#1d4ed8';
                     e.currentTarget.style.background = 'rgba(29, 78, 216, 0.05)';
-                    e.currentTarget.style.transform = 'scale(1.02)';
                   }
                 }}
                 onMouseOut={e => {
                   if (mode !== m) {
                     e.currentTarget.style.color = '#64748b';
                     e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.transform = 'scale(1)';
                   }
                 }}
               >
@@ -894,16 +1115,14 @@ function ReportContent() {
 
                 {/* Filter ASSY picker */}
                 <div style={{ position: 'relative' }}>
-                  <button onClick={() => setShowAssyPicker(v => !v)} style={{ padding: '7px 14px', borderRadius: 8, border: '1.5px solid #7c3aed', background: '#faf5ff', color: '#7c3aed', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: font, transition: 'all 0.2s ease', transform: 'scale(1)' }}
+                  <button onClick={() => setShowAssyPicker(v => !v)} style={{ padding: '7px 14px', borderRadius: 8, border: '1.5px solid #7c3aed', background: '#faf5ff', color: '#7c3aed', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: font, transition: 'all 0.2s ease' }}
                     onMouseOver={e => {
                       e.currentTarget.style.background = '#f5e6ff';
                       e.currentTarget.style.borderColor = '#a855f7';
-                      e.currentTarget.style.transform = 'scale(1.02)';
                     }}
                     onMouseOut={e => {
                       e.currentTarget.style.background = '#faf5ff';
                       e.currentTarget.style.borderColor = '#7c3aed';
-                      e.currentTarget.style.transform = 'scale(1)';
                     }}
                   >
                     Filter ASSY {selectedAssy.size > 0 ? `(${selectedAssy.size} dipilih)` : '(semua)'}
@@ -914,24 +1133,20 @@ function ReportContent() {
                         <input value={assySearch} onChange={e => setAssySearch(e.target.value)} placeholder="Cari ASSY..." style={{ width: '100%', padding: '6px 10px', borderRadius: 7, border: '1.5px solid #e2e8f0', fontSize: 12.5, fontFamily: font, outline: 'none' }} />
                       </div>
                       <div style={{ padding: '6px', display: 'flex', gap: 6, borderBottom: '1px solid #f1f5f9' }}>
-                        <button onClick={() => setSelectedAssy(new Set(allAssyCodes))} style={{ flex: 1, padding: '4px', fontSize: 11.5, border: 'none', background: '#eff6ff', color: '#1d4ed8', borderRadius: 5, cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s ease', transform: 'scale(1)' }}
+                        <button onClick={() => setSelectedAssy(new Set(allAssyCodes))} style={{ flex: 1, padding: '4px', fontSize: 11.5, border: 'none', background: '#eff6ff', color: '#1d4ed8', borderRadius: 5, cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s ease' }}
                           onMouseOver={e => {
                             e.currentTarget.style.background = '#dbeafe';
-                            e.currentTarget.style.transform = 'scale(1.05)';
                           }}
                           onMouseOut={e => {
                             e.currentTarget.style.background = '#eff6ff';
-                            e.currentTarget.style.transform = 'scale(1)';
                           }}
                         >Pilih Semua</button>
-                        <button onClick={() => setSelectedAssy(new Set())} style={{ flex: 1, padding: '4px', fontSize: 11.5, border: 'none', background: '#fef2f2', color: '#dc2626', borderRadius: 5, cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s ease', transform: 'scale(1)' }}
+                        <button onClick={() => setSelectedAssy(new Set())} style={{ flex: 1, padding: '4px', fontSize: 11.5, border: 'none', background: '#fef2f2', color: '#dc2626', borderRadius: 5, cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s ease' }}
                           onMouseOver={e => {
                             e.currentTarget.style.background = '#fee2e2';
-                            e.currentTarget.style.transform = 'scale(1.05)';
                           }}
                           onMouseOut={e => {
                             e.currentTarget.style.background = '#fef2f2';
-                            e.currentTarget.style.transform = 'scale(1)';
                           }}
                         >Reset</button>
                       </div>
@@ -947,15 +1162,13 @@ function ReportContent() {
                         ))}
                       </div>
                       <div style={{ padding: '8px 12px', borderTop: '1px solid #f1f5f9' }}>
-                        <button onClick={() => setShowAssyPicker(false)} style={{ width: '100%', padding: '7px', borderRadius: 7, border: 'none', background: '#1d4ed8', color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: font, transition: 'all 0.2s ease', transform: 'translateY(0)' }}
+                        <button onClick={() => setShowAssyPicker(false)} style={{ width: '100%', padding: '7px', borderRadius: 7, border: 'none', background: '#1d4ed8', color: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: font, transition: 'all 0.2s ease' }}
                           onMouseOver={e => {
                             e.currentTarget.style.background = '#1e40af';
-                            e.currentTarget.style.transform = 'translateY(-2px)';
                             e.currentTarget.style.boxShadow = '0 4px 12px rgba(29, 78, 216, 0.3)';
                           }}
                           onMouseOut={e => {
                             e.currentTarget.style.background = '#1d4ed8';
-                            e.currentTarget.style.transform = 'translateY(0)';
                             e.currentTarget.style.boxShadow = 'none';
                           }}
                         >Terapkan</button>
@@ -966,22 +1179,17 @@ function ReportContent() {
               </>
             )}
 
-            <button onClick={handleLoad} disabled={mode === 'gabungan' && isExceedsMax} style={{ padding: '8px 24px', borderRadius: 8, border: 'none', background: mode === 'gabungan' && isExceedsMax ? '#d1d5db' : 'linear-gradient(135deg,#1e3a8a,#2563eb)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: mode === 'gabungan' && isExceedsMax ? 'not-allowed' : 'pointer', fontFamily: font, boxShadow: mode === 'gabungan' && isExceedsMax ? 'none' : '0 3px 10px rgba(37,99,235,.3)', transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)', transform: 'translateY(0)' }}
+            <button onClick={handleLoad} disabled={loading || (mode === 'gabungan' && isExceedsMax)} style={{ padding: '8px 24px', borderRadius: 8, border: 'none', background: loading || (mode === 'gabungan' && isExceedsMax) ? '#d1d5db' : 'linear-gradient(135deg,#1e3a8a,#2563eb)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: loading || (mode === 'gabungan' && isExceedsMax) ? 'not-allowed' : 'pointer', fontFamily: font, boxShadow: loading || (mode === 'gabungan' && isExceedsMax) ? 'none' : '0 3px 10px rgba(37,99,235,.3)', transition: 'all 0.2s ease' }}
               onMouseOver={e => {
-                if (!(mode === 'gabungan' && isExceedsMax)) {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
+                if (!(loading || (mode === 'gabungan' && isExceedsMax))) {
+                  e.currentTarget.style.background = 'linear-gradient(135deg,#1e40af,#3b82f6)';
                   e.currentTarget.style.boxShadow = '0 6px 20px rgba(37,99,235,.4)';
                 }
               }}
               onMouseOut={e => {
-                if (!(mode === 'gabungan' && isExceedsMax)) {
-                  e.currentTarget.style.transform = 'translateY(0)';
+                if (!(loading || (mode === 'gabungan' && isExceedsMax))) {
+                  e.currentTarget.style.background = 'linear-gradient(135deg,#1e3a8a,#2563eb)';
                   e.currentTarget.style.boxShadow = '0 3px 10px rgba(37,99,235,.3)';
-                }
-              }}
-              onMouseDown={e => {
-                if (!(mode === 'gabungan' && isExceedsMax)) {
-                  e.currentTarget.style.transform = 'translateY(0)';
                 }
               }}
             >
@@ -1070,12 +1278,10 @@ function ReportContent() {
               <button onClick={handleExport} style={{ padding: isMobile ? '7px 12px' : '8px 16px', borderRadius: 8, border: 'none', background: '#10b981', color: '#fff', fontSize: isMobile ? 12 : 13, fontWeight: 700, cursor: 'pointer', fontFamily: font, transition: 'all 0.2s ease', whiteSpace: 'nowrap' }}
                 onMouseOver={e => {
                   e.currentTarget.style.background = '#059669';
-                  e.currentTarget.style.transform = 'translateY(-1px)';
                   e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.25)';
                 }}
                 onMouseOut={e => {
                   e.currentTarget.style.background = '#10b981';
-                  e.currentTarget.style.transform = 'translateY(0)';
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               >
