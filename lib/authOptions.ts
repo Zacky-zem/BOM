@@ -44,7 +44,18 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  pages: { signIn: '/login', error: '/api/auth/error' },
+  pages: { signIn: '/login', error: '/login' },
   session: { strategy: 'jwt' },
   secret: process.env.NEXTAUTH_SECRET,
+  cookies: {
+    sessionToken: {
+      name: `${process.env.NEXTAUTH_URL ? '' : '__Secure-'}next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/bom-management',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+  },
 };
