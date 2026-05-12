@@ -17,7 +17,7 @@ export default function LoginPage() {
     setLoading(true); setError('');
     const res = await signIn('credentials', { username, password, redirect: false });
     if (res?.ok) {
-      router.push('/');
+      router.push('/bom-management/');
       router.refresh();
     } else {
       setError('Username atau password salah');
