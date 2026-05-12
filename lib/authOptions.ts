@@ -47,7 +47,6 @@ export const authOptions: NextAuthOptions = {
   pages: { signIn: '/login', error: '/login' },
   session: { strategy: 'jwt' },
   secret: process.env.NEXTAUTH_SECRET,
-  basePath: '/bom-management/api/auth',
   cookies: {
     sessionToken: {
       name: `${process.env.NEXTAUTH_URL ? '' : '__Secure-'}next-auth.session-token`,
