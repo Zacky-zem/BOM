@@ -17,8 +17,18 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { assy_code, assy_number, sequence, carline, destinasi, komoditi, description, is_active } = body;
 
-    if (!assy_code || !assy_number) {
-      return NextResponse.json({ error: 'assy_code dan assy_number wajib diisi' }, { status: 400 });
+    // Validasi di server-side
+    if (!assy_code || typeof assy_code !== 'string' || !assy_code.trim()) {
+      return NextResponse.json({ error: 'assy_code wajib diisi dan harus text' }, { status: 400 });
+    }
+
+    if (assy_number === null || assy_number === undefined || assy_number === '' || isNaN(Number(assy_number))) {
+      return NextResponse.json({ error: 'assy_number wajib diisi dan harus berupa angka' }, { status: 400 });
+    }
+
+    const assy_number_num = Number(assy_number);
+    if (assy_number_num <= 0) {
+      return NextResponse.json({ error: 'assy_number harus lebih besar dari 0' }, { status: 400 });
     }
 
     const result = await pool.query(
@@ -26,7 +36,7 @@ export async function POST(request: Request) {
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        ON CONFLICT (assy_code, sequence) DO NOTHING
        RETURNING *`,
-      [assy_code, assy_number, sequence ?? null, carline ?? null, destinasi ?? null,
+      [assy_code.trim(), assy_number_num, sequence ?? null, carline ?? null, destinasi ?? null,
        komoditi ?? null, description ?? null, is_active ?? true]
     );
 
@@ -36,7 +46,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result.rows[0], { status: 201 });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: 'Gagal menambah data' }, { status: 500 });
+    console.error('[v0] Error in POST /api/assy:', error);
+    return NextResponse.json({ error: 'Gagal menambah data - silakan periksa inputan Anda' }, { status: 500 });
   }
 }

@@ -150,7 +150,12 @@ function AssyForm({ initial, onSave, onClose, existingEntries }: {
       );
       if (isDuplicate) e.assy_code = 'Kombinasi Assy Code dan Sequence sudah ada';
     }
-    if (!form.assy_number || isNaN(Number(form.assy_number))) e.assy_number = 'Nomor urut wajib diisi (angka)';
+    // Validasi assy_number dengan pengecekan yang lebih ketat
+    if (!form.assy_number || form.assy_number.trim() === '' || isNaN(Number(form.assy_number))) {
+      e.assy_number = 'Nomor urut wajib diisi (harus angka)';
+    } else if (Number(form.assy_number) <= 0) {
+      e.assy_number = 'Nomor urut harus lebih besar dari 0';
+    }
     return e;
   };
 
@@ -227,9 +232,15 @@ export default function MasterAssyPage({ showToast, role }: {
   const handleAdd = async (form: Partial<Assy>) => {
     try {
       const res = await fetch('/api/assy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Gagal menambah ASSY');
+      }
       const created = await res.json();
       setData(d => [...d, created]); setModal(null); showToast('ASSY berhasil ditambahkan', 'success');
-    } catch { showToast('Gagal menambah ASSY', 'error'); }
+    } catch (err) { 
+      showToast((err as Error).message || 'Gagal menambah ASSY', 'error'); 
+    }
   };
 
   const handleEdit = async (form: Partial<Assy>) => {
