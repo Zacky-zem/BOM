@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import * as XLSX from 'xlsx';
 
 const font = "'DM Sans', system-ui, sans-serif";
@@ -29,9 +29,11 @@ interface AssyRow {
   updated_at: string | null;
 }
 
-export default function ProdPlanPage({ showToast, role }: {
+export default forwardRef(function ProdPlanPage({ showToast, role, onDetailChange }: {
   showToast: (msg: string, type: 'success' | 'error') => void;
   role: string;
+  onDetailChange?: (isDetail: boolean, periode?: string) => void;
+}, ref) {
 }) {
   const canEdit = role === 'FINANCE';
 
@@ -45,6 +47,16 @@ export default function ProdPlanPage({ showToast, role }: {
   const [search,        setSearch]        = useState('');
   const [isDirty,       setIsDirty]       = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Notify parent when entering/exiting detail view
+  useEffect(() => {
+    onDetailChange?.(!!selectedPeriode, selectedPeriode || undefined);
+  }, [selectedPeriode, onDetailChange]);
+
+  // Expose reset method to parent via ref
+  useImperativeHandle(ref, () => ({
+    resetDetail: () => setSelectedPeriode(null),
+  }), []);
 
   const fetchPeriodes = async () => {
     setLoading(true);
@@ -174,49 +186,6 @@ export default function ProdPlanPage({ showToast, role }: {
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div style={{ fontFamily: font }}>
-      {/* Top breadcrumb with back button - HANYA tampil saat detail view */}
-      {selectedPeriode && (
-        <div style={{
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: 10,
-          marginBottom: 20, 
-          paddingBottom: 12,
-          borderBottom: '1px solid #e5e7eb'
-        }}>
-          <button 
-            onClick={() => setSelectedPeriode(null)} 
-            style={{
-              background: '#f9fafb', 
-              border: '1.5px solid #e5e7eb', 
-              borderRadius: 8,
-              padding: '8px 16px', 
-              cursor: 'pointer', 
-              fontSize: 13,
-              fontWeight: 600, 
-              color: '#6b7280', 
-              fontFamily: font,
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 6,
-              transition: 'all 0.2s',
-              minWidth: 'fit-content'
-            }}
-            onMouseOver={e => {
-              e.currentTarget.style.background = '#f3f4f6';
-              e.currentTarget.style.borderColor = '#d1d5db';
-            }}
-            onMouseOut={e => {
-              e.currentTarget.style.background = '#f9fafb';
-              e.currentTarget.style.borderColor = '#e5e7eb';
-            }}>
-              ← Kembali
-          </button>
-          <span style={{ color: '#d1d5db', fontSize: 16 }}>/</span>
-          <span style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>Prod Plan</span>
-        </div>
-      )}
-
       {/* Role banner - ALWAYS show */}
       <div style={{
         background: canEdit ? '#fef2f2' : '#fffbeb',
@@ -447,7 +416,7 @@ export default function ProdPlanPage({ showToast, role }: {
       )}
     </div>
   );
-}
+});
 
 function LoadingBox() {
   return (

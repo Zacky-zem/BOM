@@ -15,6 +15,8 @@ export default function Home() {
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [prodplanDetailActive, setProdplanDetailActive] = useState(false);
+  const prodplanRef = useRef<any>(null);
 
   // ✅ DIHAPUS: useEffect redirect — sekarang middleware yang handle ini server-side
   // Tidak perlu lagi: if (status === 'unauthenticated') router.push('/login')
@@ -186,6 +188,41 @@ export default function Home() {
             </div>
           )}
 
+          {/* Back button for Prod Plan detail view (visible on desktop) */}
+          {!isMobile && page === 'prodplan' && prodplanDetailActive && (
+            <button
+              onClick={() => {
+                prodplanRef.current?.resetDetail();
+                setProdplanDetailActive(false);
+              }}
+              style={{
+                background: '#f9fafb',
+                border: '1.5px solid #e5e7eb',
+                borderRadius: 8,
+                padding: '8px 14px',
+                cursor: 'pointer',
+                fontSize: 13,
+                fontWeight: 600,
+                color: '#6b7280',
+                fontFamily: "'DM Sans', system-ui, sans-serif",
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                transition: 'all 0.2s',
+                marginRight: 'auto',
+              }}
+              onMouseOver={e => {
+                e.currentTarget.style.background = '#f3f4f6';
+                e.currentTarget.style.borderColor = '#d1d5db';
+              }}
+              onMouseOut={e => {
+                e.currentTarget.style.background = '#f9fafb';
+                e.currentTarget.style.borderColor = '#e5e7eb';
+              }}>
+              ← Kembali
+            </button>
+          )}
+
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {/* Logo at top-right (moved from sidebar) */}
             <img
@@ -211,7 +248,7 @@ export default function Home() {
           {page === 'assy'     && <MasterAssyPage showToast={showToast} role={role} />}
           {page === 'part'     && <MasterPartPage showToast={showToast} role={role} />}
           {page === 'bom'      && <MasterBomPage  showToast={showToast} role={role} />}
-          {page === 'prodplan' && <ProdPlanPage   showToast={showToast} role={role} />}
+          {page === 'prodplan' && <ProdPlanPage ref={prodplanRef} showToast={showToast} role={role} onDetailChange={(isDetail) => setProdplanDetailActive(isDetail)} />}
         </main>
       </div>
 
