@@ -174,41 +174,61 @@ export default function ProdPlanPage({ showToast, role }: {
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div style={{ fontFamily: font }}>
-      {/* Top breadcrumb with back button (visible on detail view) */}
+      {/* Top breadcrumb with back button - HANYA tampil saat detail view */}
       {selectedPeriode && (
         <div style={{
-          display: 'flex', alignItems: 'center', gap: 8,
-          marginBottom: 16, paddingTop: 0
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: 10,
+          marginBottom: 20, 
+          paddingBottom: 12,
+          borderBottom: '1px solid #e5e7eb'
         }}>
-          <button onClick={() => setSelectedPeriode(null)} style={{
-            background: '#f9fafb', border: '1.5px solid #e5e7eb', borderRadius: 8,
-            padding: '8px 16px', cursor: 'pointer', fontSize: 13,
-            fontWeight: 600, color: '#6b7280', fontFamily: font,
-            display: 'flex', alignItems: 'center', gap: 6,
-            transition: 'all 0.2s',
-          }}
-          onMouseOver={e => {
-            e.currentTarget.style.background = '#f3f4f6';
-            e.currentTarget.style.borderColor = '#d1d5db';
-          }}
-          onMouseOut={e => {
-            e.currentTarget.style.background = '#f9fafb';
-            e.currentTarget.style.borderColor = '#e5e7eb';
-          }}>
-            ← Kembali
+          <button 
+            onClick={() => setSelectedPeriode(null)} 
+            style={{
+              background: '#f9fafb', 
+              border: '1.5px solid #e5e7eb', 
+              borderRadius: 8,
+              padding: '8px 16px', 
+              cursor: 'pointer', 
+              fontSize: 13,
+              fontWeight: 600, 
+              color: '#6b7280', 
+              fontFamily: font,
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 6,
+              transition: 'all 0.2s',
+              minWidth: 'fit-content'
+            }}
+            onMouseOver={e => {
+              e.currentTarget.style.background = '#f3f4f6';
+              e.currentTarget.style.borderColor = '#d1d5db';
+            }}
+            onMouseOut={e => {
+              e.currentTarget.style.background = '#f9fafb';
+              e.currentTarget.style.borderColor = '#e5e7eb';
+            }}>
+              ← Kembali
           </button>
-          <span style={{ color: '#d1d5db' }}>/</span>
+          <span style={{ color: '#d1d5db', fontSize: 16 }}>/</span>
           <span style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>Prod Plan</span>
         </div>
       )}
 
-      {/* Role banner */}
+      {/* Role banner - ALWAYS show */}
       <div style={{
         background: canEdit ? '#fef2f2' : '#fffbeb',
         border: `1px solid ${canEdit ? '#fecaca' : '#fde68a'}`,
-        borderRadius: 10, padding: '10px 16px', marginBottom: 20,
-        fontSize: 13, color: canEdit ? '#dc2626' : '#92400e',
-        display: 'flex', alignItems: 'center', gap: 8,
+        borderRadius: 10, 
+        padding: '10px 16px', 
+        marginBottom: 20,
+        fontSize: 13, 
+        color: canEdit ? '#dc2626' : '#92400e',
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: 8,
       }}
         dangerouslySetInnerHTML={{ __html: canEdit
           ? '💰 Role <b>FINANCE</b> — dapat mengisi Prod Qty per ASSY per periode.'
