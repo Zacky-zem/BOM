@@ -187,6 +187,40 @@ export default function Home() {
           )}
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            {/* Back button for Prod Plan page */}
+            {page === 'prodplan' && (
+              <button
+                onClick={() => setPage('home')}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.5)',
+                  border: '1px solid rgba(226, 232, 240, 0.8)',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  fontWeight: 500,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '6px 10px',
+                  transition: 'all 0.2s ease',
+                  fontSize: 13,
+                  fontFamily: 'inherit',
+                }}
+                onMouseOver={e => { 
+                  e.currentTarget.style.background = 'rgba(241, 245, 249, 0.9)'; 
+                  e.currentTarget.style.borderColor = '#cbd5e1';
+                  e.currentTarget.style.color = '#0f172a'; 
+                }}
+                onMouseOut={e => { 
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.5)'; 
+                  e.currentTarget.style.borderColor = 'rgba(226, 232, 240, 0.8)';
+                  e.currentTarget.style.color = '#64748b'; 
+                }}
+              >
+                <span style={{ fontSize: 16 }}>←</span>
+                <span>Kembali</span>
+              </button>
+            )}
             {/* Logo at top-right (moved from sidebar) */}
             <img
               src="/yazaki-logo.jpeg"

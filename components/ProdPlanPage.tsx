@@ -29,9 +29,10 @@ interface AssyRow {
   updated_at: string | null;
 }
 
-export default function ProdPlanPage({ showToast, role }: {
+export default function ProdPlanPage({ showToast, role, onBack }: {
   showToast: (msg: string, type: 'success' | 'error') => void;
   role: string;
+  onBack?: () => void;
 }) {
   const canEdit = role === 'FINANCE';
 
@@ -251,37 +252,7 @@ export default function ProdPlanPage({ showToast, role }: {
         <>
           {/* Header */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <button onClick={() => setSelectedPeriode(null)} style={{
-                background: 'rgba(255, 255, 255, 0.5)',
-                border: '1px solid rgba(226, 232, 240, 0.8)',
-                borderRadius: 8,
-                cursor: 'pointer',
-                color: '#64748b',
-                fontWeight: 500,
-                fontFamily: font,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '6px 10px',
-                transition: 'all 0.2s ease',
-                fontSize: 13,
-              }}
-                onMouseOver={e => { 
-                  e.currentTarget.style.background = 'rgba(241, 245, 249, 0.9)'; 
-                  e.currentTarget.style.borderColor = '#cbd5e1';
-                  e.currentTarget.style.color = '#0f172a'; 
-                }}
-                onMouseOut={e => { 
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.5)'; 
-                  e.currentTarget.style.borderColor = 'rgba(226, 232, 240, 0.8)';
-                  e.currentTarget.style.color = '#64748b'; 
-                }}
-              >
-                <span style={{ fontSize: 16 }}>←</span>
-                <span>Kembali</span>
-              </button>
-              <div>
+            <div>
                 <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', margin: 0 }}>
                   Prod Plan — {formatPeriode(selectedPeriode)}
                 </h1>
