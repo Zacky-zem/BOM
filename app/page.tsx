@@ -211,7 +211,7 @@ export default function Home() {
           {page === 'assy'     && <MasterAssyPage showToast={showToast} role={role} />}
           {page === 'part'     && <MasterPartPage showToast={showToast} role={role} />}
           {page === 'bom'      && <MasterBomPage  showToast={showToast} role={role} />}
-          {page === 'prodplan' && <ProdPlanPage   showToast={showToast} role={role} />}
+          {page === 'prodplan' && <ProdPlanPage   showToast={showToast} role={role} sidebarOpen={sidebarOpen} isMobileLayout={isMobile} />}
         </main>
       </div>
 

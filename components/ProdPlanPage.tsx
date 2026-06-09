@@ -30,9 +30,11 @@ interface AssyRow {
   updated_at: string | null;
 }
 
-export default function ProdPlanPage({ showToast, role }: {
+export default function ProdPlanPage({ showToast, role, sidebarOpen = false, isMobileLayout = false }: {
   showToast: (msg: string, type: 'success' | 'error') => void;
   role: string;
+  sidebarOpen?: boolean;
+  isMobileLayout?: boolean;
 }) {
   const router = useRouter();
   const canEdit = role === 'FINANCE';
@@ -201,7 +203,7 @@ export default function ProdPlanPage({ showToast, role }: {
             height: 56,
             position: 'fixed',
             top: 0,
-            left: 0,
+            left: isMobileLayout ? 0 : (sidebarOpen ? 260 : 72),
             right: 0,
             zIndex: 100,
             transition: 'all 0.3s ease',
