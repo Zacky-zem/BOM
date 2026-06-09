@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import * as XLSX from 'xlsx';
 
 const font = "'DM Sans', system-ui, sans-serif";
@@ -33,7 +34,9 @@ export default function ProdPlanPage({ showToast, role }: {
   showToast: (msg: string, type: 'success' | 'error') => void;
   role: string;
 }) {
+  const router = useRouter();
   const canEdit = role === 'FINANCE';
+  const [isMobile, setIsMobile] = useState(false);
 
   const [periodes,      setPeriodes]      = useState<PeriodeStat[]>([]);
   const [loading,       setLoading]       = useState(true);
@@ -45,6 +48,15 @@ export default function ProdPlanPage({ showToast, role }: {
   const [search,        setSearch]        = useState('');
   const [isDirty,       setIsDirty]       = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const fetchPeriodes = async () => {
     setLoading(true);
@@ -174,21 +186,117 @@ export default function ProdPlanPage({ showToast, role }: {
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div style={{ fontFamily: font }}>
-      {/* Role banner */}
-      <div style={{
-        background: canEdit ? '#fef2f2' : '#fffbeb',
-        border: `1px solid ${canEdit ? '#fecaca' : '#fde68a'}`,
-        borderRadius: 10, padding: '10px 16px', marginBottom: 20,
-        fontSize: 13, color: canEdit ? '#dc2626' : '#92400e',
-        display: 'flex', alignItems: 'center', gap: 8,
-      }}
-        dangerouslySetInnerHTML={{ __html: canEdit
-          ? '💰 Role <b>FINANCE</b> — dapat mengisi Prod Qty per ASSY per periode.'
-          : `👁 Role <b>${role}</b> — hanya dapat melihat data Prod Plan.`
-        }}
-      />
+      {/* Professional Glassmorphic Header - Same as Report page */}
+      {selectedPeriode && (
+        <>
+          <header style={{
+            background: 'rgba(248, 250, 252, 0.5)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderBottom: '1px solid rgba(226, 232, 240, 0.3)',
+            padding: isMobile ? '12px 20px' : '12px 40px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            height: 56,
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 100,
+            transition: 'all 0.3s ease',
+          }}>
+            {/* Left: Back button */}
+            <nav style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: isMobile ? 12 : 13 }}>
+              <button onClick={() => setSelectedPeriode(null)} style={{
+                background: 'rgba(255, 255, 255, 0.5)',
+                border: '1px solid rgba(226, 232, 240, 0.8)',
+                borderRadius: 8,
+                cursor: 'pointer',
+                color: '#64748b',
+                fontWeight: 500,
+                fontFamily: font,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 10px',
+                transition: 'all 0.2s ease',
+              }}
+                onMouseOver={e => {
+                  e.currentTarget.style.background = 'rgba(241, 245, 249, 0.9)';
+                  e.currentTarget.style.borderColor = '#cbd5e1';
+                  e.currentTarget.style.color = '#0f172a';
+                }}
+                onMouseOut={e => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.5)';
+                  e.currentTarget.style.borderColor = 'rgba(226, 232, 240, 0.8)';
+                  e.currentTarget.style.color = '#64748b';
+                }}
+              >
+                <span style={{ fontSize: 16 }}>←</span>
+                <span style={{ display: isMobile ? 'none' : 'inline' }}>Kembali</span>
+              </button>
+              <span style={{ color: '#cbd5e1', display: isMobile ? 'none' : 'inline' }}>/</span>
+              <span style={{ fontWeight: 600, color: '#0f172a', display: isMobile ? 'none' : 'inline' }}>Prod Plan</span>
+            </nav>
 
-      {!selectedPeriode ? (
+            {/* Right: YAZAKI Logo */}
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <img
+                src="/yazaki-logo.jpeg"
+                alt="YAZAKI Logo"
+                style={{
+                  height: isMobile ? 36 : 40,
+                  width: 'auto',
+                  objectFit: 'contain',
+                  opacity: 1,
+                  transition: 'opacity 0.3s ease',
+                }}
+              />
+            </div>
+          </header>
+
+          {/* Top padding for fixed header */}
+          <div style={{ height: 56 }} />
+        </>
+      )}
+
+      {/* Main content container */}
+      <main style={{ padding: selectedPeriode ? (isMobile ? '24px 16px' : '32px 40px') : (isMobile ? '12px 12px 16px' : '28px 28px 24px') }}>
+        {/* Role banner - only show when not in detail view */}
+        {!selectedPeriode && (
+          <div style={{
+            background: canEdit ? '#fef2f2' : '#fffbeb',
+            border: `1px solid ${canEdit ? '#fecaca' : '#fde68a'}`,
+            borderRadius: 10, padding: '10px 16px', marginBottom: 20,
+            fontSize: 13, color: canEdit ? '#dc2626' : '#92400e',
+            display: 'flex', alignItems: 'center', gap: 8,
+          }}
+            dangerouslySetInnerHTML={{ __html: canEdit
+              ? '💰 Role <b>FINANCE</b> — dapat mengisi Prod Qty per ASSY per periode.'
+              : `👁 Role <b>${role}</b> — hanya dapat melihat data Prod Plan.`
+            }}
+          />
+        )}
+
+        {/* Role banner - show when in detail view */}
+        {selectedPeriode && (
+          <div style={{
+            background: canEdit ? '#fef2f2' : '#fffbeb',
+            border: `1px solid ${canEdit ? '#fecaca' : '#fde68a'}`,
+            borderRadius: 10, padding: '10px 16px', marginBottom: 20,
+            fontSize: 13, color: canEdit ? '#dc2626' : '#92400e',
+            display: 'flex', alignItems: 'center', gap: 8,
+          }}
+            dangerouslySetInnerHTML={{ __html: canEdit
+              ? '💰 Role <b>FINANCE</b> — dapat mengisi Prod Qty per ASSY per periode.'
+              : `👁 Role <b>${role}</b> — hanya dapat melihat data Prod Plan.`
+            }}
+          />
+        )}
+
+        {/* Content sections */}
+        {!selectedPeriode ? (
         /* ── Daftar Periode ── */
         <>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24 }}>
@@ -249,27 +357,20 @@ export default function ProdPlanPage({ showToast, role }: {
       ) : (
         /* ── Detail Input Prod Qty ── */
         <>
-          {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <button onClick={() => setSelectedPeriode(null)} style={{
-                background: '#f3f4f6', border: 'none', borderRadius: 8,
-                padding: '7px 14px', cursor: 'pointer', fontSize: 13,
-                fontWeight: 600, color: '#6b7280', fontFamily: font,
-                display: 'flex', alignItems: 'center', gap: 6,
-              }}>← Kembali</button>
-              <div>
-                <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', margin: 0 }}>
-                  Prod Plan — {formatPeriode(selectedPeriode)}
-                </h1>
-                <p style={{ fontSize: 12.5, color: '#6b7280', marginTop: 2 }}>
-                  {filledCount} / {assyRows.length} ASSY terisi · Total Prod Qty: <b>{totalProdQty.toLocaleString()}</b>
-                </p>
-              </div>
-            </div>
+          {/* Title and info section (without back button - now in fixed header) */}
+          <div style={{ marginBottom: 24 }}>
+            <h1 style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: '#111827', margin: 0 }}>
+              Prod Plan — {formatPeriode(selectedPeriode)}
+            </h1>
+            <p style={{ fontSize: isMobile ? 12.5 : 13.5, color: '#6b7280', marginTop: 6 }}>
+              {filledCount} / {assyRows.length} ASSY terisi · Total Prod Qty: <b>{totalProdQty.toLocaleString()}</b>
+            </p>
+          </div>
 
+          {/* Action buttons header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: 20, flexWrap: 'wrap', gap: 8 }}>
             {canEdit && (
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <>
                 <button onClick={handleDownloadTemplate} style={{
                   padding: '8px 16px', borderRadius: 9, border: '1.5px solid #e2e8f0',
                   background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600,
@@ -291,7 +392,7 @@ export default function ProdPlanPage({ showToast, role }: {
                   {saving ? '⏳ Menyimpan...' : '💾 Simpan Semua'}
                 </button>
                 <input ref={fileRef} type="file" accept=".xlsx,.xls" style={{ display: 'none' }} onChange={handleUploadExcel} />
-              </div>
+              </>
             )}
           </div>
 
@@ -403,6 +504,7 @@ export default function ProdPlanPage({ showToast, role }: {
           )}
         </>
       )}
+      </main>
     </div>
   );
 }
