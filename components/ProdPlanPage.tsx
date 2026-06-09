@@ -174,6 +174,34 @@ export default function ProdPlanPage({ showToast, role }: {
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div style={{ fontFamily: font }}>
+      {/* Top breadcrumb with back button (visible on detail view) */}
+      {selectedPeriode && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          marginBottom: 16, paddingTop: 0
+        }}>
+          <button onClick={() => setSelectedPeriode(null)} style={{
+            background: '#f9fafb', border: '1.5px solid #e5e7eb', borderRadius: 8,
+            padding: '8px 16px', cursor: 'pointer', fontSize: 13,
+            fontWeight: 600, color: '#6b7280', fontFamily: font,
+            display: 'flex', alignItems: 'center', gap: 6,
+            transition: 'all 0.2s',
+          }}
+          onMouseOver={e => {
+            e.currentTarget.style.background = '#f3f4f6';
+            e.currentTarget.style.borderColor = '#d1d5db';
+          }}
+          onMouseOut={e => {
+            e.currentTarget.style.background = '#f9fafb';
+            e.currentTarget.style.borderColor = '#e5e7eb';
+          }}>
+            ← Kembali
+          </button>
+          <span style={{ color: '#d1d5db' }}>/</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>Prod Plan</span>
+        </div>
+      )}
+
       {/* Role banner */}
       <div style={{
         background: canEdit ? '#fef2f2' : '#fffbeb',
@@ -252,12 +280,6 @@ export default function ProdPlanPage({ showToast, role }: {
           {/* Header */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <button onClick={() => setSelectedPeriode(null)} style={{
-                background: '#f3f4f6', border: 'none', borderRadius: 8,
-                padding: '7px 14px', cursor: 'pointer', fontSize: 13,
-                fontWeight: 600, color: '#6b7280', fontFamily: font,
-                display: 'flex', alignItems: 'center', gap: 6,
-              }}>← Kembali</button>
               <div>
                 <h1 style={{ fontSize: 20, fontWeight: 700, color: '#111827', margin: 0 }}>
                   Prod Plan — {formatPeriode(selectedPeriode)}
