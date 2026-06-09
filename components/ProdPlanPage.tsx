@@ -34,7 +34,6 @@ export default forwardRef(function ProdPlanPage({ showToast, role, onDetailChang
   role: string;
   onDetailChange?: (isDetail: boolean, periode?: string) => void;
 }, ref) {
-}) {
   const canEdit = role === 'FINANCE';
 
   const [periodes,      setPeriodes]      = useState<PeriodeStat[]>([]);
